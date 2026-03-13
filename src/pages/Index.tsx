@@ -33,8 +33,8 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
 ];
 
 const Index = () => {
+  const { signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("dash");
-  const progress = useProgress();
 
   const tStr = new Date().toISOString().split("T")[0];
   const dIdx = PROG.findIndex(d => d.date === tStr);
