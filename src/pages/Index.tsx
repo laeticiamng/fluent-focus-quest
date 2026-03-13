@@ -11,6 +11,7 @@ import { Interview } from "@/components/Interview";
 import { Grammar } from "@/components/Grammar";
 import { Clinical } from "@/components/Clinical";
 import { CalendarView } from "@/components/CalendarView";
+import { VisionBoard } from "@/components/VisionBoard";
 import { Tools } from "@/components/Tools";
 import { Stats } from "@/components/Stats";
 import { useProgress } from "@/hooks/useProgress";
@@ -18,10 +19,11 @@ import { Progress } from "@/components/ui/progress";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 
-type Tab = "dash" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
+  { id: "motiv", icon: "🔥", label: "Motiv" },
   { id: "today", icon: "📋", label: "Jour" },
   { id: "vocab", icon: "🧠", label: "Vocab" },
   { id: "gram", icon: "📐", label: "Gram." },
@@ -194,6 +196,7 @@ const Index = () => {
             </div>
           )}
 
+          {tab === "motiv" && <VisionBoard />}
           {tab === "today" && <DayView done={progress.done} toggleTask={progress.toggleTask} />}
           {tab === "vocab" && <Vocab addXp={progress.addXp} addQuizScore={progress.addQuizScore} toggleHardCard={progress.toggleHardCard} hardCards={progress.hardCards} />}
           {tab === "gram" && <Grammar grammarDone={progress.grammarDone} toggleGrammarExercise={progress.toggleGrammarExercise} />}
