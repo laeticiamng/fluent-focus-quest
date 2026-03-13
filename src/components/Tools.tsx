@@ -51,6 +51,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
   const [tmrM, setTmrM] = useState(25);
   const [openTemplate, setOpenTemplate] = useState<number | null>(null);
   const ref = useRef<ReturnType<typeof setTimeout>>();
+  const { celebrate } = useCelebration();
 
   useEffect(() => {
     if (tmrOn && tmr > 0) { ref.current = setTimeout(() => setTmr(t => t - 1), 1000); }
