@@ -86,7 +86,7 @@ export function Vocab({ addXp }: VocabProps) {
                 return (
                   <button key={i} onClick={() => answer(o)}
                     className={`${cls} border rounded-lg p-3 text-sm font-medium transition-all`}
-                    disabled={!!qA}
+                    disabled={qA !== null}
                   >{o}</button>
                 );
               })}
