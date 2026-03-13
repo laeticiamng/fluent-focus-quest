@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut } from "lucide-react";
 import { PROG, DECKS } from "@/data/content";
 import { Countdown } from "@/components/Countdown";
 import { XPBar } from "@/components/XPBar";
