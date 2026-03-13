@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut } from "lucide-react";
 import { PROG, DECKS } from "@/data/content";
 import { Countdown } from "@/components/Countdown";
 import { XPBar } from "@/components/XPBar";
@@ -31,6 +33,7 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
 ];
 
 const Index = () => {
+  const { signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("dash");
   const progress = useProgress();
 
@@ -70,6 +73,10 @@ const Index = () => {
               <span className="relative z-10">{n.label}</span>
             </button>
           ))}
+          <button onClick={signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
+            <LogOut className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Sortir</span>
+          </button>
         </div>
       </nav>
 
