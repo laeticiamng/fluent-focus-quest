@@ -1,19 +1,26 @@
 import { useState, useCallback } from "react";
 import { DECKS } from "@/data/content";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Shuffle, Star } from "lucide-react";
+import { ArrowLeft, Shuffle, Star, Sparkles, Hammer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCelebration } from "@/components/CelebrationProvider";
+import { useAICoach } from "@/hooks/useAICoach";
+import { toast } from "sonner";
+import type { Artifact, ArtifactType } from "@/hooks/useProgress";
+import { XP_VALUES } from "@/hooks/useProgress";
 
 interface VocabProps {
   addXp: (n: number) => void;
   addQuizScore: (deckName: string, correct: number, total: number) => void;
   toggleHardCard: (deckIdx: number, cardIdx: number) => void;
   hardCards: Record<string, boolean>;
+  addArtifact?: (artifact: Omit<Artifact, "id" | "date">) => void;
+  artifacts?: Artifact[];
 }
 
-type Mode = "list" | "flashcard" | "quiz";
+type Mode = "list" | "forge" | "flashcard" | "quiz";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -24,8 +31,9 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabProps) {
+export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards, addArtifact, artifacts = [] }: VocabProps) {
   const { celebrate } = useCelebration();
+  const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
   const [di, setDi] = useState<number | null>(null);
   const [mode, setMode] = useState<Mode>("list");
   const [ci, setCi] = useState(0);
@@ -40,6 +48,12 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
   const [globalCards, setGlobalCards] = useState<{ de: string; fr: string; deckIdx: number; cardIdx: number }[]>([]);
   const [globalFlashcard, setGlobalFlashcard] = useState(false);
   const [revisionSize, setRevisionSize] = useState(30);
+  // Forge mode state
+  const [forgePhrase, setForgePhrase] = useState("");
+  const [forgeSubmitted, setForgeSubmitted] = useState(false);
+  const [forgeBrickAnim, setForgeBrickAnim] = useState(false);
+
+  const forgedPhraseCount = artifacts.filter(a => a.type === "phrase_forged").length;
 
   const getCards = useCallback((dkIdx: number) => {
     const cards = DECKS[dkIdx].cards;
@@ -70,6 +84,12 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     setDi(i); setMode("quiz"); setCi(0); setQS({ c: 0, t: 0 }); setQA(null);
     setCardOrder(order); setGlobalQuiz(false);
     setQO(mkO(DECKS[i].cards, order[0], reversed));
+  };
+
+  const startForge = (i: number) => {
+    const order = getCards(i);
+    setDi(i); setMode("forge"); setCi(0);
+    setCardOrder(order); setForgePhrase(""); setForgeSubmitted(false); aiReset();
   };
 
   const startGlobalQuiz = (size = 30) => {
@@ -110,6 +130,55 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     setDi(null); setRevisionSize(shuffledAll.length);
   };
 
+  const handleForgeSubmit = () => {
+    if (!forgePhrase.trim() || forgePhrase.trim().length < 5 || !di) return;
+    const card = DECKS[di].cards[cardOrder[ci]];
+    const prompt = `Tu es un coach d'atelier de creation linguistique medicale. Un medecin construit ses phrases en allemand medical.
+
+Mot a utiliser : "${card.de}" (${card.fr})
+Phrase creee par l'utilisateur : "${forgePhrase}"
+
+Analyse sa construction de facon bienveillante et concise :
+1. Ta construction est-elle grammaticalement correcte ?
+2. Le mot est-il bien utilise dans un contexte medical ?
+3. Propose une version enrichie de sa phrase (garde sa structure, ameliore-la)
+
+Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien construit. Ne dis jamais "correction" ou "incorrect". Dis "ta construction" et "version enrichie".`;
+
+    aiAsk(prompt, "phrase-lab");
+    setForgeSubmitted(true);
+
+    // Create artifact
+    if (addArtifact) {
+      addArtifact({
+        type: "phrase_forged",
+        sourceModule: "vocab",
+        content: forgePhrase,
+        xpEarned: XP_VALUES.PHRASE_FORGED,
+        metadata: { word: card.de, translation: card.fr, deckIdx: di, cardIdx: cardOrder[ci] },
+      });
+    }
+
+    celebrate("creation");
+    toast("✍️ Phrase forgee ! +20 XP", { description: "Ajoutee a ton carnet de phrases" });
+
+    // Brick animation
+    setForgeBrickAnim(true);
+    setTimeout(() => setForgeBrickAnim(false), 1500);
+  };
+
+  const nextForgeWord = () => {
+    const total = DECKS[di!].cards.length;
+    if (ci < total - 1) {
+      setCi(ci + 1);
+      setForgePhrase("");
+      setForgeSubmitted(false);
+      aiReset();
+    } else {
+      setMode("list");
+    }
+  };
+
   const answer = (a: string) => {
     if (qA) return;
     const cards = globalQuiz ? globalCards : DECKS[di!].cards;
@@ -119,7 +188,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     const ok = a === correct;
     setQA({ sel: a, correct, ok });
     setQS(s => ({ c: s.c + (ok ? 1 : 0), t: s.t + 1 }));
-    if (ok) { addXp(10); celebrate("quiz"); }
+    if (ok) { addXp(XP_VALUES.QCM_CORRECT); celebrate("quiz"); }
     setTimeout(() => {
       const total = globalQuiz ? globalCards.length : DECKS[di!].cards.length;
       if (ci < total - 1) {
@@ -148,6 +217,128 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     }, 900);
   };
 
+  // FORGE MODE
+  if (mode === "forge" && di !== null) {
+    const card = DECKS[di].cards[cardOrder[ci]];
+    const total = DECKS[di].cards.length;
+
+    return (
+      <div className="space-y-4">
+        <button onClick={() => setMode("list")} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Retour
+        </button>
+        <div className="flex justify-between items-center">
+          <span className="font-bold text-sm flex items-center gap-2">
+            <Hammer className="w-4 h-4 text-amber-400" />
+            Forge — {DECKS[di].icon} {DECKS[di].name}
+          </span>
+          <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{total}</span>
+        </div>
+
+        {/* Word to forge */}
+        <motion.div
+          key={ci}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-elevated rounded-2xl p-6 text-center relative"
+        >
+          <p className="text-[9px] uppercase tracking-[3px] text-amber-400/70 mb-3">Forge une phrase avec</p>
+          <p className="text-2xl font-black tracking-tight">{card.de}</p>
+          <p className="text-sm text-muted-foreground mt-2">{card.fr}</p>
+
+          {/* Brick animation */}
+          <AnimatePresence>
+            {forgeBrickAnim && (
+              <motion.div
+                initial={{ y: -20, opacity: 0, scale: 0.8 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="absolute top-2 right-3 bg-amber-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold"
+              >
+                +1 brique
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Forge textarea */}
+        <div className="space-y-3">
+          <Textarea
+            value={forgePhrase}
+            onChange={e => setForgePhrase(e.target.value)}
+            placeholder="Forge ta phrase medicale en allemand avec ce mot..."
+            className="min-h-[90px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
+            disabled={aiLoading}
+          />
+
+          {!forgeSubmitted ? (
+            <Button
+              onClick={handleForgeSubmit}
+              disabled={forgePhrase.trim().length < 5 || aiLoading}
+              className="w-full rounded-xl gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              <Hammer className="w-4 h-4" /> Forger ma phrase +20 XP
+            </Button>
+          ) : (
+            <Button
+              onClick={nextForgeWord}
+              className="w-full rounded-xl"
+            >
+              {ci < total - 1 ? "Mot suivant →" : "Atelier termine"}
+            </Button>
+          )}
+        </div>
+
+        {/* AI error */}
+        {aiError && (
+          <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive">{aiError}</div>
+        )}
+
+        {/* AI feedback */}
+        <AnimatePresence>
+          {aiResponse && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-elevated rounded-2xl p-5 border-l-[3px] border-amber-400/40"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Coach d'atelier</p>
+              </div>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{aiResponse}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Brick wall progress */}
+        <div className="card-elevated rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Ton mur de phrases</p>
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: Math.min(forgedPhraseCount, 50) }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.02 }}
+                className="w-5 h-3 rounded-sm bg-amber-500/60 border border-amber-500/30"
+              />
+            ))}
+            {forgedPhraseCount === 0 && (
+              <p className="text-[10px] text-muted-foreground italic">Forge ta premiere phrase pour poser la premiere brique</p>
+            )}
+          </div>
+          {forgedPhraseCount > 0 && (
+            <p className="text-[10px] text-amber-400 mt-2 font-medium">{forgedPhraseCount} brique{forgedPhraseCount > 1 ? "s" : ""} posee{forgedPhraseCount > 1 ? "s" : ""}</p>
+          )}
+        </div>
+
+        <Progress value={((ci + 1) / total) * 100} className="h-1 bg-secondary rounded-full" />
+      </div>
+    );
+  }
+
   // QUIZ MODE
   if (mode === "quiz") {
     const cards = globalQuiz ? globalCards : DECKS[di!]?.cards || [];
@@ -156,7 +347,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     const card = cards[cardIdx];
     const isDone = qA === "done";
     const questionField = reversed ? "fr" : "de";
-    const label = globalQuiz ? "🌍 Quiz Global" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
+    const label = globalQuiz ? "🌍 Defi Global" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
 
     return (
       <div className="space-y-4">
@@ -178,9 +369,10 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             className="text-center py-10"
           >
             <div className="text-6xl mb-4">{qS.c === qS.t ? "🏆" : "💪"}</div>
-            <h2 className="text-2xl font-black tracking-tight mb-2">Quiz terminé!</h2>
+            <h2 className="text-2xl font-black tracking-tight mb-2">Defi termine !</h2>
             <div className={`text-5xl font-black ${qS.c === qS.t ? "text-success" : "text-accent"}`}>{qS.c}/{qS.t}</div>
-            <p className="text-muted-foreground text-sm mt-3">+{qS.c * 10} XP</p>
+            <p className="text-muted-foreground text-sm mt-3">+{qS.c * XP_VALUES.QCM_CORRECT} XP</p>
+            <p className="text-[10px] text-amber-400 mt-1 italic">Astuce : le mode Forge rapporte 4x plus d'XP</p>
             <div className="flex gap-3 justify-center mt-6">
               {globalQuiz ? (
                 <Button onClick={() => startGlobalQuiz(revisionSize)} className="rounded-xl">Recommencer</Button>
@@ -204,7 +396,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
               className="card-elevated rounded-2xl p-8 text-center mb-4"
             >
               <p className="text-[9px] uppercase tracking-[3px] text-muted-foreground mb-4">
-                {reversed ? "Traduire en Deutsch" : "Traduire en français"}
+                {reversed ? "Traduire en Deutsch" : "Traduire en francais"}
               </p>
               <p className="text-2xl font-black tracking-tight">{card[questionField]}</p>
             </motion.div>
@@ -242,7 +434,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     const deckIdx = isGlobal ? globalCards[ci]?.deckIdx : di!;
     const cardIdx = isGlobal ? globalCards[ci]?.cardIdx : realIdx;
     const isHard = !!hardCards[`${deckIdx}-${cardIdx}`];
-    const label = isGlobal ? "🔀 Révision aléatoire" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
+    const label = isGlobal ? "🔀 Revision aleatoire" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
     const deckInfo = isGlobal && card ? DECKS[globalCards[ci].deckIdx] : null;
 
     return (
@@ -254,6 +446,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
           <span className="font-bold text-sm">{label}</span>
           <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{totalCards}</span>
         </div>
+        <p className="text-[10px] text-amber-400/70 italic">Mode passif — le mode Forge est plus efficace pour memoriser</p>
         {isGlobal && deckInfo && (
           <div className="text-[10px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5 inline-block">
             {deckInfo.icon} {deckInfo.name}
@@ -272,12 +465,12 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             }`}
           >
             <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-4">
-              {flip ? (reversed ? "Deutsch" : "Français") : (reversed ? "Français" : "Deutsch")}
+              {flip ? (reversed ? "Deutsch" : "Francais") : (reversed ? "Francais" : "Deutsch")}
             </p>
             <p className="text-2xl font-black tracking-tight">
               {card ? (flip ? (reversed ? card.de : card.fr) : (reversed ? card.fr : card.de)) : ""}
             </p>
-            {!flip && <p className="text-[11px] text-muted-foreground mt-5">Tap pour révéler</p>}
+            {!flip && <p className="text-[11px] text-muted-foreground mt-5">Tap pour reveler</p>}
           </motion.div>
         </AnimatePresence>
         <div className="flex gap-2.5">
@@ -293,12 +486,12 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
           <Button
             className="flex-1 rounded-xl"
             onClick={() => {
-              addXp(5);
+              addXp(XP_VALUES.FLASHCARD_FLIP);
               if (ci < totalCards - 1) { setCi(ci + 1); setFlip(false); }
               else { setMode("list"); setGlobalFlashcard(false); }
             }}
           >
-            {ci === totalCards - 1 ? "Terminé ✓" : "Suivant →"}
+            {ci === totalCards - 1 ? "Termine" : "Suivant →"}
           </Button>
         </div>
         <div className="flex gap-2">
@@ -315,7 +508,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
               const newOrder = !shuffled ? shuffleArray(dk.cards.map((_, i) => i)) : dk.cards.map((_, i) => i);
               setCardOrder(newOrder); setCi(0); setFlip(false);
             }} className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${shuffled ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
-              <Shuffle className="w-3 h-3" /> Mélanger
+              <Shuffle className="w-3 h-3" /> Melanger
             </button>
           )}
         </div>
@@ -330,8 +523,10 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-black tracking-tight">🧠 Vocabulaire</h2>
-      <p className="text-sm text-muted-foreground -mt-2">{totalWords} mots à maîtriser</p>
+      <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+        <Hammer className="w-6 h-6 text-amber-400" /> La Forge
+      </h2>
+      <p className="text-sm text-muted-foreground -mt-2">{totalWords} mots dans l'arsenal · {forgedPhraseCount} phrases forgees</p>
 
       <div className="flex gap-2 flex-wrap">
         <button
@@ -341,17 +536,32 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
           {reversed ? "🇫🇷→🇩🇪 Actif" : "🇩🇪→🇫🇷 Normal"}
         </button>
         <button onClick={() => startGlobalQuiz(30)} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all">
-          🌍 Quiz Global (30)
+          🌍 Defi Global (30)
         </button>
-        <button onClick={() => startGlobalFlashcard(40)} className="text-xs font-semibold px-4 py-2 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/15 transition-all">
-          🔀 Révision aléatoire
+        <button onClick={() => startGlobalFlashcard(40)} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary/60 text-muted-foreground/70 hover:text-foreground transition-all">
+          🔀 Revision passive
         </button>
       </div>
 
       {hardCount > 0 && (
         <button onClick={startHardCardsReview} className="w-full rounded-xl bg-primary/8 border border-primary/15 p-3 text-left hover:bg-primary/12 transition-all">
-          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots difficiles — tap pour réviser</p>
+          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots difficiles — tap pour reviser</p>
         </button>
+      )}
+
+      {/* Brick wall summary */}
+      {forgedPhraseCount > 0 && (
+        <div className="rounded-2xl bg-amber-500/8 border border-amber-500/15 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-amber-400">🧱 Ton mur de phrases</span>
+            <span className="text-[10px] text-amber-400/70">{forgedPhraseCount} briques</span>
+          </div>
+          <div className="flex flex-wrap gap-0.5">
+            {Array.from({ length: Math.min(forgedPhraseCount, 60) }).map((_, i) => (
+              <div key={i} className="w-4 h-2.5 rounded-[2px] bg-amber-500/50 border border-amber-500/25" />
+            ))}
+          </div>
+        </div>
       )}
 
       <div className="space-y-3">
@@ -371,11 +581,14 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" className="flex-1 rounded-xl text-xs" onClick={() => startFC(i)}>
+              <Button size="sm" className="flex-1 rounded-xl text-xs bg-amber-500/15 text-amber-400 border border-amber-500/20 hover:bg-amber-500/25" variant="outline" onClick={() => startForge(i)}>
+                🔨 Forger
+              </Button>
+              <Button variant="secondary" size="sm" className="rounded-xl text-xs" onClick={() => startFC(i)}>
                 📇 Flashcards
               </Button>
-              <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs" onClick={() => startQuiz(i)}>
-                ⚡ Quiz
+              <Button variant="outline" size="sm" className="rounded-xl text-xs" onClick={() => startQuiz(i)}>
+                ⚡ Defi
               </Button>
             </div>
           </motion.div>
