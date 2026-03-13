@@ -72,7 +72,7 @@ export function useProgress() {
         .from("user_progress")
         .upsert([{
           user_id: user.id,
-          progress_data: state as unknown as Record<string, unknown>,
+          progress_data: JSON.parse(JSON.stringify(state)),
         }], { onConflict: "user_id" });
     }, 1000);
 
