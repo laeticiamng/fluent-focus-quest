@@ -524,9 +524,9 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien construit. N
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-        <Hammer className="w-6 h-6 text-amber-400" /> Forge de vocabulaire
+        <Hammer className="w-6 h-6 text-amber-400" /> La Forge
       </h2>
-      <p className="text-sm text-muted-foreground -mt-2">{totalWords} mots a forger · {forgedPhraseCount} phrases creees</p>
+      <p className="text-sm text-muted-foreground -mt-2">{totalWords} mots dans l'arsenal · {forgedPhraseCount} phrases forgees</p>
 
       <div className="flex gap-2 flex-wrap">
         <button

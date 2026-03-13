@@ -119,7 +119,7 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite de sa constructi
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black flex items-center gap-2">
-          <FileText className="w-5 h-5 text-clinical" /> Atelier clinique
+          <FileText className="w-5 h-5 text-clinical" /> L'Hopital
         </h2>
         <div className="flex gap-2">
           <button

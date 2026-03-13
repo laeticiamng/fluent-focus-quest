@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { DECKS } from "@/data/content";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { motion } from "framer-motion";
-import type { Artifact } from "@/hooks/useProgress";
-import { CREATION_BADGES } from "@/hooks/useProgress";
+import type { Artifact, ZoneId } from "@/hooks/useProgress";
+import { CREATION_BADGES, ZONES } from "@/hooks/useProgress";
 
 interface StatsProps {
   xp: number;
@@ -15,6 +15,7 @@ interface StatsProps {
   grammarDone: Record<string, boolean>;
   rat: Record<number, number>;
   artifacts?: Artifact[];
+  zoneStatus?: Record<ZoneId, { unlocked: boolean; progress: number; rooms: { id: string; unlocked: boolean }[] }>;
 }
 
 const PIE_COLORS = [
@@ -22,7 +23,7 @@ const PIE_COLORS = [
   "hsl(187, 100%, 42%)", "hsl(210, 100%, 52%)"
 ];
 
-export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, grammarDone, rat, artifacts = [] }: StatsProps) {
+export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, grammarDone, rat, artifacts = [], zoneStatus }: StatsProps) {
   const totalTasks = Object.values(done).filter(Boolean).length;
   const totalHard = Object.values(hardCards).filter(Boolean).length;
   const totalGrammar = Object.keys(grammarDone).length;
@@ -74,7 +75,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-black tracking-tight">📊 Ma production</h2>
+      <h2 className="text-2xl font-black tracking-tight">📊 Architecture de progression</h2>
 
       {/* Primary: Creation stats */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -140,6 +141,39 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
               <Tooltip contentStyle={{ backgroundColor: "hsl(230, 12%, 12%)", border: "1px solid hsl(230, 10%, 22%)", borderRadius: 12, fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Zone progression */}
+      {zoneStatus && (
+        <div className="card-elevated rounded-2xl p-5">
+          <h3 className="text-sm font-bold mb-4">🗺️ Progression des zones</h3>
+          <div className="space-y-3">
+            {ZONES.map(zone => {
+              const status = zoneStatus[zone.id];
+              if (!status) return null;
+              const unlockedRooms = status.rooms.filter(r => r.unlocked).length;
+              return (
+                <div key={zone.id} className="flex items-center gap-3">
+                  <span className="text-lg w-8 text-center">{status.unlocked ? zone.icon : "🔒"}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-semibold ${status.unlocked ? "" : "text-muted-foreground/50"}`}>
+                        {zone.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{unlockedRooms}/{status.rooms.length} salles</span>
+                    </div>
+                    <div className="h-1.5 bg-secondary/40 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-amber-500/50 transition-all duration-700"
+                        style={{ width: `${status.progress * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

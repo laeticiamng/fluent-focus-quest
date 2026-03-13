@@ -61,7 +61,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-black tracking-tight">🛠️ Boite a outils</h2>
+      <h2 className="text-2xl font-black tracking-tight">🛠️ Salle des outils</h2>
 
       {/* Pomodoro */}
       <motion.div

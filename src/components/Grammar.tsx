@@ -104,7 +104,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. D
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-          <TreePine className="w-6 h-6 text-grammar" /> Atelier grammaire
+          <TreePine className="w-6 h-6 text-grammar" /> L'Arbre des Regles
         </h2>
         <button
           onClick={() => setGlobalTr(v => !v)}

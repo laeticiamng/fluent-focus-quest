@@ -221,8 +221,8 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black tracking-tight">💼 Studio d'entretien</h2>
-          <p className="text-sm text-muted-foreground -mt-0.5">{IVW.length} reponses a construire</p>
+          <h2 className="text-2xl font-black tracking-tight">💼 Le Studio</h2>
+          <p className="text-sm text-muted-foreground -mt-0.5">{IVW.length} reponses a forger</p>
         </div>
         <button
           onClick={() => setShowBook(true)}
