@@ -73,6 +73,10 @@ const Index = () => {
               <span className="relative z-10">{n.label}</span>
             </button>
           ))}
+          <button onClick={signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
+            <LogOut className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Sortir</span>
+          </button>
         </div>
       </nav>
 
