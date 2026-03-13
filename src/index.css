@@ -270,6 +270,15 @@
   perspective: 1000px;
 }
 
+/* === SCROLLBAR HIDE UTILITY === */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* === SCROLLBAR (minimal Apple-like) === */
 ::-webkit-scrollbar {
   width: 5px;
@@ -315,4 +324,51 @@
   );
   background-size: 200% 100%;
   animation: shimmer 3s ease-in-out infinite;
+}
+
+/* === CREATOR GLOW — rich hover effect for creator cards === */
+.creator-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.creator-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--grammar) / 0.15), hsl(var(--accent) / 0.15));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  filter: blur(8px);
+}
+.creator-card:hover::before {
+  opacity: 1;
+}
+
+/* === WRITING PULSE — subtle pulse for active text areas === */
+@keyframes writing-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  50% { box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08); }
+}
+textarea:focus {
+  animation: writing-pulse 2s ease-in-out infinite;
+}
+
+/* === GRADIENT TEXT ACCENT === */
+.gradient-text-accent {
+  background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--warning)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === HERO GRADIENT (used in creative CTAs) === */
+.hero-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.15) 0%,
+    hsl(var(--grammar) / 0.10) 40%,
+    hsl(var(--accent) / 0.12) 100%
+  );
 }

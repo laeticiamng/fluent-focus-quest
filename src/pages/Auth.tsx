@@ -32,21 +32,49 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background ambient-bg flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Ambient orbs */}
+      <div className="ambient-orb ambient-orb-1" />
+      <div className="ambient-orb ambient-orb-2" />
+      <div className="ambient-orb ambient-orb-3" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-sm space-y-8"
+        className="w-full max-w-sm space-y-8 relative z-10"
       >
-        <div className="text-center">
-          <div className="text-5xl mb-4">🏥</div>
-          <h1 className="text-2xl font-black tracking-tight">Operation Bienne</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            {isLogin ? "Connecte-toi pour retrouver ta progression" : "Crée ton compte pour sauvegarder ta progression"}
+        {/* Hero */}
+        <div className="text-center space-y-3">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+            className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-primary/20 to-grammar/15 border border-primary/20 flex items-center justify-center text-4xl glow-primary"
+          >
+            ✨
+          </motion.div>
+          <h1 className="text-3xl font-black tracking-tight gradient-text">Operation Bienne</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {isLogin
+              ? "Reprends là où tu t'es arrêtée. Bienne t'attend."
+              : "Lance ta préparation. Chaque création te rapproche du but."}
           </p>
         </div>
 
+        {/* Motivational pill */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25 }}
+          className="rounded-2xl bg-gradient-to-r from-accent/8 to-warning/5 border border-accent/15 px-4 py-3 text-center"
+        >
+          <p className="text-xs font-medium text-accent/80 italic">
+            "La création active ancre les connaissances 3× plus durablement que la révision passive."
+          </p>
+        </motion.div>
+
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-semibold text-muted-foreground">Email</label>
@@ -71,8 +99,12 @@ export default function Auth() {
               placeholder="••••••••"
             />
           </div>
-          <Button type="submit" className="w-full rounded-xl h-12 text-sm font-semibold" disabled={loading}>
-            {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
+          <Button
+            type="submit"
+            className="w-full rounded-xl h-12 text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            disabled={loading}
+          >
+            {loading ? "Chargement..." : isLogin ? "→ Continuer ma préparation" : "→ Lancer ma préparation"}
           </Button>
         </form>
 
@@ -82,6 +114,21 @@ export default function Auth() {
             {isLogin ? "Créer un compte" : "Se connecter"}
           </button>
         </p>
+
+        {/* Feature pills */}
+        <div className="flex flex-wrap gap-2 justify-center">
+          {["✍️ Créer", "🧠 Apprendre", "🎙️ S'entraîner", "🤖 IA Coach"].map((f, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.05 }}
+              className="text-[10px] font-semibold text-muted-foreground bg-secondary/60 rounded-full px-3 py-1.5 border border-border/30"
+            >
+              {f}
+            </motion.span>
+          ))}
+        </div>
       </motion.div>
     </div>
   );

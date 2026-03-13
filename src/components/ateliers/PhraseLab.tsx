@@ -5,7 +5,8 @@ import { DECKS } from "@/data/content";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Shuffle, Send, RotateCcw, Sparkles } from "lucide-react";
+import { Shuffle, Send, RotateCcw, Sparkles, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
@@ -13,6 +14,7 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
   const [currentWord, setCurrentWord] = useState<{ de: string; fr: string } | null>(null);
   const [sentence, setSentence] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const allCards = DECKS.flatMap(d => d.cards);
 
@@ -33,6 +35,15 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
     celebrate("quiz");
   };
 
+  const handleCopy = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response).then(() => {
+      setCopied(true);
+      toast.success("Copié dans le presse-papier !");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
@@ -49,9 +60,9 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={pickRandom}
-          className="w-full rounded-2xl bg-gradient-to-br from-primary/15 via-card to-grammar/10 border border-primary/20 p-8 sm:p-12 text-center"
+          className="w-full rounded-2xl bg-gradient-to-br from-primary/15 via-card to-grammar/10 border border-primary/20 p-8 sm:p-12 text-center group"
         >
-          <Shuffle className="w-8 h-8 mx-auto mb-3 text-primary" />
+          <Shuffle className="w-8 h-8 mx-auto mb-3 text-primary group-hover:rotate-180 transition-transform duration-500" />
           <p className="text-lg font-bold">Tire un mot au hasard</p>
           <p className="text-xs text-muted-foreground mt-1">Puis construis une phrase médicale avec</p>
         </motion.button>
@@ -80,7 +91,12 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
               className="min-h-[80px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
               disabled={submitted && isLoading}
             />
-            <div className="flex gap-2 mt-3">
+            <div className="flex items-center justify-between mt-2 mb-3">
+              <span className={`text-[10px] font-medium ${sentence.length > 0 ? "text-primary/70" : "text-muted-foreground/40"}`}>
+                {sentence.length} caractères
+              </span>
+            </div>
+            <div className="flex gap-2">
               <Button
                 onClick={handleSubmit}
                 disabled={!sentence.trim() || isLoading}
@@ -111,9 +127,18 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
               animate={{ opacity: 1, y: 0 }}
               className="card-elevated rounded-2xl p-5 border-l-[3px] border-success/40"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-success" />
-                <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-success" />
+                  <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/60 hover:bg-secondary rounded-lg px-2.5 py-1.5"
+                >
+                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copié" : "Copier"}
+                </button>
               </div>
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">
                 {response}

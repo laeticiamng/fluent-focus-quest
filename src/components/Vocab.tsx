@@ -213,7 +213,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
                 let cls = "bg-secondary/80 border-border/50 text-foreground";
                 if (qA && typeof qA !== "string") {
                   if (o === qA.correct) cls = "bg-success/15 border-success/40 text-success";
-                  else if (o === qA.sel && !qA.ok) cls = "bg-primary/15 border-primary/40 text-primary";
+                  else if (o === qA.sel && !qA.ok) cls = "bg-destructive/15 border-destructive/40 text-destructive";
                 }
                 return (
                   <motion.button

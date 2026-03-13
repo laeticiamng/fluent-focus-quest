@@ -4,7 +4,8 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, Sparkles, RotateCcw, FileText } from "lucide-react";
+import { Send, Sparkles, RotateCcw, FileText, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const DOCUMENTS = [
   { id: "befund", icon: "📋", title: "Befundbericht", desc: "Rapport d'examen médical", placeholder: "Befundbericht\nPatient: Herr Müller, 65J.\nUntersuchung: Duplexsonographie\nBefund: ..." },
@@ -21,6 +22,7 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
   const [selected, setSelected] = useState<typeof DOCUMENTS[0] | null>(null);
   const [text, setText] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
@@ -37,12 +39,21 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
     reset();
   };
 
+  const handleCopy = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response).then(() => {
+      setCopied(true);
+      toast.success("Copié dans le presse-papier !");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
         <span className="text-3xl">📄</span>
         <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Builder de documents</h2>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Documents pro</h2>
           <p className="text-xs sm:text-sm text-muted-foreground">Crée tes documents médicaux professionnels en allemand</p>
         </div>
       </div>
@@ -55,12 +66,12 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -2 }}
+              whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelected(d)}
-              className="rounded-2xl bg-gradient-to-b from-info/8 to-transparent border border-border/40 p-5 text-left hover:border-info/30 transition-all"
+              className="rounded-2xl bg-gradient-to-b from-info/10 to-transparent border border-border/40 p-5 text-left hover:border-info/30 transition-all group"
             >
-              <div className="text-2xl mb-2">{d.icon}</div>
+              <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{d.icon}</div>
               <div className="text-sm font-bold tracking-tight">{d.title}</div>
               <div className="text-[10px] text-muted-foreground mt-1">{d.desc}</div>
             </motion.button>
@@ -69,7 +80,7 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
       ) : (
         <div className="space-y-4">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-2xl bg-gradient-to-r from-info/10 to-primary/5 border border-info/20 p-5">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1">
               <span className="text-xl">{selected.icon}</span>
               <span className="font-bold text-sm">{selected.title}</span>
               <span className="text-xs text-muted-foreground">— {selected.desc}</span>
@@ -88,7 +99,12 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
               className="min-h-[160px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none font-mono"
               disabled={submitted && isLoading}
             />
-            <div className="flex gap-2 mt-3">
+            <div className="flex items-center justify-between mt-2 mb-3">
+              <span className={`text-[10px] font-medium ${text.length > 0 ? "text-info/70" : "text-muted-foreground/40"}`}>
+                {text.length} caractères
+              </span>
+            </div>
+            <div className="flex gap-2">
               <Button onClick={handleSubmit} disabled={!text.trim() || isLoading} className="flex-1 rounded-xl gap-2">
                 {isLoading ? <><Sparkles className="w-4 h-4 animate-spin" /> Analyse...</> : <><Send className="w-4 h-4" /> Soumettre</>}
               </Button>
@@ -99,11 +115,21 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
           </div>
 
           {error && <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs text-destructive">{error}</div>}
+
           {response && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-info/40">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-info" />
-                <p className="text-xs font-bold text-info uppercase tracking-wider">Coach IA</p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-info" />
+                  <p className="text-xs font-bold text-info uppercase tracking-wider">Coach IA</p>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/60 hover:bg-secondary rounded-lg px-2.5 py-1.5"
+                >
+                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copié" : "Copier"}
+                </button>
               </div>
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{response}</div>
             </motion.div>

@@ -24,7 +24,7 @@ type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
-  { id: "atelier", icon: "🏗️", label: "Créer" },
+  { id: "atelier", icon: "✨", label: "Créer" },
   { id: "motiv", icon: "🔥", label: "Motiv" },
   { id: "today", icon: "📋", label: "Jour" },
   { id: "vocab", icon: "🧠", label: "Vocab" },
@@ -187,6 +187,27 @@ const Index = () => {
                 </button>
               </div>
 
+              {/* Creator CTA — featured */}
+              <motion.button
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTab("atelier")}
+                className="w-full rounded-2xl bg-gradient-to-r from-primary/15 via-grammar/10 to-accent/12 border border-primary/25 p-5 text-left relative overflow-hidden group transition-all hover:border-primary/40"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">✨</div>
+                  <div className="flex-1">
+                    <p className="text-sm font-black tracking-tight">Ateliers de création</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Construis, écris, enregistre — l'IA te coache en temps réel</p>
+                  </div>
+                  <span className="text-primary font-bold text-lg opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
+                </div>
+              </motion.button>
+
               {/* Quick actions */}
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {[
@@ -201,7 +222,7 @@ const Index = () => {
                     key={i}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.04 }}
+                    transition={{ delay: 0.35 + i * 0.04 }}
                     whileHover={{ y: -3, scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => setTab(a.t)}

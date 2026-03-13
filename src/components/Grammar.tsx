@@ -78,7 +78,7 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
                           let cls = "bg-secondary border-border/40 text-foreground";
                           if (userAnswer) {
                             if (opt === ex.a) cls = "bg-success/15 border-success/30 text-success";
-                            else if (opt === userAnswer && !isCorrect) cls = "bg-primary/15 border-primary/30 text-primary";
+                            else if (opt === userAnswer && !isCorrect) cls = "bg-destructive/15 border-destructive/30 text-destructive";
                           }
                           return (
                             <motion.button
@@ -94,9 +94,9 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
                         })}
                       </div>
                       {userAnswer && (
-                        <div className={`flex items-center gap-1.5 mt-2.5 text-[11px] font-medium ${isCorrect ? "text-success" : "text-primary"}`}>
+                        <div className={`flex items-center gap-1.5 mt-2.5 text-[11px] font-medium ${isCorrect ? "text-success" : "text-destructive"}`}>
                           {isCorrect ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-                          {isCorrect ? "Richtig! +10 XP" : `Correct: ${ex.a}`}
+                          {isCorrect ? "Richtig! +10 XP" : `Richtig wäre: ${ex.a}`}
                         </div>
                       )}
                     </div>
