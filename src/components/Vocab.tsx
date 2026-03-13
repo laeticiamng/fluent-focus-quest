@@ -327,8 +327,11 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
         >
           {reversed ? "🇫🇷→🇩🇪 Actif" : "🇩🇪→🇫🇷 Normal"}
         </button>
-        <button onClick={startGlobalQuiz} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all">
-          🌍 Quiz Global
+        <button onClick={() => startGlobalQuiz(30)} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all">
+          🌍 Quiz Global (30)
+        </button>
+        <button onClick={() => startGlobalFlashcard(40)} className="text-xs font-semibold px-4 py-2 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/15 transition-all">
+          🔀 Révision aléatoire
         </button>
       </div>
 
