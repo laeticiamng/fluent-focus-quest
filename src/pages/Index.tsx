@@ -17,14 +17,14 @@ import { Stats } from "@/components/Stats";
 import { AtelierHub } from "@/components/AtelierHub";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
-import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { DailyJourney } from "@/components/DailyJourney";
 
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
-  { id: "atelier", icon: "🏗️", label: "Créer" },
+  { id: "atelier", icon: "✨", label: "Créer" },
   { id: "motiv", icon: "🔥", label: "Motiv" },
   { id: "today", icon: "📋", label: "Jour" },
   { id: "vocab", icon: "🧠", label: "Vocab" },
@@ -47,9 +47,6 @@ const Index = () => {
   const totDone = Object.values(progress.done).filter(Boolean).length;
   const totTasks = PROG.reduce((a, d) => a + d.tasks.length, 0);
   const pct = Math.round((totDone / totTasks) * 100);
-
-  const todayProg = PROG.find(d => d.date === tStr) || PROG[0];
-  const todayDone = todayProg.tasks.filter((_, i) => progress.done[`${todayProg.date}-${i}`]).length;
 
   return (
     <div className="min-h-screen bg-background ambient-bg">
@@ -159,33 +156,31 @@ const Index = () => {
 
               <MotivBanner />
 
-              {/* Today's tasks preview */}
+              {/* Daily Journey — parcours guidé du jour */}
               <div className="card-elevated rounded-2xl p-5 sm:p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm sm:text-base font-bold tracking-tight">📋 Aujourd'hui — {todayProg.title}</h3>
-                  <span className="text-xs sm:text-sm font-bold text-success">{todayDone}/{todayProg.tasks.length}</span>
-                </div>
-                <div className="space-y-3">
-                  {todayProg.tasks.map((task, i) => {
-                    const isDone = !!progress.done[`${todayProg.date}-${i}`];
-                    return (
-                      <div key={i} className="flex items-center gap-3 group">
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          isDone ? "bg-success border-success glow-success" : "border-muted-foreground/30 group-hover:border-muted-foreground/50"
-                        }`}>
-                          {isDone && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
-                        </div>
-                        <span className={`text-xs sm:text-sm leading-relaxed ${isDone ? "line-through text-muted-foreground" : ""}`}>
-                          <span className="font-semibold">{task.t}:</span> {task.d}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <button onClick={() => setTab("today")} className="text-xs sm:text-sm text-primary font-semibold mt-4 hover:underline transition-all">
-                  Voir tout →
-                </button>
+                <DailyJourney onNavigate={setTab} done={progress.done} />
               </div>
+
+              {/* Creator CTA — featured */}
+              <motion.button
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTab("atelier")}
+                className="w-full rounded-2xl bg-gradient-to-r from-primary/15 via-grammar/10 to-accent/12 border border-primary/25 p-5 text-left relative overflow-hidden group transition-all hover:border-primary/40"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">✨</div>
+                  <div className="flex-1">
+                    <p className="text-sm font-black tracking-tight">Ateliers de création</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Construis, écris, enregistre — l'IA te coache en temps réel</p>
+                  </div>
+                  <span className="text-primary font-bold text-lg opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
+                </div>
+              </motion.button>
 
               {/* Quick actions */}
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -201,7 +196,7 @@ const Index = () => {
                     key={i}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.04 }}
+                    transition={{ delay: 0.35 + i * 0.04 }}
                     whileHover={{ y: -3, scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => setTab(a.t)}
@@ -220,7 +215,7 @@ const Index = () => {
           {tab === "today" && <DayView done={progress.done} toggleTask={progress.toggleTask} />}
           {tab === "vocab" && <Vocab addXp={progress.addXp} addQuizScore={progress.addQuizScore} toggleHardCard={progress.toggleHardCard} hardCards={progress.hardCards} />}
           {tab === "gram" && <Grammar grammarDone={progress.grammarDone} toggleGrammarExercise={progress.toggleGrammarExercise} />}
-          {tab === "iv" && <Interview rat={progress.rat} setRating={progress.setRating} />}
+          {tab === "iv" && <Interview rat={progress.rat} setRating={progress.setRating} addXp={progress.addXp} onNavigate={(t) => setTab(t as Tab)} />}
           {tab === "sim" && <Clinical />}
           {tab === "tools" && <Tools addXp={progress.addXp} cl={progress.cl} toggleChecklist={progress.toggleChecklist} notes={progress.notes} setNotes={progress.setNotes} addPomodoro={progress.addPomodoro} pomodoroCount={progress.pomodoroCount} />}
           {tab === "stats" && <Stats xp={progress.xp} quizScores={progress.quizScores} hardCards={progress.hardCards} pomodoroCount={progress.pomodoroCount} streak={progress.streak} done={progress.done} grammarDone={progress.grammarDone} rat={progress.rat} />}

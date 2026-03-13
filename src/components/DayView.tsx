@@ -69,7 +69,7 @@ export function DayView({ done, toggleTask }: DayViewProps) {
             whileTap={{ scale: 0.98 }}
             onClick={() => toggleTask(tP.date, i)}
             className={`card-elevated rounded-2xl p-4 cursor-pointer transition-all ${
-              isDone ? "opacity-50" : ""
+              isDone ? "opacity-60 bg-gradient-to-r from-success/5 to-transparent" : "hover:border-border/60"
             }`}
           >
             <div className="flex items-start gap-3.5">

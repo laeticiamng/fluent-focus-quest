@@ -4,7 +4,8 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Sparkles, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const PROMPTS = [
   { id: "identite", icon: "🪪", title: "Mon identité médicale", prompt: "Décris-toi en tant que médecin suisse en allemand : spécialité, lieu, style, valeurs.", placeholder: "Ich bin Angiologin am Spitalzentrum Biel. Ich spezialisiere mich auf..." },
@@ -19,6 +20,16 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
   const [selected, setSelected] = useState<typeof PROMPTS[0] | null>(null);
   const [text, setText] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response).then(() => {
+      setCopied(true);
+      toast.success("Copié dans le presse-papier !");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
@@ -82,7 +93,12 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
               className="min-h-[120px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
               disabled={submitted && isLoading}
             />
-            <div className="flex gap-2 mt-3">
+            <div className="flex justify-end mt-1 mb-1">
+              <span className={`text-[10px] font-medium ${text.length > 0 ? "text-success/70" : "text-muted-foreground/40"}`}>
+                {text.length} caractères
+              </span>
+            </div>
+            <div className="flex gap-2 mt-1">
               <Button onClick={handleSubmit} disabled={!text.trim() || isLoading} className="flex-1 rounded-xl gap-2">
                 {isLoading ? <><Sparkles className="w-4 h-4 animate-spin" /> Analyse...</> : <><Send className="w-4 h-4" /> Soumettre</>}
               </Button>
@@ -93,9 +109,18 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
           {error && <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs text-destructive">{error}</div>}
           {response && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-success/40">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-success" />
-                <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-success" />
+                  <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/60 hover:bg-secondary rounded-lg px-2.5 py-1.5"
+                >
+                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copié" : "Copier"}
+                </button>
               </div>
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{response}</div>
             </motion.div>

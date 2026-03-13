@@ -4,7 +4,8 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, RotateCcw, Sparkles, FileText } from "lucide-react";
+import { Send, RotateCcw, Sparkles, FileText, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const TEMPLATES = [
   {
@@ -43,6 +44,7 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
   const [selected, setSelected] = useState<typeof TEMPLATES[0] | null>(null);
   const [text, setText] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
@@ -58,6 +60,15 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
     setText("");
     setSubmitted(false);
     reset();
+  };
+
+  const handleCopy = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response).then(() => {
+      setCopied(true);
+      toast.success("Copié dans le presse-papier !");
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -81,9 +92,9 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
               whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelected(t)}
-              className="rounded-2xl bg-gradient-to-b from-accent/8 to-transparent border border-border/40 p-5 text-left hover:border-accent/30 transition-all"
+              className="rounded-2xl bg-gradient-to-b from-accent/10 to-transparent border border-border/40 p-5 text-left hover:border-accent/30 transition-all group"
             >
-              <div className="text-2xl mb-2">{t.icon}</div>
+              <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{t.icon}</div>
               <div className="text-sm font-bold tracking-tight">{t.title}</div>
               <div className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{t.prompt}</div>
             </motion.button>
@@ -115,7 +126,12 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
               className="min-h-[140px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
               disabled={submitted && isLoading}
             />
-            <div className="flex gap-2 mt-3">
+            <div className="flex items-center justify-between mt-2 mb-3">
+              <span className={`text-[10px] font-medium ${text.length > 0 ? "text-accent/70" : "text-muted-foreground/40"}`}>
+                {text.length} caractères
+              </span>
+            </div>
+            <div className="flex gap-2">
               <Button onClick={handleSubmit} disabled={!text.trim() || isLoading} className="flex-1 rounded-xl gap-2">
                 {isLoading ? <><Sparkles className="w-4 h-4 animate-spin" /> Analyse...</> : <><Send className="w-4 h-4" /> Soumettre</>}
               </Button>
@@ -131,9 +147,18 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
 
           {response && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-accent/40">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-accent" />
-                <p className="text-xs font-bold text-accent uppercase tracking-wider">Coach IA</p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  <p className="text-xs font-bold text-accent uppercase tracking-wider">Coach IA</p>
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors bg-secondary/60 hover:bg-secondary rounded-lg px-2.5 py-1.5"
+                >
+                  {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copié" : "Copier"}
+                </button>
               </div>
               <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{response}</div>
             </motion.div>
