@@ -11,6 +11,7 @@ import { Interview } from "@/components/Interview";
 import { Grammar } from "@/components/Grammar";
 import { Clinical } from "@/components/Clinical";
 import { CalendarView } from "@/components/CalendarView";
+import { VisionBoard } from "@/components/VisionBoard";
 import { Tools } from "@/components/Tools";
 import { Stats } from "@/components/Stats";
 import { useProgress } from "@/hooks/useProgress";
