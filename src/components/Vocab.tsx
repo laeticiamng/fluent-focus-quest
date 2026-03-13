@@ -183,7 +183,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             <p className="text-muted-foreground text-sm mt-3">+{qS.c * 10} XP</p>
             <div className="flex gap-3 justify-center mt-6">
               {globalQuiz ? (
-                <Button onClick={startGlobalQuiz} className="rounded-xl">Recommencer</Button>
+                <Button onClick={() => startGlobalQuiz(revisionSize)} className="rounded-xl">Recommencer</Button>
               ) : (
                 <Button onClick={() => startQuiz(di!)} className="rounded-xl">Recommencer</Button>
               )}
