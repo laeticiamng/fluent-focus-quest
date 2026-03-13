@@ -19,10 +19,11 @@ import { Progress } from "@/components/ui/progress";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 
-type Tab = "dash" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
+  { id: "motiv", icon: "🔥", label: "Motiv" },
   { id: "today", icon: "📋", label: "Jour" },
   { id: "vocab", icon: "🧠", label: "Vocab" },
   { id: "gram", icon: "📐", label: "Gram." },
