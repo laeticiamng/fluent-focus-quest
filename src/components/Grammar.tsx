@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GRAM } from "@/data/content";
-import { Check, X } from "lucide-react";
-import { motion } from "framer-motion";
+import { Check, X, Languages } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCelebration } from "@/components/CelebrationProvider";
 
 const COLORS = [
@@ -10,6 +10,7 @@ const COLORS = [
   "border-success/20 text-success",
   "border-clinical/20 text-clinical",
   "border-primary/20 text-primary",
+  "border-accent/20 text-accent",
 ];
 
 interface GrammarProps {
@@ -19,6 +20,8 @@ interface GrammarProps {
 
 export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [showTr, setShowTr] = useState<Record<string, boolean>>({});
+  const [globalTr, setGlobalTr] = useState(false);
   const { celebrate } = useCelebration();
 
   const handleAnswer = (gi: number, ei: number, selected: string, correct: string) => {
@@ -31,12 +34,29 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
     }
   };
 
+  const toggleTr = (key: string) => setShowTr(prev => ({ ...prev, [key]: !prev[key] }));
+  const isTrShown = (key: string) => globalTr || !!showTr[key];
+
   const totalExercises = GRAM.reduce((a, g) => a + (g.exercises?.length || 0), 0);
   const doneExercises = Object.keys(grammarDone).length;
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-black tracking-tight">📐 Grammaire</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black tracking-tight">📐 Grammaire</h2>
+        {/* Global translation toggle */}
+        <button
+          onClick={() => setGlobalTr(v => !v)}
+          className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
+            globalTr
+              ? "bg-primary/12 border-primary/25 text-primary"
+              : "bg-secondary border-border/40 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Languages className="w-3.5 h-3.5" />
+          🇫🇷 Tout traduire
+        </button>
+      </div>
 
       <div className="card-elevated rounded-2xl p-4 flex justify-between items-center">
         <span className="text-xs font-medium text-muted-foreground">Exercices réussis</span>
@@ -49,13 +69,13 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: gi * 0.06 }}
-          className={`card-elevated rounded-2xl p-5 border-l-[3px] ${COLORS[gi].split(" ")[0]}`}
+          className={`card-elevated rounded-2xl p-5 border-l-[3px] ${COLORS[gi % COLORS.length].split(" ")[0]}`}
         >
-          <h3 className={`text-sm font-bold mb-3 ${COLORS[gi].split(" ")[1]}`}>{g.title}</h3>
+          <h3 className={`text-sm font-bold mb-3 ${COLORS[gi % COLORS.length].split(" ")[1]}`}>{g.title}</h3>
           <div className="space-y-2">
             {g.items.map((c, ci) => (
               <div key={ci} className="rounded-xl bg-secondary/50 p-3">
-                <div className={`text-[11px] font-bold ${COLORS[gi].split(" ")[1]}`}>{c.l}</div>
+                <div className={`text-[11px] font-bold ${COLORS[gi % COLORS.length].split(" ")[1]}`}>{c.l}</div>
                 <div className="text-xs text-foreground/80 mt-0.5">{c.e}</div>
               </div>
             ))}
@@ -69,10 +89,46 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
                   const key = `g${gi}-e${ei}`;
                   const userAnswer = answers[key];
                   const isCorrect = userAnswer === ex.a;
+                  const trKey = `${gi}-${ei}`;
+                  const trVisible = isTrShown(trKey);
 
                   return (
                     <div key={ei} className="rounded-xl bg-background/50 p-3.5">
-                      <p className="text-xs font-semibold mb-2.5">{ex.q}</p>
+                      {/* Question with translation button */}
+                      <div className="flex items-start gap-2 mb-2.5">
+                        <p className="text-xs font-semibold flex-1">{ex.q}</p>
+                        {(ex as any).fr && (
+                          <button
+                            onClick={() => toggleTr(trKey)}
+                            className={`shrink-0 flex items-center gap-0.5 text-[9px] font-bold rounded px-1.5 py-1 transition-all ${
+                              trVisible
+                                ? "bg-primary/12 text-primary"
+                                : "bg-secondary/70 text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Voir la traduction française"
+                          >
+                            <Languages className="w-2.5 h-2.5" />🇫🇷
+                          </button>
+                        )}
+                      </div>
+
+                      {/* French translation */}
+                      <AnimatePresence>
+                        {trVisible && (ex as any).fr && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden mb-2.5"
+                          >
+                            <div className="text-[11px] text-primary/80 bg-primary/8 border border-primary/15 rounded-lg px-3 py-2">
+                              🇫🇷 {(ex as any).fr}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <div className="flex gap-2 flex-wrap">
                         {ex.opts.map((opt, oi) => {
                           let cls = "bg-secondary border-border/40 text-foreground";

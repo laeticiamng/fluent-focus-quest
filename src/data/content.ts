@@ -361,34 +361,34 @@ export const GRAM = [
     {l:"Nominatif",e:"der / die / das / die (pl.)"},{l:"Accusatif",e:"den / die / das / die"},
     {l:"Datif",e:"dem / der / dem / den+n"},{l:"Astuce",e:"Accusatif=COD, Datif=COI (mit/bei/nach/zu)"}
   ],exercises:[
-    {q:"Ich untersuche ___ Patienten.",opts:["den","dem","der","das"],a:"den"},
-    {q:"Der Arzt hilft ___ Patientin.",opts:["die","der","den","das"],a:"der"},
-    {q:"___ Blutdruck ist zu hoch.",opts:["Der","Die","Das","Den"],a:"Der"}
+    {q:"Ich untersuche ___ Patienten.",fr:"J'examine ___ patient. (accusatif masculin)",opts:["den","dem","der","das"],a:"den"},
+    {q:"Der Arzt hilft ___ Patientin.",fr:"Le médecin aide ___ patiente. (datif féminin)",opts:["die","der","den","das"],a:"der"},
+    {q:"___ Blutdruck ist zu hoch.",fr:"___ tension artérielle est trop élevée. (nominatif masc.)",opts:["Der","Die","Das","Den"],a:"Der"}
   ]},
   {title:"Verbes modaux",items:[
     {l:"können",e:"pouvoir — Ich kann untersuchen"},{l:"müssen",e:"devoir — Sie müssen nüchtern bleiben"},
     {l:"möchten",e:"souhaiter — Ich möchte mich vorstellen"},{l:"dürfen",e:"permission — Dürfen wir besprechen?"}
   ],exercises:[
-    {q:"Sie ___ nüchtern bleiben. (devoir)",opts:["müssen","können","dürfen","möchten"],a:"müssen"},
-    {q:"___ ich eine Frage stellen? (permission)",opts:["Darf","Muss","Kann","Will"],a:"Darf"},
-    {q:"Ich ___ mich vorstellen. (souhaiter)",opts:["möchte","muss","darf","kann"],a:"möchte"}
+    {q:"Sie ___ nüchtern bleiben. (devoir)",fr:"Elles/Ils ___ rester à jeun.",opts:["müssen","können","dürfen","möchten"],a:"müssen"},
+    {q:"___ ich eine Frage stellen? (permission)",fr:"___ je poser une question ?",opts:["Darf","Muss","Kann","Will"],a:"Darf"},
+    {q:"Ich ___ mich vorstellen. (souhaiter)",fr:"Je ___ me présenter.",opts:["möchte","muss","darf","kann"],a:"möchte"}
   ]},
   {title:"Ordre des mots",items:[
     {l:"Principale",e:"S + V2 + ... + participe EN FIN"},
     {l:"Subordonnée",e:"weil/dass/wenn + S + ... + V EN FIN"},
     {l:"Exemple",e:"Ich glaube, dass der Patient eine Thrombose hat."}
   ],exercises:[
-    {q:"Ich glaube, dass der Patient Fieber ___.",opts:["hat","haben","habe","habt"],a:"hat"},
-    {q:"Er kommt nicht, ___ er krank ist.",opts:["weil","denn","und","oder"],a:"weil"},
-    {q:"Ich habe den Patienten ___.",opts:["untersucht","untersuche","untersuchen","untersuchte"],a:"untersucht"}
+    {q:"Ich glaube, dass der Patient Fieber ___.",fr:"Je crois que le patient ___ de la fièvre. (verbe EN FIN en subordonnée)",opts:["hat","haben","habe","habt"],a:"hat"},
+    {q:"Er kommt nicht, ___ er krank ist.",fr:"Il ne vient pas, ___ il est malade.",opts:["weil","denn","und","oder"],a:"weil"},
+    {q:"Ich habe den Patienten ___.",fr:"J'ai ___ le patient. (participe passé en fin de phrase)",opts:["untersucht","untersuche","untersuchen","untersuchte"],a:"untersucht"}
   ]},
   {title:"Passif médical",items:[
     {l:"Présent",e:"wird untersucht (est examiné)"},{l:"Passé",e:"wurde operiert (a été opéré)"},
     {l:"Modal",e:"muss untersucht werden (doit être examiné)"}
   ],exercises:[
-    {q:"Der Patient ___ morgen operiert. (futur passif)",opts:["wird","wurde","ist","hat"],a:"wird"},
-    {q:"Die Wunde ___ gestern genäht. (passé passif)",opts:["wurde","wird","ist","hat"],a:"wurde"},
-    {q:"Der Blutdruck muss ___ werden.",opts:["kontrolliert","kontrollieren","kontrolliere","kontrolle"],a:"kontrolliert"}
+    {q:"Der Patient ___ morgen operiert. (futur passif)",fr:"Le patient ___ opéré demain.",opts:["wird","wurde","ist","hat"],a:"wird"},
+    {q:"Die Wunde ___ gestern genäht. (passé passif)",fr:"La plaie ___ suturée hier.",opts:["wurde","wird","ist","hat"],a:"wurde"},
+    {q:"Der Blutdruck muss ___ werden.",fr:"La tension artérielle doit être ___ .",opts:["kontrolliert","kontrollieren","kontrolliere","kontrolle"],a:"kontrolliert"}
   ]},
   {title:"Perfekt médical",items:[
     {l:"Structure",e:"haben/sein + Partizip II en fin de phrase"},
@@ -396,19 +396,19 @@ export const GRAM = [
     {l:"sein + PP (mouvement)",e:"Der Patient ist aufgestanden."},
     {l:"Séparable",e:"aufnehmen → Ich habe den Patienten aufgenommen."}
   ],exercises:[
-    {q:"Ich ___ den Patienten untersucht.",opts:["habe","bin","hat","ist"],a:"habe"},
-    {q:"Der Patient ___ gestern aufgestanden.",opts:["ist","hat","habe","bin"],a:"ist"},
-    {q:"Wir haben die Wunde ___. (nähen)",opts:["genäht","genähen","nähte","genährt"],a:"genäht"},
-    {q:"Die Ärztin hat das Medikament ___. (verschreiben)",opts:["verschrieben","verschreibt","verschreiben","verschrieb"],a:"verschrieben"},
-    {q:"Ich habe den Befund ___. (dokumentieren)",opts:["dokumentiert","dokumentieren","dokumentiere","dokumentiertet"],a:"dokumentiert"}
+    {q:"Ich ___ den Patienten untersucht.",fr:"J'___ examiné le patient.",opts:["habe","bin","hat","ist"],a:"habe"},
+    {q:"Der Patient ___ gestern aufgestanden.",fr:"Le patient ___ levé hier. (verbe de mouvement → sein)",opts:["ist","hat","habe","bin"],a:"ist"},
+    {q:"Wir haben die Wunde ___. (nähen)",fr:"Nous avons ___ la plaie.",opts:["genäht","genähen","nähte","genährt"],a:"genäht"},
+    {q:"Die Ärztin hat das Medikament ___. (verschreiben)",fr:"La médecin a ___ le médicament.",opts:["verschrieben","verschreibt","verschreiben","verschrieb"],a:"verschrieben"},
+    {q:"Ich habe den Befund ___. (dokumentieren)",fr:"J'ai ___ le compte rendu.",opts:["dokumentiert","dokumentieren","dokumentiere","dokumentiertet"],a:"dokumentiert"}
   ]},
   {title:"Politesse",items:[
     {l:"Könnten Sie...",e:"Pourriez-vous..."},{l:"Ich würde gern...",e:"J'aimerais..."},
     {l:"Hätten Sie Zeit...",e:"Auriez-vous le temps..."}
   ],exercises:[
-    {q:"___ Sie mir bitte helfen? (pourriez-vous)",opts:["Könnten","Können","Konnten","Könnt"],a:"Könnten"},
-    {q:"Ich ___ gern mehr über die Stelle erfahren.",opts:["würde","werde","will","wollte"],a:"würde"},
-    {q:"___ Sie morgen Zeit für ein Gespräch?",opts:["Hätten","Haben","Hatten","Hat"],a:"Hätten"}
+    {q:"___ Sie mir bitte helfen? (pourriez-vous)",fr:"___ vous m'aider s'il vous plaît ?",opts:["Könnten","Können","Konnten","Könnt"],a:"Könnten"},
+    {q:"Ich ___ gern mehr über die Stelle erfahren.",fr:"J'___ volontiers en savoir plus sur le poste.",opts:["würde","werde","will","wollte"],a:"würde"},
+    {q:"___ Sie morgen Zeit für ein Gespräch?",fr:"___ vous du temps pour un entretien demain ?",opts:["Hätten","Haben","Hatten","Hat"],a:"Hätten"}
   ]}
 ];
 

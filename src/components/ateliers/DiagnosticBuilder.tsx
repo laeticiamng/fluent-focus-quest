@@ -1,41 +1,67 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, RotateCcw, Sparkles, Brain, Copy, Check } from "lucide-react";
+import { Send, RotateCcw, Sparkles, Brain, Copy, Check, Languages } from "lucide-react";
 import { toast } from "sonner";
+import { TranslationToggle } from "@/components/GermanText";
 
 const CASES = [
   {
     id: "case1",
     title: "Douleur au mollet",
-    symptoms: ["Wadenschmerzen beim Gehen seit 3 Wochen", "Besserung in Ruhe", "Raucher seit 30 Jahren", "Diabetes mellitus Typ 2"],
+    symptoms: [
+      { de: "Wadenschmerzen beim Gehen seit 3 Wochen", fr: "Douleurs au mollet à la marche depuis 3 semaines" },
+      { de: "Besserung in Ruhe", fr: "Amélioration au repos" },
+      { de: "Raucher seit 30 Jahren", fr: "Fumeur depuis 30 ans" },
+      { de: "Diabetes mellitus Typ 2", fr: "Diabète de type 2" },
+    ],
     hint: "Artériel ? Veineux ? Neurologique ?",
   },
   {
     id: "case2",
     title: "Jambe enflée",
-    symptoms: ["Schwellung linkes Bein seit 2 Tagen", "Rötung und Überwärmung", "Schmerzen in der Wade", "Langstreckenflug vor 5 Tagen"],
+    symptoms: [
+      { de: "Schwellung linkes Bein seit 2 Tagen", fr: "Gonflement de la jambe gauche depuis 2 jours" },
+      { de: "Rötung und Überwärmung", fr: "Rougeur et chaleur locale" },
+      { de: "Schmerzen in der Wade", fr: "Douleurs dans le mollet" },
+      { de: "Langstreckenflug vor 5 Tagen", fr: "Vol long-courrier il y a 5 jours" },
+    ],
     hint: "Pense aux facteurs de risque...",
   },
   {
     id: "case3",
     title: "Pied froid",
-    symptoms: ["Plötzlich kalter rechter Fuß seit 3 Stunden", "Kein Puls tastbar", "Blass und schmerzhaft", "Vorhofflimmern bekannt"],
+    symptoms: [
+      { de: "Plötzlich kalter rechter Fuß seit 3 Stunden", fr: "Pied droit soudainement froid depuis 3 heures" },
+      { de: "Kein Puls tastbar", fr: "Absence de pouls palpable" },
+      { de: "Blass und schmerzhaft", fr: "Pâle et douloureux" },
+      { de: "Vorhofflimmern bekannt", fr: "Fibrillation auriculaire connue" },
+    ],
     hint: "Urgence ? Quel mécanisme ?",
   },
   {
     id: "case4",
     title: "Ulcère de jambe",
-    symptoms: ["Nicht heilende Wunde am Innenknöchel seit 6 Monaten", "Bräunliche Hautverfärbung", "Schweregefühl abends", "Krampfadern seit 20 Jahren"],
+    symptoms: [
+      { de: "Nicht heilende Wunde am Innenknöchel seit 6 Monaten", fr: "Plaie non cicatrisante à la malléole interne depuis 6 mois" },
+      { de: "Bräunliche Hautverfärbung", fr: "Pigmentation brunâtre de la peau" },
+      { de: "Schweregefühl abends", fr: "Sensation de lourdeur le soir" },
+      { de: "Krampfadern seit 20 Jahren", fr: "Varices depuis 20 ans" },
+    ],
     hint: "Artériel ou veineux ? Comment distinguer ?",
   },
   {
     id: "case5",
     title: "Pulsation abdominale",
-    symptoms: ["Zufallsbefund: pulsierender Tumor im Abdomen", "75 Jahre, männlich", "Hypertonus, Raucher", "Keine Beschwerden"],
+    symptoms: [
+      { de: "Zufallsbefund: pulsierender Tumor im Abdomen", fr: "Découverte fortuite : masse abdominale pulsatile" },
+      { de: "75 Jahre, männlich", fr: "75 ans, sexe masculin" },
+      { de: "Hypertonus, Raucher", fr: "Hypertension artérielle, fumeur" },
+      { de: "Keine Beschwerden", fr: "Aucune plainte / asymptomatique" },
+    ],
     hint: "Taille ? Seuil opératoire ?",
   },
 ];
@@ -47,6 +73,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
   const [diagnosis, setDiagnosis] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showTr, setShowTr] = useState(false); // show French translations for symptoms
 
   const handleCopy = () => {
     if (!response) return;
@@ -67,7 +94,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!diagnosis.trim() || !currentCase) return;
-    const prompt = `Symptome des Patienten:\n${currentCase.symptoms.map(s => `- ${s}`).join("\n")}\n\nVerdachtsdiagnose der Studentin:\n"${diagnosis}"\n\nBewerte die Diagnose und das klinische Reasoning.`;
+    const prompt = `Symptome des Patienten:\n${currentCase.symptoms.map(s => `- ${s.de}`).join("\n")}\n\nVerdachtsdiagnose der Studentin:\n"${diagnosis}"\n\nBewerte die Diagnose und das klinische Reasoning.`;
     ask(prompt, "diagnostic-builder");
     setSubmitted(true);
     addXp(25);
@@ -115,12 +142,30 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
             animate={{ opacity: 1, scale: 1 }}
             className="rounded-2xl bg-gradient-to-br from-clinical/12 to-info/6 border border-clinical/20 p-5"
           >
-            <p className="text-[10px] uppercase tracking-[3px] text-clinical/70 mb-3">Symptômes du patient</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] uppercase tracking-[3px] text-clinical/70">Symptômes du patient</p>
+              <TranslationToggle enabled={showTr} onChange={setShowTr} label="🇫🇷 FR" />
+            </div>
             <div className="space-y-2">
               {currentCase.symptoms.map((s, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-clinical text-xs mt-0.5">•</span>
-                  <span className="text-sm font-medium">{s}</span>
+                <div key={i} className="space-y-0.5">
+                  <div className="flex items-start gap-2">
+                    <span className="text-clinical text-xs mt-0.5">•</span>
+                    <span className="text-sm font-medium">{s.de}</span>
+                  </div>
+                  <AnimatePresence>
+                    {showTr && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="overflow-hidden pl-4"
+                      >
+                        <span className="text-xs text-primary/70">🇫🇷 {s.fr}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ))}
             </div>

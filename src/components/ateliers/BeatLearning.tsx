@@ -2,16 +2,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DECKS } from "@/data/content";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, SkipForward, Volume2 } from "lucide-react";
+import { Play, Pause, SkipForward, Volume2, Languages } from "lucide-react";
 
-const BPM_OPTIONS = [60, 80, 100, 120];
+const BPM_OPTIONS = [5, 20, 25, 30, 35, 40, 45, 60, 80, 100, 120];
 
 export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
   const [playing, setPlaying] = useState(false);
-  const [bpm, setBpm] = useState(80);
+  const [bpm, setBpm] = useState(40);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [showFr, setShowFr] = useState(false);
+  const [bilingual, setBilingual] = useState(false);
   const [deck, setDeck] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -38,7 +39,7 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
       const interval = (60 / bpm) * 1000;
       timerRef.current = setInterval(() => {
         playTick();
-        setShowFr(false);
+        if (!bilingual) setShowFr(false);
         setCurrentIdx(prev => {
           const next = (prev + 1) % cards.length;
           if (next === 0) {
@@ -51,14 +52,16 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
       return () => clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
-  }, [playing, bpm, cards.length, playTick, addXp]);
+  }, [playing, bpm, cards.length, playTick, addXp, bilingual]);
 
   const skip = () => {
     setCurrentIdx(prev => (prev + 1) % cards.length);
-    setShowFr(false);
+    if (!bilingual) setShowFr(false);
   };
 
   const current = cards[currentIdx];
+  const slowBpms = BPM_OPTIONS.filter(b => b <= 45);
+  const fastBpms = BPM_OPTIONS.filter(b => b >= 60);
 
   return (
     <div className="space-y-5">
@@ -85,6 +88,31 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
         ))}
       </div>
 
+      {/* Mode toggle */}
+      <div className="flex gap-2 justify-center">
+        <button
+          onClick={() => setBilingual(false)}
+          className={`flex-1 max-w-[160px] rounded-xl px-3 py-2 text-xs font-bold border transition-all ${
+            !bilingual
+              ? "bg-warning/15 border-warning/30 text-warning"
+              : "border-border/40 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          🇩🇪 Mode normal
+        </button>
+        <button
+          onClick={() => setBilingual(true)}
+          className={`flex-1 max-w-[160px] flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold border transition-all ${
+            bilingual
+              ? "bg-primary/15 border-primary/30 text-primary"
+              : "border-border/40 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Languages className="w-3.5 h-3.5" />
+          🇩🇪 = 🇫🇷 Bilingue
+        </button>
+      </div>
+
       {/* Current word display */}
       {current && (
         <motion.div
@@ -107,14 +135,28 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <p className="text-3xl sm:text-4xl font-black tracking-tight">{current.de}</p>
-              <button onClick={() => setShowFr(!showFr)} className="mt-3">
-                {showFr ? (
-                  <p className="text-sm text-muted-foreground">{current.fr}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground/50">tap pour voir la traduction</p>
-                )}
-              </button>
+              {bilingual ? (
+                /* Bilingual mode: always show DE = FR */
+                <div className="space-y-2">
+                  <p className="text-3xl sm:text-4xl font-black tracking-tight">{current.de}</p>
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <span className="text-lg">=</span>
+                    <p className="text-xl sm:text-2xl font-bold text-primary/80">{current.fr}</p>
+                  </div>
+                </div>
+              ) : (
+                /* Normal mode: click to reveal */
+                <>
+                  <p className="text-3xl sm:text-4xl font-black tracking-tight">{current.de}</p>
+                  <button onClick={() => setShowFr(!showFr)} className="mt-3">
+                    {showFr ? (
+                      <p className="text-sm text-muted-foreground">{current.fr}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/50">tap pour voir la traduction</p>
+                    )}
+                  </button>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -149,23 +191,40 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
 
         <div className="flex items-center gap-1.5">
           <Volume2 className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs font-mono font-bold text-muted-foreground">{bpm}</span>
+          <span className="text-xs font-mono font-bold text-muted-foreground">{bpm} BPM</span>
         </div>
       </div>
 
-      {/* BPM selector */}
-      <div className="flex justify-center gap-2">
-        {BPM_OPTIONS.map(b => (
-          <button
-            key={b}
-            onClick={() => setBpm(b)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-              bpm === b ? "bg-warning/15 text-warning border border-warning/30" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {b} BPM
-          </button>
-        ))}
+      {/* BPM selector — two rows: slow & fast */}
+      <div className="space-y-2">
+        <p className="text-[10px] text-center text-muted-foreground/60 uppercase tracking-wider">Tempo lent</p>
+        <div className="flex justify-center gap-1.5 flex-wrap">
+          {slowBpms.map(b => (
+            <button
+              key={b}
+              onClick={() => setBpm(b)}
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
+                bpm === b ? "bg-warning/15 text-warning border border-warning/30" : "text-muted-foreground hover:text-foreground border border-transparent hover:border-border/40"
+              }`}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-center text-muted-foreground/60 uppercase tracking-wider">Tempo rapide</p>
+        <div className="flex justify-center gap-1.5 flex-wrap">
+          {fastBpms.map(b => (
+            <button
+              key={b}
+              onClick={() => setBpm(b)}
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
+                bpm === b ? "bg-warning/15 text-warning border border-warning/30" : "text-muted-foreground hover:text-foreground border border-transparent hover:border-border/40"
+              }`}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Info */}

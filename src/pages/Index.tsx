@@ -17,8 +17,8 @@ import { Stats } from "@/components/Stats";
 import { AtelierHub } from "@/components/AtelierHub";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
-import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { DailyJourney } from "@/components/DailyJourney";
 
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier";
 
@@ -47,9 +47,6 @@ const Index = () => {
   const totDone = Object.values(progress.done).filter(Boolean).length;
   const totTasks = PROG.reduce((a, d) => a + d.tasks.length, 0);
   const pct = Math.round((totDone / totTasks) * 100);
-
-  const todayProg = PROG.find(d => d.date === tStr) || PROG[0];
-  const todayDone = todayProg.tasks.filter((_, i) => progress.done[`${todayProg.date}-${i}`]).length;
 
   return (
     <div className="min-h-screen bg-background ambient-bg">
@@ -159,32 +156,9 @@ const Index = () => {
 
               <MotivBanner />
 
-              {/* Today's tasks preview */}
+              {/* Daily Journey — parcours guidé du jour */}
               <div className="card-elevated rounded-2xl p-5 sm:p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm sm:text-base font-bold tracking-tight">📋 Aujourd'hui — {todayProg.title}</h3>
-                  <span className="text-xs sm:text-sm font-bold text-success">{todayDone}/{todayProg.tasks.length}</span>
-                </div>
-                <div className="space-y-3">
-                  {todayProg.tasks.map((task, i) => {
-                    const isDone = !!progress.done[`${todayProg.date}-${i}`];
-                    return (
-                      <div key={i} className="flex items-center gap-3 group">
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          isDone ? "bg-success border-success glow-success" : "border-muted-foreground/30 group-hover:border-muted-foreground/50"
-                        }`}>
-                          {isDone && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
-                        </div>
-                        <span className={`text-xs sm:text-sm leading-relaxed ${isDone ? "line-through text-muted-foreground" : ""}`}>
-                          <span className="font-semibold">{task.t}:</span> {task.d}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <button onClick={() => setTab("today")} className="text-xs sm:text-sm text-primary font-semibold mt-4 hover:underline transition-all">
-                  Voir tout →
-                </button>
+                <DailyJourney onNavigate={setTab} done={progress.done} />
               </div>
 
               {/* Creator CTA — featured */}
