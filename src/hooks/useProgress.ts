@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-
-const SKEY = "op-bienne-v6";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 interface QuizScore {
   correct: number;
@@ -29,17 +29,6 @@ const defaultState: ProgressState = {
   pomodoroCount: 0, grammarDone: {}
 };
 
-function load(): ProgressState {
-  try {
-    const raw = localStorage.getItem(SKEY);
-    return raw ? { ...defaultState, ...JSON.parse(raw) } : defaultState;
-  } catch { return defaultState; }
-}
-
-function save(state: ProgressState) {
-  try { localStorage.setItem(SKEY, JSON.stringify(state)); } catch {}
-}
-
 function calcStreak(lastDate: string, currentStreak: number): { streak: number; lastActiveDate: string } {
   const today = new Date().toISOString().split("T")[0];
   if (lastDate === today) return { streak: currentStreak, lastActiveDate: today };
@@ -49,9 +38,46 @@ function calcStreak(lastDate: string, currentStreak: number): { streak: number; 
 }
 
 export function useProgress() {
-  const [state, setState] = useState<ProgressState>(load);
+  const { user } = useAuth();
+  const [state, setState] = useState<ProgressState>(defaultState);
+  const [loaded, setLoaded] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  useEffect(() => { save(state); }, [state]);
+  // Load from database
+  useEffect(() => {
+    if (!user) { setState(defaultState); setLoaded(false); return; }
+
+    const load = async () => {
+      const { data } = await supabase
+        .from("user_progress")
+        .select("progress_data")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data?.progress_data) {
+        setState({ ...defaultState, ...(data.progress_data as unknown as Partial<ProgressState>) });
+      }
+      setLoaded(true);
+    };
+    load();
+  }, [user]);
+
+  // Debounced save to database
+  useEffect(() => {
+    if (!user || !loaded) return;
+
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      await supabase
+        .from("user_progress")
+        .upsert({
+          user_id: user.id,
+          progress_data: state as unknown as Record<string, unknown>,
+        }, { onConflict: "user_id" });
+    }, 1000);
+
+    return () => clearTimeout(saveTimer.current);
+  }, [state, user, loaded]);
 
   const updateStreak = useCallback(() => {
     setState(s => {
@@ -112,8 +138,7 @@ export function useProgress() {
     setState(s => ({ ...s, grammarDone: { ...s.grammarDone, [key]: true }, xp: s.xp + 10 }));
   }, []);
 
-  // Update streak on mount
-  useEffect(() => { updateStreak(); }, [updateStreak]);
+  useEffect(() => { if (loaded) updateStreak(); }, [updateStreak, loaded]);
 
   return {
     ...state, toggleTask, addXp, setRating, toggleChecklist,
