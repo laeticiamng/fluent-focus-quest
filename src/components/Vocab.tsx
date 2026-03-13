@@ -38,6 +38,8 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [globalQuiz, setGlobalQuiz] = useState(false);
   const [globalCards, setGlobalCards] = useState<{ de: string; fr: string; deckIdx: number; cardIdx: number }[]>([]);
+  const [globalFlashcard, setGlobalFlashcard] = useState(false);
+  const [revisionSize, setRevisionSize] = useState(30);
 
   const getCards = useCallback((dkIdx: number) => {
     const cards = DECKS[dkIdx].cards;
@@ -70,13 +72,13 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     setQO(mkO(DECKS[i].cards, order[0], reversed));
   };
 
-  const startGlobalQuiz = () => {
+  const startGlobalQuiz = (size = 30) => {
     const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
     DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => all.push({ ...c, deckIdx: di, cardIdx: ci })));
-    const shuffledAll = shuffleArray(all).slice(0, 30);
+    const shuffledAll = shuffleArray(all).slice(0, size);
     setGlobalCards(shuffledAll);
-    setGlobalQuiz(true); setMode("quiz"); setCi(0); setQS({ c: 0, t: 0 }); setQA(null);
-    setDi(null);
+    setGlobalQuiz(true); setGlobalFlashcard(false); setMode("quiz"); setCi(0); setQS({ c: 0, t: 0 }); setQA(null);
+    setDi(null); setRevisionSize(size);
     const answerField = reversed ? "de" : "fr";
     const o = [shuffledAll[0][answerField]];
     const pool = shuffledAll.map(x => x[answerField]).filter(f => f !== shuffledAll[0][answerField]);
@@ -85,6 +87,27 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
       if (!o.includes(r)) { o.push(r); pool.splice(pool.indexOf(r), 1); }
     }
     setQO(o.sort(() => Math.random() - 0.5));
+  };
+
+  const startGlobalFlashcard = (size = 40) => {
+    const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
+    DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => all.push({ ...c, deckIdx: di, cardIdx: ci })));
+    const shuffledAll = shuffleArray(all).slice(0, size);
+    setGlobalCards(shuffledAll);
+    setGlobalFlashcard(true); setGlobalQuiz(false); setMode("flashcard"); setCi(0); setFlip(false);
+    setDi(null); setRevisionSize(size);
+  };
+
+  const startHardCardsReview = () => {
+    const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
+    DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => {
+      if (hardCards[`${di}-${ci}`]) all.push({ ...c, deckIdx: di, cardIdx: ci });
+    }));
+    if (all.length === 0) return;
+    const shuffledAll = shuffleArray(all);
+    setGlobalCards(shuffledAll);
+    setGlobalFlashcard(true); setGlobalQuiz(false); setMode("flashcard"); setCi(0); setFlip(false);
+    setDi(null); setRevisionSize(shuffledAll.length);
   };
 
   const answer = (a: string) => {
@@ -160,7 +183,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             <p className="text-muted-foreground text-sm mt-3">+{qS.c * 10} XP</p>
             <div className="flex gap-3 justify-center mt-6">
               {globalQuiz ? (
-                <Button onClick={startGlobalQuiz} className="rounded-xl">Recommencer</Button>
+                <Button onClick={() => startGlobalQuiz(revisionSize)} className="rounded-xl">Recommencer</Button>
               ) : (
                 <Button onClick={() => startQuiz(di!)} className="rounded-xl">Recommencer</Button>
               )}
@@ -210,23 +233,32 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     );
   }
 
-  // FLASHCARD MODE
-  if (mode === "flashcard" && di !== null) {
-    const dk = DECKS[di];
-    const order = cardOrder.length ? cardOrder : dk.cards.map((_, i) => i);
-    const realIdx = order[ci];
-    const card = dk.cards[realIdx];
-    const isHard = !!hardCards[`${di}-${realIdx}`];
+  // FLASHCARD MODE (single deck or global)
+  if (mode === "flashcard" && (di !== null || globalFlashcard)) {
+    const isGlobal = globalFlashcard;
+    const totalCards = isGlobal ? globalCards.length : DECKS[di!].cards.length;
+    const card = isGlobal ? globalCards[ci] : DECKS[di!].cards[cardOrder.length ? cardOrder[ci] : ci];
+    const realIdx = isGlobal ? ci : (cardOrder.length ? cardOrder[ci] : ci);
+    const deckIdx = isGlobal ? globalCards[ci]?.deckIdx : di!;
+    const cardIdx = isGlobal ? globalCards[ci]?.cardIdx : realIdx;
+    const isHard = !!hardCards[`${deckIdx}-${cardIdx}`];
+    const label = isGlobal ? "🔀 Révision aléatoire" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
+    const deckInfo = isGlobal && card ? DECKS[globalCards[ci].deckIdx] : null;
 
     return (
       <div className="space-y-4">
-        <button onClick={() => setMode("list")} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors">
+        <button onClick={() => { setMode("list"); setGlobalFlashcard(false); }} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
         <div className="flex justify-between items-center">
-          <span className="font-bold text-sm">{dk.icon} {dk.name}</span>
-          <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{dk.cards.length}</span>
+          <span className="font-bold text-sm">{label}</span>
+          <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{totalCards}</span>
         </div>
+        {isGlobal && deckInfo && (
+          <div className="text-[10px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5 inline-block">
+            {deckInfo.icon} {deckInfo.name}
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={ci + (flip ? "-flip" : "")}
@@ -243,7 +275,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
               {flip ? (reversed ? "Deutsch" : "Français") : (reversed ? "Français" : "Deutsch")}
             </p>
             <p className="text-2xl font-black tracking-tight">
-              {flip ? (reversed ? card.de : card.fr) : (reversed ? card.fr : card.de)}
+              {card ? (flip ? (reversed ? card.de : card.fr) : (reversed ? card.fr : card.de)) : ""}
             </p>
             {!flip && <p className="text-[11px] text-muted-foreground mt-5">Tap pour révéler</p>}
           </motion.div>
@@ -253,7 +285,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <button
-            onClick={() => toggleHardCard(di, realIdx)}
+            onClick={() => toggleHardCard(deckIdx, cardIdx)}
             className={`p-2 rounded-xl border transition-all ${isHard ? "bg-primary/15 border-primary/30 text-primary" : "bg-secondary border-border/50 text-muted-foreground"}`}
           >
             <Star className={`w-4 h-4 ${isHard ? "fill-current" : ""}`} />
@@ -262,11 +294,11 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             className="flex-1 rounded-xl"
             onClick={() => {
               addXp(5);
-              if (ci < dk.cards.length - 1) { setCi(ci + 1); setFlip(false); }
-              else setMode("list");
+              if (ci < totalCards - 1) { setCi(ci + 1); setFlip(false); }
+              else { setMode("list"); setGlobalFlashcard(false); }
             }}
           >
-            {ci === dk.cards.length - 1 ? "Terminé ✓" : "Suivant →"}
+            {ci === totalCards - 1 ? "Terminé ✓" : "Suivant →"}
           </Button>
         </div>
         <div className="flex gap-2">
@@ -276,14 +308,18 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
           >
             {reversed ? "FR→DE" : "DE→FR"}
           </button>
-          <button onClick={() => {
-            setShuffled(!shuffled);
-            const newOrder = !shuffled ? shuffleArray(dk.cards.map((_, i) => i)) : dk.cards.map((_, i) => i);
-            setCardOrder(newOrder); setCi(0); setFlip(false);
-          }} className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${shuffled ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
-            <Shuffle className="w-3 h-3" /> Mélanger
-          </button>
+          {!isGlobal && (
+            <button onClick={() => {
+              setShuffled(!shuffled);
+              const dk = DECKS[di!];
+              const newOrder = !shuffled ? shuffleArray(dk.cards.map((_, i) => i)) : dk.cards.map((_, i) => i);
+              setCardOrder(newOrder); setCi(0); setFlip(false);
+            }} className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${shuffled ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
+              <Shuffle className="w-3 h-3" /> Mélanger
+            </button>
+          )}
         </div>
+        <Progress value={((ci + 1) / totalCards) * 100} className="h-1 bg-secondary rounded-full" />
       </div>
     );
   }
@@ -304,15 +340,18 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
         >
           {reversed ? "🇫🇷→🇩🇪 Actif" : "🇩🇪→🇫🇷 Normal"}
         </button>
-        <button onClick={startGlobalQuiz} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all">
-          🌍 Quiz Global
+        <button onClick={() => startGlobalQuiz(30)} className="text-xs font-semibold px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-all">
+          🌍 Quiz Global (30)
+        </button>
+        <button onClick={() => startGlobalFlashcard(40)} className="text-xs font-semibold px-4 py-2 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/15 transition-all">
+          🔀 Révision aléatoire
         </button>
       </div>
 
       {hardCount > 0 && (
-        <div className="rounded-xl bg-primary/8 border border-primary/15 p-3">
-          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots marqués difficiles</p>
-        </div>
+        <button onClick={startHardCardsReview} className="w-full rounded-xl bg-primary/8 border border-primary/15 p-3 text-left hover:bg-primary/12 transition-all">
+          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots difficiles — tap pour réviser</p>
+        </button>
       )}
 
       <div className="space-y-3">
