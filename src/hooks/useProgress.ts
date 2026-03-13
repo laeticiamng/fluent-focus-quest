@@ -70,10 +70,10 @@ export function useProgress() {
     saveTimer.current = setTimeout(async () => {
       await supabase
         .from("user_progress")
-        .upsert({
+        .upsert([{
           user_id: user.id,
           progress_data: state as unknown as Record<string, unknown>,
-        }, { onConflict: "user_id" });
+        }], { onConflict: "user_id" });
     }, 1000);
 
     return () => clearTimeout(saveTimer.current);
