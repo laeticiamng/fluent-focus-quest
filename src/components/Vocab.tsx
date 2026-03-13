@@ -96,7 +96,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     const ok = a === correct;
     setQA({ sel: a, correct, ok });
     setQS(s => ({ c: s.c + (ok ? 1 : 0), t: s.t + 1 }));
-    if (ok) addXp(10);
+    if (ok) { addXp(10); celebrate("quiz"); }
     setTimeout(() => {
       const total = globalQuiz ? globalCards.length : DECKS[di!].cards.length;
       if (ci < total - 1) {
