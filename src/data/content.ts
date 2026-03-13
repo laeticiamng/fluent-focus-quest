@@ -294,6 +294,18 @@ export const GRAM = [
     {q:"Die Wunde ___ gestern genäht. (passé passif)",opts:["wurde","wird","ist","hat"],a:"wurde"},
     {q:"Der Blutdruck muss ___ werden.",opts:["kontrolliert","kontrollieren","kontrolliere","kontrolle"],a:"kontrolliert"}
   ]},
+  {title:"Perfekt médical",items:[
+    {l:"Structure",e:"haben/sein + Partizip II en fin de phrase"},
+    {l:"haben + PP",e:"Ich habe den Patienten untersucht."},
+    {l:"sein + PP (mouvement)",e:"Der Patient ist aufgestanden."},
+    {l:"Séparable",e:"aufnehmen → Ich habe den Patienten aufgenommen."}
+  ],exercises:[
+    {q:"Ich ___ den Patienten untersucht.",opts:["habe","bin","hat","ist"],a:"habe"},
+    {q:"Der Patient ___ gestern aufgestanden.",opts:["ist","hat","habe","bin"],a:"ist"},
+    {q:"Wir haben die Wunde ___. (nähen)",opts:["genäht","genähen","nähte","genährt"],a:"genäht"},
+    {q:"Die Ärztin hat das Medikament ___. (verschreiben)",opts:["verschrieben","verschreibt","verschreiben","verschrieb"],a:"verschrieben"},
+    {q:"Ich habe den Befund ___. (dokumentieren)",opts:["dokumentiert","dokumentieren","dokumentiere","dokumentiertet"],a:"dokumentiert"}
+  ]},
   {title:"Politesse",items:[
     {l:"Könnten Sie...",e:"Pourriez-vous..."},{l:"Ich würde gern...",e:"J'aimerais..."},
     {l:"Hätten Sie Zeit...",e:"Auriez-vous le temps..."}
