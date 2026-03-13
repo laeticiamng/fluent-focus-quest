@@ -14,15 +14,17 @@ import { CalendarView } from "@/components/CalendarView";
 import { VisionBoard } from "@/components/VisionBoard";
 import { Tools } from "@/components/Tools";
 import { Stats } from "@/components/Stats";
+import { AtelierHub } from "@/components/AtelierHub";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 
-type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
+  { id: "atelier", icon: "🏗️", label: "Créer" },
   { id: "motiv", icon: "🔥", label: "Motiv" },
   { id: "today", icon: "📋", label: "Jour" },
   { id: "vocab", icon: "🧠", label: "Vocab" },
