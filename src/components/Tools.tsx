@@ -61,7 +61,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-black tracking-tight">🛠️ Outils</h2>
+      <h2 className="text-2xl font-black tracking-tight">🛠️ Boite a outils</h2>
 
       {/* Pomodoro */}
       <motion.div
@@ -70,7 +70,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
         className="card-elevated rounded-2xl p-6"
       >
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-sm font-bold text-primary">⏱️ Pomodoro</h3>
+          <h3 className="text-sm font-bold text-primary">⏱️ Session de forge</h3>
           <span className="text-[10px] text-muted-foreground font-medium">{pomodoroCount} sessions ✓</span>
         </div>
         <div className="text-center mb-5">
@@ -99,20 +99,20 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
 
       {/* Notes */}
       <div className="card-elevated rounded-2xl p-5">
-        <h3 className="text-sm font-bold mb-3">📝 Notes personnelles</h3>
+        <h3 className="text-sm font-bold mb-3">📝 Mon carnet de bord</h3>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="Tes phrases, notes, idées... Sauvegarde auto."
+          placeholder="Tes phrases, idees, constructions en cours... Sauvegarde auto."
           className="w-full bg-secondary/50 rounded-xl p-4 text-xs min-h-[120px] resize-y border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-foreground placeholder:text-muted-foreground transition-all"
         />
       </div>
 
       {/* Voice Recorder */}
       <div className="card-elevated rounded-2xl p-5">
-        <h3 className="text-sm font-bold mb-3">🎙️ Entraînement oral</h3>
-        <p className="text-[11px] text-muted-foreground mb-3">Enregistre-toi, réécoute, corrige. Répète jusqu'à ce que ce soit fluide.</p>
-        <VoiceRecorder label="Entraînement libre" />
+        <h3 className="text-sm font-bold mb-3">🎙️ Studio vocal</h3>
+        <p className="text-[11px] text-muted-foreground mb-3">Enregistre, reecoute, perfectionne. Chaque prise est un artefact de progression.</p>
+        <VoiceRecorder label="Enregistrement atelier" />
       </div>
 
       {/* Templates */}

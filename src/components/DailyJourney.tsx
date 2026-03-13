@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { PROG } from "@/data/content";
 import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
 
-type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio";
 
 interface JourneyStep {
   tab: Tab;
@@ -15,13 +15,13 @@ interface JourneyStep {
 }
 
 const STEP_CONFIG: Record<string, JourneyStep> = {
-  learn:   { tab: "vocab",   icon: "🧠", label: "Vocabulaire",  desc: "Flashcards + quiz du deck du jour", duration: "20 min", color: "from-info/12 to-info/5", textColor: "text-info" },
-  grammar: { tab: "gram",    icon: "📐", label: "Grammaire",    desc: "Exercices interactifs du jour",     duration: "15 min", color: "from-grammar/12 to-grammar/5", textColor: "text-grammar" },
-  speak:   { tab: "atelier", icon: "✨", label: "Créer",        desc: "Script Builder ou Studio",         duration: "20 min", color: "from-primary/12 to-primary/5", textColor: "text-primary" },
-  write:   { tab: "atelier", icon: "✍️", label: "Rédiger",      desc: "Document Builder ou Cas patient",  duration: "25 min", color: "from-accent/12 to-accent/5", textColor: "text-accent" },
-  listen:  { tab: "tools",   icon: "🎙️", label: "Écouter",      desc: "Podcast + Voice recorder",         duration: "30 min", color: "from-warning/12 to-warning/5", textColor: "text-warning" },
-  review:  { tab: "vocab",   icon: "🔄", label: "Révision",     desc: "Revoir les mots difficiles",       duration: "15 min", color: "from-success/12 to-success/5", textColor: "text-success" },
-  rest:    { tab: "motiv",   icon: "💆", label: "Repos actif",  desc: "VisionBoard + motivation",         duration: "10 min", color: "from-muted-foreground/8 to-transparent", textColor: "text-muted-foreground" },
+  learn:   { tab: "vocab",   icon: "🔨", label: "Forger",        desc: "Forge tes phrases du jour",            duration: "20 min", color: "from-amber-500/12 to-amber-500/5", textColor: "text-amber-400" },
+  grammar: { tab: "gram",    icon: "🌳", label: "Construire",    desc: "Construis une regle de grammaire",     duration: "15 min", color: "from-grammar/12 to-grammar/5", textColor: "text-grammar" },
+  speak:   { tab: "atelier", icon: "✨", label: "Creer",         desc: "Script Builder ou Studio",             duration: "20 min", color: "from-primary/12 to-primary/5", textColor: "text-primary" },
+  write:   { tab: "atelier", icon: "✍️", label: "Rediger",       desc: "Document Builder ou Cas patient",      duration: "25 min", color: "from-accent/12 to-accent/5", textColor: "text-accent" },
+  listen:  { tab: "tools",   icon: "🎙️", label: "Produire",      desc: "Enregistre et perfectionne ta voix",   duration: "30 min", color: "from-warning/12 to-warning/5", textColor: "text-warning" },
+  review:  { tab: "vocab",   icon: "🔄", label: "Renforcer",     desc: "Ameliore tes creations precedentes",   duration: "15 min", color: "from-success/12 to-success/5", textColor: "text-success" },
+  rest:    { tab: "motiv",   icon: "💆", label: "Repos actif",   desc: "VisionBoard + motivation",             duration: "10 min", color: "from-muted-foreground/8 to-transparent", textColor: "text-muted-foreground" },
 };
 
 interface DailyJourneyProps {
@@ -55,9 +55,9 @@ export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
         animate={{ opacity: 1, scale: 1 }}
         className="rounded-2xl bg-gradient-to-br from-success/15 to-success/5 border border-success/25 p-5 text-center"
       >
-        <div className="text-3xl mb-2">🎉</div>
-        <p className="text-sm font-black text-success tracking-tight">Parcours du jour terminé !</p>
-        <p className="text-xs text-success/70 mt-1">Tu avances vers Bienne. Chaque jour compte.</p>
+        <div className="text-3xl mb-2">🏛️</div>
+        <p className="text-sm font-black text-success tracking-tight">Atelier du jour termine !</p>
+        <p className="text-xs text-success/70 mt-1">Toutes tes creations du jour sont forgees. Bienne se rapproche.</p>
       </motion.div>
     );
   }
@@ -67,12 +67,12 @@ export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground">Ton parcours du jour</p>
+          <p className="text-[10px] uppercase tracking-[3px] text-amber-400/70">Ton atelier du jour</p>
           <p className="text-sm font-black tracking-tight mt-0.5">{todayProg.title}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs font-bold text-success">{doneCount}/{steps.length}</p>
-          <p className="text-[10px] text-muted-foreground">étapes</p>
+          <p className="text-xs font-bold text-amber-400">{doneCount}/{steps.length}</p>
+          <p className="text-[10px] text-muted-foreground">creations</p>
         </div>
       </div>
 
@@ -126,7 +126,7 @@ export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
                       </span>
                       {isNext && (
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full bg-current/10 ${step.textColor}`}>
-                          MAINTENANT
+                          A CREER
                         </span>
                       )}
                       <span className="text-[10px] text-muted-foreground ml-auto">{step.duration}</span>
