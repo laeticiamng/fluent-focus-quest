@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Shuffle, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCelebration } from "@/components/CelebrationProvider";
 
 interface VocabProps {
   addXp: (n: number) => void;
