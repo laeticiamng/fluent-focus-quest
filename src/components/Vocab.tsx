@@ -72,13 +72,13 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     setQO(mkO(DECKS[i].cards, order[0], reversed));
   };
 
-  const startGlobalQuiz = () => {
+  const startGlobalQuiz = (size = 30) => {
     const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
     DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => all.push({ ...c, deckIdx: di, cardIdx: ci })));
-    const shuffledAll = shuffleArray(all).slice(0, 30);
+    const shuffledAll = shuffleArray(all).slice(0, size);
     setGlobalCards(shuffledAll);
-    setGlobalQuiz(true); setMode("quiz"); setCi(0); setQS({ c: 0, t: 0 }); setQA(null);
-    setDi(null);
+    setGlobalQuiz(true); setGlobalFlashcard(false); setMode("quiz"); setCi(0); setQS({ c: 0, t: 0 }); setQA(null);
+    setDi(null); setRevisionSize(size);
     const answerField = reversed ? "de" : "fr";
     const o = [shuffledAll[0][answerField]];
     const pool = shuffledAll.map(x => x[answerField]).filter(f => f !== shuffledAll[0][answerField]);
@@ -87,6 +87,27 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
       if (!o.includes(r)) { o.push(r); pool.splice(pool.indexOf(r), 1); }
     }
     setQO(o.sort(() => Math.random() - 0.5));
+  };
+
+  const startGlobalFlashcard = (size = 40) => {
+    const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
+    DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => all.push({ ...c, deckIdx: di, cardIdx: ci })));
+    const shuffledAll = shuffleArray(all).slice(0, size);
+    setGlobalCards(shuffledAll);
+    setGlobalFlashcard(true); setGlobalQuiz(false); setMode("flashcard"); setCi(0); setFlip(false);
+    setDi(null); setRevisionSize(size);
+  };
+
+  const startHardCardsReview = () => {
+    const all: { de: string; fr: string; deckIdx: number; cardIdx: number }[] = [];
+    DECKS.forEach((dk, di) => dk.cards.forEach((c, ci) => {
+      if (hardCards[`${di}-${ci}`]) all.push({ ...c, deckIdx: di, cardIdx: ci });
+    }));
+    if (all.length === 0) return;
+    const shuffledAll = shuffleArray(all);
+    setGlobalCards(shuffledAll);
+    setGlobalFlashcard(true); setGlobalQuiz(false); setMode("flashcard"); setCi(0); setFlip(false);
+    setDi(null); setRevisionSize(shuffledAll.length);
   };
 
   const answer = (a: string) => {
