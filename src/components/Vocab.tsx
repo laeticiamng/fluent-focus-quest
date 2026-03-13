@@ -349,9 +349,9 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
       </div>
 
       {hardCount > 0 && (
-        <div className="rounded-xl bg-primary/8 border border-primary/15 p-3">
-          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots marqués difficiles</p>
-        </div>
+        <button onClick={startHardCardsReview} className="w-full rounded-xl bg-primary/8 border border-primary/15 p-3 text-left hover:bg-primary/12 transition-all">
+          <p className="text-xs font-semibold text-primary">⭐ {hardCount} mots difficiles — tap pour réviser</p>
+        </button>
       )}
 
       <div className="space-y-3">
