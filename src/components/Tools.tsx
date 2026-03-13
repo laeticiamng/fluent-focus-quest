@@ -107,6 +107,13 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
         />
       </div>
 
+      {/* Voice Recorder */}
+      <div className="card-elevated rounded-2xl p-5">
+        <h3 className="text-sm font-bold mb-3">🎙️ Entraînement oral</h3>
+        <p className="text-[11px] text-muted-foreground mb-3">Enregistre-toi, réécoute, corrige. Répète jusqu'à ce que ce soit fluide.</p>
+        <VoiceRecorder label="Entraînement libre" />
+      </div>
+
       {/* Templates */}
       <h3 className="text-sm font-bold">📄 Templates & Modèles</h3>
       {TEMPLATES.map((tpl, ti) => (
