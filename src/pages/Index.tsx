@@ -10,10 +10,12 @@ import { Grammar } from "@/components/Grammar";
 import { Clinical } from "@/components/Clinical";
 import { CalendarView } from "@/components/CalendarView";
 import { Tools } from "@/components/Tools";
+import { Stats } from "@/components/Stats";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
+import { Check } from "lucide-react";
 
-type Tab = "dash" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal";
+type Tab = "dash" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "Mission" },
@@ -23,6 +25,7 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "iv", icon: "💼", label: "Entretien" },
   { id: "sim", icon: "🏥", label: "Clinique" },
   { id: "tools", icon: "🛠️", label: "Outils" },
+  { id: "stats", icon: "📊", label: "Stats" },
   { id: "cal", icon: "📅", label: "Plan" },
 ];
 
@@ -31,10 +34,15 @@ const Index = () => {
   const progress = useProgress();
 
   const tStr = new Date().toISOString().split("T")[0];
-  const dNum = (PROG.findIndex(d => d.date === tStr) + 1) || 1;
+  const dIdx = PROG.findIndex(d => d.date === tStr);
+  const dNum = (dIdx + 1) || 1;
   const totDone = Object.values(progress.done).filter(Boolean).length;
   const totTasks = PROG.reduce((a, d) => a + d.tasks.length, 0);
   const pct = Math.round((totDone / totTasks) * 100);
+
+  // Today's tasks for dashboard preview
+  const todayProg = PROG.find(d => d.date === tStr) || PROG[0];
+  const todayDone = todayProg.tasks.filter((_, i) => progress.done[`${todayProg.date}-${i}`]).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,6 +74,14 @@ const Index = () => {
             <Countdown />
             <XPBar xp={progress.xp} />
 
+            {/* Streak */}
+            {progress.streak > 0 && (
+              <div className="rounded-lg bg-accent/10 border border-accent/30 p-3 text-center">
+                <span className="text-2xl">🔥</span>
+                <span className="text-sm font-black text-accent ml-2">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite!</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-4 gap-2">
               {[
                 { v: `J${dNum}`, l: "/20", cls: "text-info" },
@@ -90,13 +106,39 @@ const Index = () => {
 
             <MotivBanner />
 
+            {/* Today's tasks preview */}
+            <div className="rounded-xl border border-info/30 bg-card p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold">📋 Aujourd'hui — {todayProg.title}</h3>
+                <span className="text-xs font-bold text-success">{todayDone}/{todayProg.tasks.length}</span>
+              </div>
+              {todayProg.tasks.map((task, i) => {
+                const isDone = !!progress.done[`${todayProg.date}-${i}`];
+                return (
+                  <div key={i} className="flex items-center gap-2.5 py-1.5">
+                    <div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center shrink-0 ${
+                      isDone ? "bg-success border-success" : "border-muted-foreground"
+                    }`}>
+                      {isDone && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                    </div>
+                    <span className={`text-xs ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                      <span className="font-bold">{task.t}:</span> {task.d.slice(0, 50)}{task.d.length > 50 ? "…" : ""}
+                    </span>
+                  </div>
+                );
+              })}
+              <button onClick={() => setTab("today")} className="text-[11px] text-primary font-semibold mt-2">
+                Voir tout →
+              </button>
+            </div>
+
             <div className="grid grid-cols-3 gap-2">
               {[
-                { t: "today" as Tab, i: "📋", l: "Aujourd'hui" },
                 { t: "vocab" as Tab, i: "🧠", l: "Vocab" },
                 { t: "iv" as Tab, i: "💼", l: "Entretien" },
                 { t: "sim" as Tab, i: "🏥", l: "Cas cliniques" },
                 { t: "tools" as Tab, i: "🛠️", l: "Outils" },
+                { t: "stats" as Tab, i: "📊", l: "Stats" },
                 { t: "cal" as Tab, i: "📅", l: "Planning" },
               ].map((a, i) => (
                 <button
@@ -113,11 +155,12 @@ const Index = () => {
         )}
 
         {tab === "today" && <DayView done={progress.done} toggleTask={progress.toggleTask} />}
-        {tab === "vocab" && <Vocab addXp={progress.addXp} />}
-        {tab === "gram" && <Grammar />}
+        {tab === "vocab" && <Vocab addXp={progress.addXp} addQuizScore={progress.addQuizScore} toggleHardCard={progress.toggleHardCard} hardCards={progress.hardCards} />}
+        {tab === "gram" && <Grammar grammarDone={progress.grammarDone} toggleGrammarExercise={progress.toggleGrammarExercise} />}
         {tab === "iv" && <Interview rat={progress.rat} setRating={progress.setRating} />}
         {tab === "sim" && <Clinical />}
-        {tab === "tools" && <Tools addXp={progress.addXp} cl={progress.cl} toggleChecklist={progress.toggleChecklist} />}
+        {tab === "tools" && <Tools addXp={progress.addXp} cl={progress.cl} toggleChecklist={progress.toggleChecklist} notes={progress.notes} setNotes={progress.setNotes} addPomodoro={progress.addPomodoro} pomodoroCount={progress.pomodoroCount} />}
+        {tab === "stats" && <Stats xp={progress.xp} quizScores={progress.quizScores} hardCards={progress.hardCards} pomodoroCount={progress.pomodoroCount} streak={progress.streak} done={progress.done} grammarDone={progress.grammarDone} rat={progress.rat} />}
         {tab === "cal" && <CalendarView done={progress.done} toggleTask={progress.toggleTask} />}
       </main>
     </div>
