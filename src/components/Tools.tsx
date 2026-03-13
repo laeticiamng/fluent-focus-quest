@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { SURVIVAL, CHECKLIST, TEMPLATES } from "@/data/content";
 import { Check, Volume2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { useCelebration } from "@/components/CelebrationProvider";
 
 interface ToolsProps {
   addXp: (n: number) => void;
@@ -49,6 +51,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
   const [tmrM, setTmrM] = useState(25);
   const [openTemplate, setOpenTemplate] = useState<number | null>(null);
   const ref = useRef<ReturnType<typeof setTimeout>>();
+  const { celebrate } = useCelebration();
 
   useEffect(() => {
     if (tmrOn && tmr > 0) { ref.current = setTimeout(() => setTmr(t => t - 1), 1000); }
@@ -103,6 +106,13 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
           placeholder="Tes phrases, notes, idées... Sauvegarde auto."
           className="w-full bg-secondary/50 rounded-xl p-4 text-xs min-h-[120px] resize-y border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-foreground placeholder:text-muted-foreground transition-all"
         />
+      </div>
+
+      {/* Voice Recorder */}
+      <div className="card-elevated rounded-2xl p-5">
+        <h3 className="text-sm font-bold mb-3">🎙️ Entraînement oral</h3>
+        <p className="text-[11px] text-muted-foreground mb-3">Enregistre-toi, réécoute, corrige. Répète jusqu'à ce que ce soit fluide.</p>
+        <VoiceRecorder label="Entraînement libre" />
       </div>
 
       {/* Templates */}

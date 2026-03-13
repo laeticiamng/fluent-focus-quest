@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GRAM } from "@/data/content";
 import { Check, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { useCelebration } from "@/components/CelebrationProvider";
 
 const COLORS = [
   "border-info/20 text-info",
@@ -18,6 +19,7 @@ interface GrammarProps {
 
 export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const { celebrate } = useCelebration();
 
   const handleAnswer = (gi: number, ei: number, selected: string, correct: string) => {
     const key = `g${gi}-e${ei}`;
@@ -25,6 +27,7 @@ export function Grammar({ grammarDone, toggleGrammarExercise }: GrammarProps) {
     setAnswers(prev => ({ ...prev, [key]: selected }));
     if (selected === correct && !grammarDone[key]) {
       toggleGrammarExercise(key);
+      celebrate("grammar");
     }
   };
 

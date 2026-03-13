@@ -3,6 +3,7 @@ import { IVW } from "@/data/content";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 
 interface InterviewProps {
   rat: Record<number, number>;
@@ -19,6 +20,7 @@ export function Interview({ rat, setRating }: InterviewProps) {
   const [simMode, setSimMode] = useState(false);
   const [simTimer, setSimTimer] = useState(120);
   const [simRunning, setSimRunning] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const ratedCount = Object.keys(rat).length;
@@ -111,13 +113,35 @@ export function Interview({ rat, setRating }: InterviewProps) {
         </div>
       </motion.div>
 
-      <Button
-        onClick={() => setSa(!sa)}
-        className="w-full rounded-xl h-11"
-        variant={sa ? "secondary" : "default"}
-      >
-        {sa ? "Masquer" : "🔓 Révéler la réponse"}
-      </Button>
+      {/* Voice recorder toggle */}
+      <div className="flex gap-2.5">
+        <Button
+          onClick={() => setSa(!sa)}
+          className="flex-1 rounded-xl h-11"
+          variant={sa ? "secondary" : "default"}
+        >
+          {sa ? "Masquer" : "🔓 Révéler la réponse"}
+        </Button>
+        <Button
+          onClick={() => setShowRecorder(!showRecorder)}
+          variant={showRecorder ? "default" : "secondary"}
+          className="rounded-xl h-11 px-4"
+        >
+          🎙️
+        </Button>
+      </div>
+
+      {/* Voice recorder */}
+      {showRecorder && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="card-elevated rounded-2xl p-4 overflow-hidden"
+        >
+          <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">🎙️ Entraînement oral</p>
+          <VoiceRecorder label={`Q${ii + 1}`} context={`Frage ${ii + 1}: ${IVW[ii].q.slice(0, 40)}`} />
+        </motion.div>
+      )}
 
       {sa && (
         <motion.div

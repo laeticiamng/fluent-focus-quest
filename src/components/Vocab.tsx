@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Shuffle, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCelebration } from "@/components/CelebrationProvider";
 
 interface VocabProps {
   addXp: (n: number) => void;
@@ -24,6 +25,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabProps) {
+  const { celebrate } = useCelebration();
   const [di, setDi] = useState<number | null>(null);
   const [mode, setMode] = useState<Mode>("list");
   const [ci, setCi] = useState(0);
@@ -94,7 +96,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     const ok = a === correct;
     setQA({ sel: a, correct, ok });
     setQS(s => ({ c: s.c + (ok ? 1 : 0), t: s.t + 1 }));
-    if (ok) addXp(10);
+    if (ok) { addXp(10); celebrate("quiz"); }
     setTimeout(() => {
       const total = globalQuiz ? globalCards.length : DECKS[di!].cards.length;
       if (ci < total - 1) {
