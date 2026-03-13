@@ -215,7 +215,7 @@ const Index = () => {
           {tab === "today" && <DayView done={progress.done} toggleTask={progress.toggleTask} />}
           {tab === "vocab" && <Vocab addXp={progress.addXp} addQuizScore={progress.addQuizScore} toggleHardCard={progress.toggleHardCard} hardCards={progress.hardCards} />}
           {tab === "gram" && <Grammar grammarDone={progress.grammarDone} toggleGrammarExercise={progress.toggleGrammarExercise} />}
-          {tab === "iv" && <Interview rat={progress.rat} setRating={progress.setRating} />}
+          {tab === "iv" && <Interview rat={progress.rat} setRating={progress.setRating} addXp={progress.addXp} onNavigate={(t) => setTab(t as Tab)} />}
           {tab === "sim" && <Clinical />}
           {tab === "tools" && <Tools addXp={progress.addXp} cl={progress.cl} toggleChecklist={progress.toggleChecklist} notes={progress.notes} setNotes={progress.setNotes} addPomodoro={progress.addPomodoro} pomodoroCount={progress.pomodoroCount} />}
           {tab === "stats" && <Stats xp={progress.xp} quizScores={progress.quizScores} hardCards={progress.hardCards} pomodoroCount={progress.pomodoroCount} streak={progress.streak} done={progress.done} grammarDone={progress.grammarDone} rat={progress.rat} />}
