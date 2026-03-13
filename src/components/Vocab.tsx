@@ -79,7 +79,7 @@ export function Vocab({ addXp }: VocabProps) {
             <div className="grid grid-cols-2 gap-2">
               {qO.map((o, i) => {
                 let cls = "bg-secondary border-border";
-                if (qA && qA !== "done") {
+                if (qA && typeof qA !== "string") {
                   if (o === qA.correct) cls = "bg-success/20 border-success";
                   else if (o === qA.sel && !qA.ok) cls = "bg-primary/20 border-primary";
                 }
