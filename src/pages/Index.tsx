@@ -215,6 +215,7 @@ const Index = () => {
             </div>
           )}
 
+          {tab === "atelier" && <AtelierHub addXp={progress.addXp} />}
           {tab === "motiv" && <VisionBoard />}
           {tab === "today" && <DayView done={progress.done} toggleTask={progress.toggleTask} />}
           {tab === "vocab" && <Vocab addXp={progress.addXp} addQuizScore={progress.addQuizScore} toggleHardCard={progress.toggleHardCard} hardCards={progress.hardCards} />}
