@@ -210,6 +210,102 @@ export const DECKS = [
     {de:"besprechen → hat besprochen",fr:"discuter"},
     {de:"sich vorstellen → hat sich vorgestellt",fr:"se présenter"},
     {de:"einleiten → hat eingeleitet",fr:"initier (traitement)"}
+  ]},
+  // === DECK 10: 150 MOTS MÉDICAUX ESSENTIELS ===
+  { name: "150 Mots essentiels", icon: "🏆", cards: [
+    // --- Examen clinique ---
+    {de:"die Anamnese",fr:"anamnèse"},{de:"die Inspektion",fr:"inspection"},{de:"die Palpation",fr:"palpation"},
+    {de:"die Auskultation",fr:"auscultation"},{de:"die Perkussion",fr:"percussion"},{de:"der Tastbefund",fr:"palpation/résultat"},
+    {de:"die Vitalzeichen",fr:"constantes vitales"},{de:"die Sauerstoffsättigung",fr:"saturation O2"},
+    {de:"die Herzfrequenz",fr:"fréquence cardiaque"},{de:"der Atemfrequenz",fr:"fréquence respiratoire"},
+    // --- Urgences ---
+    {de:"der Notfall",fr:"urgence"},{de:"die Reanimation",fr:"réanimation"},{de:"der Schock",fr:"choc"},
+    {de:"die Bewusstlosigkeit",fr:"perte de connaissance"},{de:"der Herzstillstand",fr:"arrêt cardiaque"},
+    {de:"die Intubation",fr:"intubation"},{de:"der Defibrillator",fr:"défibrillateur"},
+    {de:"die Triage",fr:"triage"},{de:"die Stabilisierung",fr:"stabilisation"},
+    {de:"die Thoraxdrainage",fr:"drainage thoracique"},
+    // --- Chirurgie ---
+    {de:"die Operation",fr:"opération"},{de:"die Naht",fr:"suture"},{de:"die Wunde",fr:"plaie"},
+    {de:"der Verband",fr:"pansement"},{de:"die Narkose",fr:"anesthésie"},{de:"die Lokalanästhesie",fr:"anesthésie locale"},
+    {de:"der Schnitt",fr:"incision"},{de:"die Drainage",fr:"drainage"},{de:"die Klammer",fr:"agrafe"},
+    {de:"die Desinfektion",fr:"désinfection"},
+    // --- Radiologie ---
+    {de:"das Röntgenbild",fr:"radiographie"},{de:"die Computertomographie (CT)",fr:"scanner"},
+    {de:"die Magnetresonanztomographie (MRT)",fr:"IRM"},{de:"die Kontrastmittel",fr:"produit de contraste"},
+    {de:"der Befundbericht",fr:"compte rendu"},{de:"die Aufnahme",fr:"cliché"},
+    // --- Cardiologie ---
+    {de:"das Elektrokardiogramm (EKG)",fr:"ECG"},{de:"der Herzinfarkt",fr:"infarctus"},
+    {de:"die Herzinsuffizienz",fr:"insuffisance cardiaque"},{de:"das Vorhofflimmern",fr:"fibrillation auriculaire"},
+    {de:"der Herzrhythmus",fr:"rythme cardiaque"},{de:"die Echokardiographie",fr:"échocardio"},
+    // --- Pneumologie ---
+    {de:"die Pneumonie",fr:"pneumonie"},{de:"das Asthma",fr:"asthme"},{de:"die COPD",fr:"BPCO"},
+    {de:"der Pneumothorax",fr:"pneumothorax"},{de:"die Bronchoskopie",fr:"bronchoscopie"},
+    {de:"das Lungenödem",fr:"OAP"},
+    // --- Gastro ---
+    {de:"die Appendizitis",fr:"appendicite"},{de:"die Cholezystitis",fr:"cholécystite"},
+    {de:"die Pankreatitis",fr:"pancréatite"},{de:"die Gastroskopie",fr:"gastroscopie"},
+    {de:"die Koloskopie",fr:"coloscopie"},{de:"der Ileus",fr:"occlusion"},
+    // --- Neurologie ---
+    {de:"der Schlaganfall",fr:"AVC"},{de:"die Epilepsie",fr:"épilepsie"},
+    {de:"die Meningitis",fr:"méningite"},{de:"die Lähmung",fr:"paralysie"},
+    {de:"der Tremor",fr:"tremblement"},{de:"die Bewusstseinsstörung",fr:"trouble de conscience"},
+    // --- Néphrologie ---
+    {de:"die Niereninsuffizienz",fr:"insuffisance rénale"},{de:"die Dialyse",fr:"dialyse"},
+    {de:"der Harnwegsinfekt",fr:"infection urinaire"},{de:"die Elektrolytstörung",fr:"trouble électrolytique"},
+    // --- Infectiologie ---
+    {de:"die Sepsis",fr:"sepsis"},{de:"die Infektion",fr:"infection"},
+    {de:"das Antibiogramm",fr:"antibiogramme"},{de:"die Blutkultur",fr:"hémoculture"},
+    {de:"die Resistenz",fr:"résistance"},{de:"die Quarantäne",fr:"quarantaine"},
+    // --- Endocrinologie ---
+    {de:"der Diabetes mellitus",fr:"diabète"},{de:"die Hypothyreose",fr:"hypothyroïdie"},
+    {de:"die Hyperthyreose",fr:"hyperthyroïdie"},{de:"das Insulin",fr:"insuline"},
+    {de:"der Blutzucker",fr:"glycémie"},
+    // --- Hématologie ---
+    {de:"die Anämie",fr:"anémie"},{de:"die Leukozytose",fr:"leucocytose"},
+    {de:"die Thrombozytopenie",fr:"thrombopénie"},{de:"die Gerinnung",fr:"coagulation"},
+    {de:"der INR-Wert",fr:"INR"},{de:"die Transfusion",fr:"transfusion"},
+    // --- Biologie / Labo ---
+    {de:"die Blutentnahme",fr:"prise de sang"},{de:"das Labor",fr:"laboratoire"},
+    {de:"die Blutgasanalyse (BGA)",fr:"gaz du sang"},{de:"das Differenzialblutbild",fr:"NFS"},
+    {de:"die Leberwerte",fr:"bilan hépatique"},{de:"die Nierenwerte",fr:"bilan rénal"},
+    {de:"der CRP-Wert",fr:"CRP"},{de:"die Gerinnung",fr:"bilan de coagulation"},
+    // --- Angiologie spécifique ---
+    {de:"die periphere arterielle Verschlusskrankheit (pAVK)",fr:"AOMI"},
+    {de:"der Knöchel-Arm-Index (ABI)",fr:"index cheville-bras (IPS)"},
+    {de:"die Karotisstenose",fr:"sténose carotidienne"},
+    {de:"die tiefe Venenthrombose (TVT)",fr:"thrombose veineuse profonde"},
+    {de:"die Lungenembolie",fr:"embolie pulmonaire"},
+    {de:"die Varikosis",fr:"maladie variqueuse"},
+    {de:"die endovaskuläre Therapie",fr:"traitement endovasculaire"},
+    {de:"die perkutane transluminale Angioplastie (PTA)",fr:"angioplastie"},
+    {de:"der Stentgraft",fr:"endoprothèse"},{de:"die Thrombektomie",fr:"thrombectomie"},
+    {de:"die Lyse",fr:"thrombolyse"},{de:"der Kollateralkreislauf",fr:"circulation collatérale"},
+    {de:"die Gehstrecke",fr:"périmètre de marche"},{de:"der Ruheschmerz",fr:"douleur de repos"},
+    {de:"das Ulkus",fr:"ulcère"},{de:"die Gangrän",fr:"gangrène"},
+    {de:"die Amputation",fr:"amputation"},{de:"der Wundheilungsstörung",fr:"trouble de cicatrisation"},
+    // --- Organisation hospitalière ---
+    {de:"die Aufnahme",fr:"admission"},{de:"die Entlassung",fr:"sortie"},
+    {de:"die Einwilligung",fr:"consentement"},{de:"die Schweigepflicht",fr:"secret médical"},
+    {de:"die Patientenverfügung",fr:"directives anticipées"},{de:"der Behandlungsplan",fr:"plan de traitement"},
+    {de:"die Fallbesprechung",fr:"staff/discussion de cas"},{de:"die Fortbildung",fr:"formation continue"},
+    {de:"die Dokumentation",fr:"documentation"},{de:"die Verlegung",fr:"transfert"},
+    // --- Verbes essentiels ---
+    {de:"untersuchen",fr:"examiner"},{de:"behandeln",fr:"traiter"},{de:"verordnen",fr:"prescrire"},
+    {de:"überweisen",fr:"référer"},{de:"entlassen",fr:"libérer"},{de:"aufnehmen",fr:"admettre"},
+    {de:"verbinden",fr:"panser"},{de:"nähen",fr:"suturer"},{de:"intubieren",fr:"intuber"},
+    {de:"reanimieren",fr:"réanimer"},{de:"punktieren",fr:"ponctionner"},{de:"auskultieren",fr:"ausculter"},
+    {de:"dokumentieren",fr:"documenter"},{de:"besprechen",fr:"discuter"},{de:"einleiten",fr:"initier"},
+    // --- Communication ---
+    {de:"die Aufklärung",fr:"information du patient"},{de:"die Angehörigen",fr:"proches/famille"},
+    {de:"die Beschwerde",fr:"plainte/symptôme"},{de:"die Vorerkrankung",fr:"antécédent"},
+    {de:"die Familienanamnese",fr:"antécédents familiaux"},{de:"die Sozialanamnese",fr:"anamnèse sociale"},
+    {de:"die Compliance",fr:"observance"},{de:"die Prognose",fr:"pronostic"},
+    {de:"die Indikation",fr:"indication"},{de:"die Kontraindikation",fr:"contre-indication"},
+    // --- Matériel ---
+    {de:"der Katheter",fr:"cathéter"},{de:"die Kanüle",fr:"canule"},
+    {de:"die Infusionspumpe",fr:"pousse-seringue"},{de:"der Blasenkatheter",fr:"sonde urinaire"},
+    {de:"die Magensonde",fr:"sonde gastrique"},{de:"das Pulsoximeter",fr:"oxymètre de pouls"},
+    {de:"das Stethoskop",fr:"stéthoscope"},{de:"die Blutdruckmanschette",fr:"brassard tensionnel"}
   ]}
 ];
 
@@ -328,7 +424,43 @@ export const SCENARIOS = [
     steps:["Anamnese: Familie? Stehberuf?","Duplex: Refluxtest","Insuffizienz V. saphena magna","Therapie: Kompression, Sklerotherapie"]},
   {title:"AOMI",icon:"🚶",sit:"Herr Bauer, 65J, Raucher. Wadenschmerzen nach 200m.",
     vocab:["der ABI","die Claudicatio","das Fontaine-Stadium","die PTA"],
-    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"]}
+    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"]},
+  // === 3 CAS CLINIQUES ANGIOLOGIE DÉTAILLÉS ===
+  {title:"Anévrisme aorte abd.",icon:"🫀",sit:"Herr Keller, 74J. Zufallsbefund: Bauchaortenaneurysma 5,8 cm bei Routine-Ultraschall. Raucher seit 40 Jahren, Hypertonie, Hyperlipidämie. Asymptomatisch.",
+    vocab:["das Bauchaortenaneurysma (BAA)","der Durchmesser","die Ruptur","die endovaskuläre Aneurysma-Reparatur (EVAR)","die offene Operation","der Stentgraft","die CT-Angiographie","die Operationsindikation"],
+    steps:[
+      "Anamnese: Risikofaktoren? Bauch- oder Rückenschmerzen? Familienanamnese?",
+      "Klinische Untersuchung: Pulsierender Tumor im Abdomen tastbar",
+      "Duplexsonographie: BAA infrarenal, maximaler Durchmesser 5,8 cm, kein Leck",
+      "CT-Angiographie: Bestätigung des Befundes, Beurteilung der Anatomie für EVAR",
+      "Interdisziplinäre Besprechung: Gefäßchirurgie + Angiologie — OP-Indikation bei >5,5 cm",
+      "Therapieplanung: EVAR (endovaskulär) vs. offene OP — Patientenaufklärung",
+      "Nachsorge: CT-Kontrolle nach 1, 6, 12 Monaten — Endoleak-Screening"
+    ]},
+  {title:"Ischémie aiguë MI",icon:"🚨",sit:"Frau Hoffmann, 68J. Plötzlicher Schmerz und Blässe rechtes Bein seit 2 Stunden. Vorhofflimmern bekannt, keine Antikoagulation. Kein Fußpuls rechts tastbar.",
+    vocab:["der akute Verschluss","die Embolie","die 6 P (Pain, Pallor, Pulselessness, Paresthesia, Paralysis, Poikilothermia)","die Embolektomie","die Lyse","die Heparinisierung","die Revaskularisation","das Kompartmentsyndrom"],
+    steps:[
+      "Anamnese: Plötzlicher Beginn? Schmerz, Gefühlsstörung, Bewegungseinschränkung?",
+      "Klinische Untersuchung: 6 P prüfen — Bein blass, kühl, kein Puls ab A. poplitea",
+      "Sofortmaßnahmen: i.v. Heparin 5000 IE Bolus, Tieflagerung, Schmerzmittel",
+      "Notfall-Duplexsonographie: Kein Fluss in A. poplitea und distal",
+      "CT-Angiographie: Embolischer Verschluss A. poplitea rechts",
+      "Notfall-OP: Embolektomie mit Fogarty-Katheter — Reperfusion erfolgreich",
+      "Postoperativ: Heparinperfusor, Kompartment-Überwachung, orale Antikoagulation einleiten",
+      "Kardiologie-Konsil: Vorhofflimmern — dauerhafte Antikoagulation indiziert"
+    ]},
+  {title:"Ulcère artériel",icon:"🦶",sit:"Herr Fischer, 78J, Diabetiker. Nicht heilendes Ulkus lateraler Malleolus rechts seit 8 Wochen. Ruheschmerz nachts. Raucher. ABI 0,4.",
+    vocab:["das arterielle Ulkus","die kritische Extremitätenischämie (CLI)","der ABI","die pAVK Fontaine IV","die PTA","der Wundabstrich","die Revaskularisation","die Major-Amputation"],
+    steps:[
+      "Anamnese: Schmerzcharakter? Gehstrecke? Ruheschmerz? Wunddauer? Diabetes-Einstellung?",
+      "Klinische Untersuchung: Ulkus 3x2 cm, nekrotischer Rand, fehlende Fußpulse beidseits",
+      "ABI-Messung: rechts 0,4 — kritische Ischämie (Fontaine-Stadium IV)",
+      "Duplexsonographie: Langstreckige Stenosen A. femoralis superficialis + A. tibialis anterior",
+      "CT-Angiographie: Mehretagenverschlüsse — PTA-Möglichkeit evaluieren",
+      "Interdisziplinäre Entscheidung: PTA + Stenting A. femoralis, Angiosom-gerechte Revaskularisation",
+      "Wundmanagement: Debridement, feuchte Wundbehandlung, Antibiotika nach Abstrich",
+      "Langzeit: Gehtraining, Rauchstopp, HbA1c-Optimierung, regelmäßige Kontrolle"
+    ]}
 ];
 
 export const CHECKLIST = [
