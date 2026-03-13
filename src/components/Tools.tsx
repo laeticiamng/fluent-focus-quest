@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { SURVIVAL, CHECKLIST, TEMPLATES } from "@/data/content";
 import { Check, Volume2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { useCelebration } from "@/components/CelebrationProvider";
 
 interface ToolsProps {
   addXp: (n: number) => void;
