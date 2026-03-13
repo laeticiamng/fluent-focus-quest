@@ -233,23 +233,32 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
     );
   }
 
-  // FLASHCARD MODE
-  if (mode === "flashcard" && di !== null) {
-    const dk = DECKS[di];
-    const order = cardOrder.length ? cardOrder : dk.cards.map((_, i) => i);
-    const realIdx = order[ci];
-    const card = dk.cards[realIdx];
-    const isHard = !!hardCards[`${di}-${realIdx}`];
+  // FLASHCARD MODE (single deck or global)
+  if (mode === "flashcard" && (di !== null || globalFlashcard)) {
+    const isGlobal = globalFlashcard;
+    const totalCards = isGlobal ? globalCards.length : DECKS[di!].cards.length;
+    const card = isGlobal ? globalCards[ci] : DECKS[di!].cards[cardOrder.length ? cardOrder[ci] : ci];
+    const realIdx = isGlobal ? ci : (cardOrder.length ? cardOrder[ci] : ci);
+    const deckIdx = isGlobal ? globalCards[ci]?.deckIdx : di!;
+    const cardIdx = isGlobal ? globalCards[ci]?.cardIdx : realIdx;
+    const isHard = !!hardCards[`${deckIdx}-${cardIdx}`];
+    const label = isGlobal ? "🔀 Révision aléatoire" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
+    const deckInfo = isGlobal && card ? DECKS[globalCards[ci].deckIdx] : null;
 
     return (
       <div className="space-y-4">
-        <button onClick={() => setMode("list")} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors">
+        <button onClick={() => { setMode("list"); setGlobalFlashcard(false); }} className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
         <div className="flex justify-between items-center">
-          <span className="font-bold text-sm">{dk.icon} {dk.name}</span>
-          <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{dk.cards.length}</span>
+          <span className="font-bold text-sm">{label}</span>
+          <span className="text-muted-foreground text-xs font-medium">{ci + 1}/{totalCards}</span>
         </div>
+        {isGlobal && deckInfo && (
+          <div className="text-[10px] text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5 inline-block">
+            {deckInfo.icon} {deckInfo.name}
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={ci + (flip ? "-flip" : "")}
@@ -266,7 +275,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
               {flip ? (reversed ? "Deutsch" : "Français") : (reversed ? "Français" : "Deutsch")}
             </p>
             <p className="text-2xl font-black tracking-tight">
-              {flip ? (reversed ? card.de : card.fr) : (reversed ? card.fr : card.de)}
+              {card ? (flip ? (reversed ? card.de : card.fr) : (reversed ? card.fr : card.de)) : ""}
             </p>
             {!flip && <p className="text-[11px] text-muted-foreground mt-5">Tap pour révéler</p>}
           </motion.div>
@@ -276,7 +285,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <button
-            onClick={() => toggleHardCard(di, realIdx)}
+            onClick={() => toggleHardCard(deckIdx, cardIdx)}
             className={`p-2 rounded-xl border transition-all ${isHard ? "bg-primary/15 border-primary/30 text-primary" : "bg-secondary border-border/50 text-muted-foreground"}`}
           >
             <Star className={`w-4 h-4 ${isHard ? "fill-current" : ""}`} />
@@ -285,11 +294,11 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
             className="flex-1 rounded-xl"
             onClick={() => {
               addXp(5);
-              if (ci < dk.cards.length - 1) { setCi(ci + 1); setFlip(false); }
-              else setMode("list");
+              if (ci < totalCards - 1) { setCi(ci + 1); setFlip(false); }
+              else { setMode("list"); setGlobalFlashcard(false); }
             }}
           >
-            {ci === dk.cards.length - 1 ? "Terminé ✓" : "Suivant →"}
+            {ci === totalCards - 1 ? "Terminé ✓" : "Suivant →"}
           </Button>
         </div>
         <div className="flex gap-2">
@@ -299,14 +308,18 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
           >
             {reversed ? "FR→DE" : "DE→FR"}
           </button>
-          <button onClick={() => {
-            setShuffled(!shuffled);
-            const newOrder = !shuffled ? shuffleArray(dk.cards.map((_, i) => i)) : dk.cards.map((_, i) => i);
-            setCardOrder(newOrder); setCi(0); setFlip(false);
-          }} className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${shuffled ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
-            <Shuffle className="w-3 h-3" /> Mélanger
-          </button>
+          {!isGlobal && (
+            <button onClick={() => {
+              setShuffled(!shuffled);
+              const dk = DECKS[di!];
+              const newOrder = !shuffled ? shuffleArray(dk.cards.map((_, i) => i)) : dk.cards.map((_, i) => i);
+              setCardOrder(newOrder); setCi(0); setFlip(false);
+            }} className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${shuffled ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
+              <Shuffle className="w-3 h-3" /> Mélanger
+            </button>
+          )}
         </div>
+        <Progress value={((ci + 1) / totalCards) * 100} className="h-1 bg-secondary rounded-full" />
       </div>
     );
   }
