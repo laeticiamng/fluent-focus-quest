@@ -2,6 +2,8 @@ import { PROG, TP_LABELS, type TaskType } from "@/data/content";
 import { Progress } from "@/components/ui/progress";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { useCelebration } from "@/components/CelebrationProvider";
+import { useEffect, useRef } from "react";
 
 const TP_COLORS: Record<TaskType, string> = {
   learn: "bg-info/15 text-info",
@@ -27,6 +29,18 @@ export function DayView({ done, toggleTask }: DayViewProps) {
   const tStr = new Date().toISOString().split("T")[0];
   const tP = PROG.find(d => d.date === tStr) || PROG[0];
   const tDone = tP.tasks.filter((_, i) => done[`${tP.date}-${i}`]).length;
+  const { celebrate } = useCelebration();
+  const prevDone = useRef(tDone);
+
+  useEffect(() => {
+    if (tDone > prevDone.current) {
+      celebrate("task");
+      if (tDone === tP.tasks.length) {
+        setTimeout(() => celebrate("day"), 600);
+      }
+    }
+    prevDone.current = tDone;
+  }, [tDone]);
 
   return (
     <div className="space-y-4">
@@ -88,6 +102,7 @@ export function DayView({ done, toggleTask }: DayViewProps) {
         >
           <div className="text-4xl mb-2">🎉</div>
           <div className="text-lg font-black text-success tracking-tight">Journée complète!</div>
+          <p className="text-xs text-success/70 mt-1">Tu te rapproches de Bienne chaque jour.</p>
         </motion.div>
       )}
     </div>
