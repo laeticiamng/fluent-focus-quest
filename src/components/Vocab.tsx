@@ -25,6 +25,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabProps) {
+  const { celebrate } = useCelebration();
   const [di, setDi] = useState<number | null>(null);
   const [mode, setMode] = useState<Mode>("list");
   const [ci, setCi] = useState(0);
