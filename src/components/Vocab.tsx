@@ -38,6 +38,8 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards }: VocabP
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [globalQuiz, setGlobalQuiz] = useState(false);
   const [globalCards, setGlobalCards] = useState<{ de: string; fr: string; deckIdx: number; cardIdx: number }[]>([]);
+  const [globalFlashcard, setGlobalFlashcard] = useState(false);
+  const [revisionSize, setRevisionSize] = useState(30);
 
   const getCards = useCallback((dkIdx: number) => {
     const cards = DECKS[dkIdx].cards;
