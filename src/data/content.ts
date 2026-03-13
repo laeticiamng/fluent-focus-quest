@@ -424,7 +424,43 @@ export const SCENARIOS = [
     steps:["Anamnese: Familie? Stehberuf?","Duplex: Refluxtest","Insuffizienz V. saphena magna","Therapie: Kompression, Sklerotherapie"]},
   {title:"AOMI",icon:"🚶",sit:"Herr Bauer, 65J, Raucher. Wadenschmerzen nach 200m.",
     vocab:["der ABI","die Claudicatio","das Fontaine-Stadium","die PTA"],
-    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"]}
+    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"]},
+  // === 3 CAS CLINIQUES ANGIOLOGIE DÉTAILLÉS ===
+  {title:"Anévrisme aorte abd.",icon:"🫀",sit:"Herr Keller, 74J. Zufallsbefund: Bauchaortenaneurysma 5,8 cm bei Routine-Ultraschall. Raucher seit 40 Jahren, Hypertonie, Hyperlipidämie. Asymptomatisch.",
+    vocab:["das Bauchaortenaneurysma (BAA)","der Durchmesser","die Ruptur","die endovaskuläre Aneurysma-Reparatur (EVAR)","die offene Operation","der Stentgraft","die CT-Angiographie","die Operationsindikation"],
+    steps:[
+      "Anamnese: Risikofaktoren? Bauch- oder Rückenschmerzen? Familienanamnese?",
+      "Klinische Untersuchung: Pulsierender Tumor im Abdomen tastbar",
+      "Duplexsonographie: BAA infrarenal, maximaler Durchmesser 5,8 cm, kein Leck",
+      "CT-Angiographie: Bestätigung des Befundes, Beurteilung der Anatomie für EVAR",
+      "Interdisziplinäre Besprechung: Gefäßchirurgie + Angiologie — OP-Indikation bei >5,5 cm",
+      "Therapieplanung: EVAR (endovaskulär) vs. offene OP — Patientenaufklärung",
+      "Nachsorge: CT-Kontrolle nach 1, 6, 12 Monaten — Endoleak-Screening"
+    ]},
+  {title:"Ischémie aiguë MI",icon:"🚨",sit:"Frau Hoffmann, 68J. Plötzlicher Schmerz und Blässe rechtes Bein seit 2 Stunden. Vorhofflimmern bekannt, keine Antikoagulation. Kein Fußpuls rechts tastbar.",
+    vocab:["der akute Verschluss","die Embolie","die 6 P (Pain, Pallor, Pulselessness, Paresthesia, Paralysis, Poikilothermia)","die Embolektomie","die Lyse","die Heparinisierung","die Revaskularisation","das Kompartmentsyndrom"],
+    steps:[
+      "Anamnese: Plötzlicher Beginn? Schmerz, Gefühlsstörung, Bewegungseinschränkung?",
+      "Klinische Untersuchung: 6 P prüfen — Bein blass, kühl, kein Puls ab A. poplitea",
+      "Sofortmaßnahmen: i.v. Heparin 5000 IE Bolus, Tieflagerung, Schmerzmittel",
+      "Notfall-Duplexsonographie: Kein Fluss in A. poplitea und distal",
+      "CT-Angiographie: Embolischer Verschluss A. poplitea rechts",
+      "Notfall-OP: Embolektomie mit Fogarty-Katheter — Reperfusion erfolgreich",
+      "Postoperativ: Heparinperfusor, Kompartment-Überwachung, orale Antikoagulation einleiten",
+      "Kardiologie-Konsil: Vorhofflimmern — dauerhafte Antikoagulation indiziert"
+    ]},
+  {title:"Ulcère artériel",icon:"🦶",sit:"Herr Fischer, 78J, Diabetiker. Nicht heilendes Ulkus lateraler Malleolus rechts seit 8 Wochen. Ruheschmerz nachts. Raucher. ABI 0,4.",
+    vocab:["das arterielle Ulkus","die kritische Extremitätenischämie (CLI)","der ABI","die pAVK Fontaine IV","die PTA","der Wundabstrich","die Revaskularisation","die Major-Amputation"],
+    steps:[
+      "Anamnese: Schmerzcharakter? Gehstrecke? Ruheschmerz? Wunddauer? Diabetes-Einstellung?",
+      "Klinische Untersuchung: Ulkus 3x2 cm, nekrotischer Rand, fehlende Fußpulse beidseits",
+      "ABI-Messung: rechts 0,4 — kritische Ischämie (Fontaine-Stadium IV)",
+      "Duplexsonographie: Langstreckige Stenosen A. femoralis superficialis + A. tibialis anterior",
+      "CT-Angiographie: Mehretagenverschlüsse — PTA-Möglichkeit evaluieren",
+      "Interdisziplinäre Entscheidung: PTA + Stenting A. femoralis, Angiosom-gerechte Revaskularisation",
+      "Wundmanagement: Debridement, feuchte Wundbehandlung, Antibiotika nach Abstrich",
+      "Langzeit: Gehtraining, Rauchstopp, HbA1c-Optimierung, regelmäßige Kontrolle"
+    ]}
 ];
 
 export const CHECKLIST = [
