@@ -20,28 +20,40 @@ export function Countdown() {
   ];
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-card p-5">
-      <p className="text-center text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">
-        🔥 Countdown Jour J
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="card-elevated rounded-2xl p-6 relative overflow-hidden"
+    >
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-info/5 pointer-events-none" />
+      
+      <p className="text-center text-[10px] font-semibold uppercase tracking-[4px] text-muted-foreground mb-4 relative">
+        Countdown Jour J
       </p>
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-3 relative">
         {units.map((u, i) => (
           <motion.div
             key={i}
-            className="text-center min-w-[52px]"
-            animate={{ scale: i === 3 ? [1, 1.05, 1] : 1 }}
-            transition={{ duration: 1, repeat: Infinity }}
+            className="text-center"
+            animate={i === 3 ? { scale: [1, 1.04, 1] } : {}}
+            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className={`font-mono text-3xl font-black ${i === 0 ? "text-primary animate-pulse-glow" : "text-foreground"}`}>
-              {String(u.v).padStart(2, "0")}
+            <div className="w-16 h-16 rounded-xl bg-secondary/60 flex items-center justify-center mb-1.5">
+              <span className={`font-mono text-2xl font-black tracking-tight ${
+                i === 0 ? "gradient-text" : "text-foreground"
+              }`}>
+                {String(u.v).padStart(2, "0")}
+              </span>
             </div>
-            <div className="text-[9px] text-muted-foreground mt-1">{u.l}</div>
+            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">{u.l}</span>
           </motion.div>
         ))}
       </div>
-      <p className="text-center mt-3 text-xs font-semibold text-primary">
+      <p className="text-center mt-4 text-xs font-semibold text-primary/80 relative">
         Dr. Attias-Widmer — Spitalzentrum Biel
       </p>
-    </div>
+    </motion.div>
   );
 }

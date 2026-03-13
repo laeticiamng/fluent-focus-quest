@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,41 +6,44 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 220 20% 92%;
-    --card: 222 40% 9%;
-    --card-foreground: 220 20% 92%;
-    --popover: 222 40% 9%;
-    --popover-foreground: 220 20% 92%;
-    --primary: 0 80% 62%;
+    --background: 230 15% 8%;
+    --foreground: 0 0% 98%;
+    --card: 230 12% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 230 12% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 100% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 220 20% 92%;
-    --muted: 222 25% 18%;
-    --muted-foreground: 228 15% 50%;
-    --accent: 38 100% 51%;
+    --secondary: 230 10% 16%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 230 10% 20%;
+    --muted-foreground: 230 10% 50%;
+    --accent: 35 100% 55%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 80% 62%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 25% 18%;
-    --input: 222 25% 18%;
-    --ring: 0 80% 62%;
-    --radius: 0.75rem;
+    --border: 230 10% 18%;
+    --input: 230 10% 18%;
+    --ring: 210 100% 52%;
+    --radius: 1rem;
 
-    --success: 145 65% 50%;
-    --info: 230 70% 60%;
-    --warning: 38 100% 51%;
-    --grammar: 265 60% 65%;
-    --clinical: 185 100% 55%;
+    --success: 142 71% 45%;
+    --info: 217 91% 60%;
+    --warning: 38 92% 50%;
+    --grammar: 270 60% 60%;
+    --clinical: 187 100% 42%;
 
-    --sidebar-background: 222 40% 7%;
-    --sidebar-foreground: 220 20% 85%;
-    --sidebar-primary: 0 80% 62%;
+    --glass: 230 12% 14%;
+    --glass-border: 230 10% 22%;
+
+    --sidebar-background: 230 12% 10%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 210 100% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 14%;
-    --sidebar-accent-foreground: 220 20% 92%;
-    --sidebar-border: 222 25% 15%;
-    --sidebar-ring: 0 80% 62%;
+    --sidebar-accent: 230 10% 16%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-border: 230 10% 15%;
+    --sidebar-ring: 210 100% 52%;
   }
 }
 
@@ -49,29 +52,134 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
+    letter-spacing: -0.011em;
   }
 }
 
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
 }
 
+/* Apple-like glassmorphism */
+.glass {
+  background: hsl(var(--glass) / 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsl(var(--glass-border) / 0.5);
+}
+
+.glass-nav {
+  background: hsl(var(--background) / 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* Apple-like card elevation */
+.card-elevated {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow:
+    0 0 0 1px hsl(var(--border) / 0.05),
+    0 2px 8px -2px hsl(0 0% 0% / 0.3),
+    0 8px 24px -4px hsl(0 0% 0% / 0.2);
+}
+
+.card-elevated-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.card-elevated-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px hsl(var(--border) / 0.08),
+    0 4px 12px -2px hsl(0 0% 0% / 0.35),
+    0 12px 32px -4px hsl(0 0% 0% / 0.25);
+}
+
+/* Smooth spring-like transitions */
+.spring {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Apple gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--info)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtle glow for primary elements */
+.glow-primary {
+  box-shadow: 0 0 20px -4px hsl(var(--primary) / 0.4);
+}
+
+.glow-success {
+  box-shadow: 0 0 20px -4px hsl(var(--success) / 0.4);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px -4px hsl(var(--accent) / 0.4);
+}
+
+/* Countdown pulse */
 @keyframes pulse-glow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
-
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-@keyframes card-flip {
-  0% { transform: rotateY(0); }
-  100% { transform: rotateY(180deg); }
+/* Fade in animation */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* Stagger children */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Perspective for card flips */
 .perspective-1000 {
   perspective: 1000px;
+}
+
+/* Scrollbar styling - minimal Apple-like */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Tab indicator animation */
+@keyframes tab-highlight {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.tab-active {
+  animation: tab-highlight 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
