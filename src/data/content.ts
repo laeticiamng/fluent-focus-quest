@@ -327,14 +327,61 @@ export const CHECKLIST = [
 ];
 
 export const MOTIV = [
-  "Ce poste = FMH angiologie 🏆","Chaque mot appris = un outil pour tes patients 💪",
-  "Tu as survécu aux urgences, tu peux tout faire 🔥","Dr. Attias-Widmer t'attend le 30 mars",
-  "L'inconfort est temporaire. Le FMH est pour toujours ⭐","Tu es médecin. Tu mérites cette place 👩‍⚕️",
-  "Jetzt geht's los! 🇩🇪","Ton profil est unique, personne d'autre n'est toi",
-  "Bienne t'attend 🇨🇭","Chaque heure compte — fais-la compter 🕐",
-  "Imagine-toi le 1er avril en blouse au Gefäßzentrum 🩺","Du schaffst das! 💥",
-  "Chaque phrase en allemand te rapproche du FMH 📈","La douleur de l'effort est temporaire, la fierté est éternelle 🌟"
+  // Objectif clair
+  "Tu passes de faisant fonction interne → médecin assistante en angiologie 🏆",
+  "Le 30 mars, tu ne passes pas un entretien. Tu prends ta place. 🔥",
+  "Ce poste = début du FMH en angiologie. Le vrai début de ta carrière ⭐",
+  "Dr. Attias-Widmer t'attend. Le Gefäßzentrum Biel t'attend. Tu es prête.",
+  "Imagine-toi le 1er avril en blouse au Gefäßzentrum, tes patients devant toi 🩺",
+  // Suisse vs France
+  "Suisse : salaire x3, formation structurée, respect du médecin. Tu mérites ça. 🇨🇭",
+  "En Suisse, un assistant gagne 8 000-10 000 CHF/mois. En France? 1 800€ net. Le choix est fait.",
+  "En Suisse, 50h/semaine max. En France, 80h sans compter. Qualité de vie = Suisse 🏔️",
+  "FMH angiologie = titre reconnu dans toute l'Europe. La France ne t'offre pas ça.",
+  "Bienne = ville bilingue FR/DE. Tu ne pars pas dans l'inconnu, tu vas vers TON environnement.",
+  "La Suisse forme mieux, paie mieux, respecte mieux ses médecins. Point.",
+  "Système de santé suisse = moyens, matériel, temps pour tes patients. Pas de pénurie.",
+  "Congés, RTT, 13ème mois, mutuelle top, retraite solide — la Suisse protège ses médecins 🛡️",
+  // Rappel du parcours
+  "Tu as survécu aux urgences françaises. Tu peux TOUT faire 💪",
+  "Tu as géré des polytraumas à 3h du matin. Un entretien en allemand? Easy.",
+  "Chaque garde de nuit en France t'a préparée pour ce moment. Utilise cette force.",
+  "Tu es médecin. Tu as sauvé des vies. Apprendre 150 mots d'allemand? Rien comparé à ça.",
+  // Motivation quotidienne
+  "Chaque mot allemand appris = un outil de plus pour tes futurs patients 📈",
+  "L'inconfort est temporaire. Le FMH est pour toujours. Pousse encore.",
+  "17 jours. 408 heures. C'est tout ce qui te sépare de ta nouvelle vie.",
+  "Tu n'apprends pas l'allemand pour un examen. Tu l'apprends pour TES patients.",
+  "Ton profil est unique : urgences + motivation + bilinguisme. Personne d'autre n'est toi.",
+  "Du schaffst das! 🇩🇪 — Et tu le sais au fond de toi.",
+  "Jetzt geht's los! Le moment c'est MAINTENANT. Pas demain. Maintenant. 🔥",
+  "Chaque heure compte. Fais-la compter. Pas de scrolling, pas de distraction.",
+  "La douleur de l'effort est temporaire. La fierté d'avoir réussi est éternelle 🌟",
+  "Dans 3 semaines tu seras en Suisse. Dans 3 ans tu auras ton FMH. Tout commence ici.",
+  "Le doute est normal. L'abandon ne l'est pas. Continue.",
+  "Tu ne fais pas ça pour prouver quelque chose. Tu fais ça parce que tu le MÉRITES.",
 ];
+
+export const SUISSE_AVANTAGES = [
+  { icon: "💰", title: "Salaire x3 à x4", detail: "Assistant·e en Suisse : 8 000-10 000 CHF/mois vs 1 800€ net en France. Même après impôts et coût de la vie, tu gagnes nettement plus." },
+  { icon: "📚", title: "Formation FMH structurée", detail: "Programme clair sur 5 ans, objectifs définis, supervision régulière, congrès financés. Le FMH est reconnu dans toute l'Europe." },
+  { icon: "⏰", title: "Horaires respectés", detail: "50h/semaine max, gardes compensées en repos ou en salaire. Fini les 80h non comptées des hôpitaux français." },
+  { icon: "🏔️", title: "Qualité de vie", detail: "Bienne : lac, montagnes, 30 min de Berne. Ville bilingue FR/DE. Nature au quotidien, transport impeccable." },
+  { icon: "🏥", title: "Moyens hospitaliers", detail: "Matériel neuf, personnel suffisant, temps pour chaque patient. Pas de pénurie chronique comme en France." },
+  { icon: "🛡️", title: "Protection sociale", detail: "13ème mois, mutuelle complète, système de retraite solide (3 piliers), congés payés respectés." },
+  { icon: "🌍", title: "Bienne = transition douce", detail: "Ville bilingue français-allemand. Tu peux pratiquer ta médecine en français tout en progressant en allemand. Transition naturelle." },
+  { icon: "📈", title: "Évolution de carrière", detail: "Chef·fe de clinique en 6-8 ans, ouverture de cabinet possible, reconnaissance internationale du titre FMH." },
+];
+
+export const OBJECTIF = {
+  avant: "Faisant fonction interne — France",
+  apres: "Médecin assistante en angiologie — Suisse",
+  lieu: "Spitalzentrum Biel — Gefäßzentrum",
+  chef: "Dr. Attias-Widmer",
+  date: "30 mars 2026",
+  fmh: "FMH Angiologie (5 ans)",
+  specialite: "Angiologie : écho vasculaire, cathétérisme, interventions endovasculaires",
+};
 
 export const LVLS = ["Anfänger","Lehrling","Fortgeschritten","Kompetent","Experte","Meister","Chefarzt"];
 
