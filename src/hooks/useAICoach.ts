@@ -341,6 +341,7 @@ export function useAICoach() {
       // Cache successful response
       if (fullText) {
         setCachedResponse(userMessage, mode, fullText);
+        aiCreditsExhausted = false; // Reset credit flag on success
         reportAIRecovery();
       }
       setStatus("success");

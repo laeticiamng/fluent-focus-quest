@@ -417,5 +417,17 @@ export default function PuzzleEngine({ onPuzzleSolved, solvedPuzzleIds, currentR
     );
   }
 
-  return null;
+  // Fallback — prevents blank render
+  return (
+    <div className="rounded-2xl p-6 text-center space-y-3">
+      <div className="text-3xl">🧩</div>
+      <p className="text-sm font-bold">Chargement des enigmes...</p>
+      <button
+        onClick={() => setView("zones")}
+        className="px-4 py-2 rounded-xl bg-indigo-500/15 text-indigo-400 text-xs font-bold hover:bg-indigo-500/25 transition-colors"
+      >
+        Retour aux zones
+      </button>
+    </div>
+  );
 }

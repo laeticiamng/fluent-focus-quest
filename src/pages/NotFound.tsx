@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 
 const NotFound = () => {
@@ -18,12 +18,12 @@ const NotFound = () => {
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
           Cette salle n'existe pas encore dans ton univers. Retourne au QG pour continuer ta progression.
         </p>
-        <a
-          href="/"
+        <Link
+          to="/"
           className="inline-flex items-center gap-2 text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl px-6 py-3 hover:bg-amber-500/15 transition-all"
         >
           🏰 Retour au QG
-        </a>
+        </Link>
       </div>
     </div>
   );
