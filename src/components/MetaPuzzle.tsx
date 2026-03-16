@@ -58,7 +58,11 @@ export default function MetaPuzzle({ sigilsCollected, onActivateProtocol }: Meta
   if (!allObtained) {
     return (
       <div className="space-y-4">
-        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-indigo-500/5 border border-purple-500/20">
+        <div className="p-4 rounded-2xl room-3d relative overflow-hidden" style={{
+          background: "linear-gradient(145deg, hsl(270 60% 60% / 0.1), hsl(var(--card)), hsl(235 60% 50% / 0.05))",
+          border: "1px solid hsl(270 60% 60% / 0.2)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(270 60% 60% / 0.15)",
+        }}>
           <h2 className="text-lg font-bold text-purple-400 flex items-center gap-2">
             🔮 {META_PUZZLE.title}
           </h2>
@@ -100,7 +104,11 @@ export default function MetaPuzzle({ sigilsCollected, onActivateProtocol }: Meta
         animate={{ opacity: 1, scale: 1 }}
         className="space-y-4"
       >
-        <div className="p-6 rounded-xl bg-gradient-to-br from-amber-500/20 to-purple-500/10 border border-amber-500/30">
+        <div className="p-6 rounded-2xl room-3d room-solved relative overflow-hidden" style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.15), hsl(var(--card)), hsl(270 60% 60% / 0.08))",
+          border: "1px solid hsl(38 92% 50% / 0.3)",
+          boxShadow: "var(--shadow-3d-xl), 0 0 60px -12px hsl(38 92% 50% / 0.2)",
+        }}>
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

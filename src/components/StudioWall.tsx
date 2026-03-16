@@ -64,20 +64,37 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
 
   return (
     <div className="space-y-5">
-      {/* Header with rank */}
-      <div className="flex items-center gap-3">
-        <RankBadge xp={xp} size="lg" />
-        <div>
-          <h2 className="text-2xl font-black tracking-tight">Quartier General</h2>
-          <p className={`text-xs ${rank.color} font-bold`}>{rank.name} — {rank.desc}</p>
+      {/* Header — Le Quartier General */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.08), hsl(var(--card)), hsl(270 60% 60% / 0.04))",
+          border: "1px solid hsl(38 92% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(38 92% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-amber-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <RankBadge xp={xp} size="lg" />
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Quartier General</h2>
+            <p className={`text-[10px] ${rank.color} font-medium`}>{rank.name} — {rank.desc}</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Building visualization */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative rounded-3xl bg-gradient-to-b from-amber-500/10 via-card to-background border border-amber-500/15 p-6 overflow-hidden min-h-[200px]"
+        className="relative rounded-3xl room-3d p-6 overflow-hidden min-h-[200px]"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.1), hsl(var(--card)), hsl(var(--background)))",
+          border: "1px solid hsl(38 92% 50% / 0.15)",
+          boxShadow: "var(--shadow-3d-xl), 0 0 60px -12px hsl(38 92% 50% / 0.1)",
+        }}
       >
         {/* Background particles for high levels */}
         {artifacts.length >= 25 && (
@@ -167,7 +184,7 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
       </motion.div>
 
       {/* Zone exploration progress */}
-      <div className="card-elevated rounded-2xl p-4">
+      <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-md)" }}>
         <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Exploration des zones</p>
         <div className="space-y-2">
           {ZONES.map(zone => {
@@ -204,7 +221,7 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
 
       {/* Badges */}
       {earnedBadges.length > 0 ? (
-        <div className="card-elevated rounded-2xl p-4">
+        <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Trophees</p>
           <div className="flex flex-wrap gap-2">
             {earnedBadges.map((bid, i) => {
@@ -225,7 +242,7 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
           </div>
         </div>
       ) : (
-        <div className="card-elevated rounded-2xl p-5 text-center">
+        <div className="room-3d rounded-2xl p-5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <span className="text-3xl mb-2 block">🏆</span>
           <p className="text-xs text-muted-foreground">Tes premiers trophees apparaitront ici</p>
           <p className="text-[10px] text-amber-400/60 mt-1">Cree des artefacts pour debloquer des badges</p>

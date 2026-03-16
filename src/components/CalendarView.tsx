@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { PROG, TP_LABELS, type TaskType } from "@/data/content";
 import { Check, ChevronRight, ChevronDown } from "lucide-react";
 
@@ -26,7 +27,33 @@ export function CalendarView({ done, toggleTask }: CalendarProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-black">📅 Planning 20 jours</h2>
+      {/* Header — La Salle des Plans */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(270 60% 60% / 0.08), hsl(var(--card)), hsl(142 71% 45% / 0.04))",
+          border: "1px solid hsl(270 60% 60% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(270 60% 60% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-violet-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-violet-500/12 border border-violet-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(270 60% 60% / 0.2)" }}
+          >
+            📅
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">La Salle des Plans</h2>
+            <p className="text-[10px] text-violet-400/50 font-medium">Cartographie du Stratege</p>
+          </div>
+        </div>
+      </motion.div>
       {WEEKS.map(wk => (
         <div key={wk.w}>
           <div className={`text-xs font-bold mb-2 px-3 py-1.5 rounded-lg border-l-[3px] ${wk.cls}`}>
@@ -42,9 +69,10 @@ export function CalendarView({ done, toggleTask }: CalendarProps) {
                 <div key={day.date}>
                   <div
                     onClick={() => setCalD(open ? null : day.date)}
-                    className={`rounded-lg px-3 py-2 cursor-pointer border transition-all ${
-                      isT ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+                    className={`rounded-lg px-3 py-2 cursor-pointer transition-all room-3d ${
+                      isT ? "room-in-progress" : allD ? "room-solved" : "room-accessible"
                     } ${open ? "rounded-b-none" : ""}`}
+                    style={{ boxShadow: isT ? "var(--shadow-3d-md)" : "var(--shadow-3d-sm)" }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

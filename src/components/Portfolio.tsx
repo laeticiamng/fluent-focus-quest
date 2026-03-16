@@ -71,22 +71,45 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-cyan-400" /> Les Archives
-      </h2>
-      <p className="text-xs text-muted-foreground -mt-3">Ta collection d'artefacts — chaque creation est une brique de ton edifice</p>
+      {/* Header — L'Archiviste */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(187 100% 42% / 0.08), hsl(var(--card)), hsl(270 60% 60% / 0.04))",
+          border: "1px solid hsl(187 100% 42% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(187 100% 42% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-cyan-500/12 border border-cyan-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(187 100% 42% / 0.2)" }}
+          >
+            📚
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Les Archives</h2>
+            <p className="text-[10px] text-cyan-400/50 font-medium">Coffre de l'Archiviste</p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Global stats */}
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="card-elevated rounded-2xl p-3.5 text-center">
+        <div className="room-3d rounded-2xl p-3.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <div className="text-xl font-black text-amber-400">{artifacts.length}</div>
           <div className="text-[9px] font-medium text-muted-foreground mt-0.5">creations</div>
         </div>
-        <div className="card-elevated rounded-2xl p-3.5 text-center">
+        <div className="room-3d rounded-2xl p-3.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <div className="text-xl font-black text-accent">{totalXp}</div>
           <div className="text-[9px] font-medium text-muted-foreground mt-0.5">XP de creation</div>
         </div>
-        <div className="card-elevated rounded-2xl p-3.5 text-center">
+        <div className="room-3d rounded-2xl p-3.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <div className="text-xl font-black text-success">{badges.length}</div>
           <div className="text-[9px] font-medium text-muted-foreground mt-0.5">badges</div>
         </div>
@@ -94,7 +117,7 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
 
       {/* Production breakdown */}
       {artifacts.length > 0 && (
-        <div className="card-elevated rounded-2xl p-4">
+        <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Ma production</p>
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(stats).map(([type, count]) => {
@@ -114,7 +137,7 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
 
       {/* Badges */}
       {badges.length > 0 && (
-        <div className="card-elevated rounded-2xl p-4">
+        <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Badges de creation</p>
           <div className="flex flex-wrap gap-2">
             {badges.map(b => (
@@ -151,7 +174,7 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
 
       {/* Artifact list */}
       {filtered.length === 0 ? (
-        <div className="card-elevated rounded-2xl p-10 text-center">
+        <div className="room-3d rounded-2xl p-10 text-center" style={{ boxShadow: "var(--shadow-3d-md)" }}>
           <div className="text-5xl mb-4">{artifacts.length === 0 ? "📚" : "🔍"}</div>
           {artifacts.length === 0 ? (
             <>
@@ -183,7 +206,8 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
               >
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : a.id)}
-                  className="w-full card-elevated rounded-2xl p-4 text-left transition-all hover:border-border/60"
+                  className="w-full room-3d rounded-2xl p-4 text-left transition-all hover:border-border/60"
+                  style={{ boxShadow: "var(--shadow-3d-sm)" }}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-lg mt-0.5">{cfg?.icon || "📝"}</span>

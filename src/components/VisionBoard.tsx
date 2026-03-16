@@ -10,7 +10,12 @@ export function VisionBoard() {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/15 via-grammar/8 to-accent/12 border border-primary/20 p-6 sm:p-8 text-center"
+        className="relative overflow-hidden rounded-3xl room-3d p-6 sm:p-8 text-center"
+        style={{
+          background: "linear-gradient(145deg, hsl(var(--primary) / 0.15), hsl(var(--card)), hsl(var(--accent) / 0.12))",
+          border: "1px solid hsl(var(--primary) / 0.2)",
+          boxShadow: "var(--shadow-3d-xl), 0 0 60px -12px hsl(var(--primary) / 0.15)",
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent pointer-events-none" />
         <div className="relative z-10 space-y-3">
@@ -32,7 +37,8 @@ export function VisionBoard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="card-elevated rounded-2xl p-5 relative overflow-hidden"
+        className="room-3d rounded-2xl p-5 relative overflow-hidden"
+        style={{ boxShadow: "var(--shadow-3d-md)" }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-success/6 via-transparent to-primary/6 pointer-events-none" />
         <p className="text-[9px] uppercase tracking-[4px] text-muted-foreground mb-4 relative">🎯 Ta transformation</p>
@@ -78,7 +84,8 @@ export function VisionBoard() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15 + i * 0.06 }}
-              className="card-elevated rounded-2xl p-4 group hover:border-border/60 transition-all"
+              className="room-3d rounded-2xl p-4 group hover:border-border/60 transition-all"
+              style={{ boxShadow: "var(--shadow-3d-sm)" }}
             >
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 group-hover:scale-110 transition-transform">{a.icon}</span>
@@ -97,7 +104,12 @@ export function VisionBoard() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6 }}
-        className="rounded-2xl bg-gradient-to-br from-primary/10 to-info/8 border border-primary/15 p-6 text-center"
+        className="rounded-2xl room-3d p-6 text-center"
+        style={{
+          background: "linear-gradient(145deg, hsl(var(--primary) / 0.1), hsl(var(--card)), hsl(var(--info) / 0.08))",
+          border: "1px solid hsl(var(--primary) / 0.15)",
+          boxShadow: "var(--shadow-3d-lg)",
+        }}
       >
         <div className="flex items-center justify-center gap-1 mb-3">
           {[...Array(5)].map((_, i) => (
