@@ -292,7 +292,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien construit. N
 
         {/* AI error */}
         {aiError && (
-          <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive">{aiError}</div>
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400">{aiError}</div>
         )}
 
         {/* AI feedback */}

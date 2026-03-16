@@ -171,7 +171,7 @@ export function CareerBuilder({ addXp, xp }: CareerBuilderProps) {
         )}
       </div>
 
-      {error && <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs text-destructive">{error}</div>}
+      {error && <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-400">{error}</div>}
       {response && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-warning/40">
           <div className="flex items-center justify-between mb-3">

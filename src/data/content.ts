@@ -529,6 +529,32 @@ export const OBJECTIF = {
 
 export const LVLS = ["Anfänger","Lehrling","Fortgeschritten","Kompetent","Experte","Meister","Chefarzt"];
 
+// Builder Rank system — medical career progression
+export const BUILDER_RANKS = [
+  { id: "anfaenger", name: "Anfänger", nameShort: "ANF", icon: "🔰", minXp: 0, color: "text-muted-foreground", bg: "from-slate-500/15 to-slate-500/5", border: "border-slate-500/25", glow: "", desc: "Premier pas dans l'univers medical allemand" },
+  { id: "famulant", name: "Famulant", nameShort: "FAM", icon: "📋", minXp: 150, color: "text-info", bg: "from-info/15 to-info/5", border: "border-info/25", glow: "shadow-info/10", desc: "Tu observes, tu apprends, tu poses les fondations" },
+  { id: "assistenzarzt", name: "Assistenzarzt", nameShort: "ASS", icon: "🩺", minXp: 400, color: "text-emerald-400", bg: "from-emerald-500/15 to-emerald-500/5", border: "border-emerald-500/25", glow: "shadow-emerald-500/15", desc: "Tu construis activement ton arsenal medical" },
+  { id: "oberarzt", name: "Oberarzt", nameShort: "OA", icon: "⚕️", minXp: 800, color: "text-violet-400", bg: "from-violet-500/15 to-violet-500/5", border: "border-violet-500/25", glow: "shadow-violet-500/15", desc: "Maitrise solide — tu diriges ton apprentissage" },
+  { id: "leitender", name: "Leitender Oberarzt", nameShort: "LOA", icon: "🏅", minXp: 1500, color: "text-amber-400", bg: "from-amber-500/15 to-amber-500/5", border: "border-amber-500/25", glow: "shadow-amber-500/20", desc: "Excellence et autonomie — le Gefäßzentrum t'attend" },
+  { id: "chefarzt", name: "Chefarzt", nameShort: "CA", icon: "👑", minXp: 3000, color: "text-amber-300", bg: "from-amber-400/20 to-amber-400/5", border: "border-amber-400/30", glow: "shadow-amber-400/25", desc: "Maitrise absolue — tu es prete pour tout" },
+] as const;
+
+export type BuilderRankId = typeof BUILDER_RANKS[number]["id"];
+
+export function getBuilderRank(xp: number) {
+  let rank = BUILDER_RANKS[0];
+  for (const r of BUILDER_RANKS) {
+    if (xp >= r.minXp) rank = r;
+  }
+  const idx = BUILDER_RANKS.indexOf(rank);
+  const nextRank = idx < BUILDER_RANKS.length - 1 ? BUILDER_RANKS[idx + 1] : null;
+  const progressToNext = nextRank
+    ? Math.min(1, (xp - rank.minXp) / (nextRank.minXp - rank.minXp))
+    : 1;
+  const xpToNext = nextRank ? nextRank.minXp - xp : 0;
+  return { rank, nextRank, progressToNext, xpToNext, rankIndex: idx };
+}
+
 // === TEMPLATES D'ÉCRITURE ===
 export const TEMPLATES = [
   {

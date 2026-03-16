@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, BookOpen, Map, Zap } from "lucide-react";
-import { PROG, DECKS } from "@/data/content";
+import { LogOut, Map, BookOpen, Zap, Sparkles } from "lucide-react";
+import { PROG } from "@/data/content";
+import { getBuilderRank } from "@/data/content";
 import { Countdown } from "@/components/Countdown";
-import { XPBar } from "@/components/XPBar";
+import { XPBar, RankBadge } from "@/components/XPBar";
 import { MotivBanner } from "@/components/MotivBanner";
 import { DayView } from "@/components/DayView";
 import { Vocab } from "@/components/Vocab";
@@ -30,7 +31,7 @@ type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🎯", label: "QG" },
   { id: "questmap", icon: "🗺️", label: "Carte" },
-  { id: "atelier", icon: "✨", label: "Creer" },
+  { id: "atelier", icon: "✨", label: "Ateliers" },
   { id: "vocab", icon: "🔨", label: "Forge" },
   { id: "gram", icon: "🌳", label: "Arbre" },
   { id: "iv", icon: "💼", label: "Studio" },
@@ -54,6 +55,7 @@ const Index = () => {
   const totTasks = PROG.reduce((a, d) => a + d.tasks.length, 0);
   const pct = Math.round((totDone / totTasks) * 100);
   const unlockedZoneCount = Object.values(progress.zoneStatus).filter(z => z.unlocked).length;
+  const { rank, nextRank, progressToNext, rankIndex } = getBuilderRank(progress.xp);
 
   return (
     <div className="min-h-screen bg-background ambient-bg">
@@ -70,7 +72,11 @@ const Index = () => {
 
       {/* Sticky nav */}
       <nav className="sticky top-0 z-50 glass-nav border-b border-border/30">
-        <div className="max-w-5xl mx-auto flex justify-center gap-0.5 px-2 py-2 overflow-x-auto scrollbar-hide">
+        <div className="max-w-5xl mx-auto flex items-center gap-0.5 px-2 py-2 overflow-x-auto scrollbar-hide">
+          {/* Rank badge in nav */}
+          <div className="shrink-0 mr-1 flex items-center gap-1">
+            <RankBadge xp={progress.xp} size="sm" />
+          </div>
           {NAV.map(n => (
             <button
               key={n.id}
@@ -109,7 +115,7 @@ const Index = () => {
         >
           {tab === "dash" && (
             <div className="space-y-5 stagger-children">
-              {/* Hero section — Mission Control */}
+              {/* Hero — Mission Control with countdown */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -122,7 +128,10 @@ const Index = () => {
                 </div>
               </motion.div>
 
-              {/* Quest Status Bar */}
+              {/* Builder Rank — prominent */}
+              <XPBar xp={progress.xp} />
+
+              {/* Quest Status — creations + zones */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -146,7 +155,7 @@ const Index = () => {
                         <span className="text-xs text-muted-foreground">creations aujourd'hui</span>
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {progress.totalCreations} au total · {unlockedZoneCount}/{ZONES.length} zones
+                        {progress.totalCreations} au total · {unlockedZoneCount}/{ZONES.length} zones debloquees
                       </p>
                     </div>
                   </div>
@@ -167,27 +176,41 @@ const Index = () => {
                 </div>
               </motion.div>
 
-              <XPBar xp={progress.xp} />
+              {/* Streak — always visible, motivational */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.15 }}
+                className={`rounded-2xl p-4 text-center ${
+                  progress.streak > 0
+                    ? "bg-gradient-to-r from-accent/12 via-accent/6 to-warning/8 border border-accent/20 glow-accent"
+                    : "bg-gradient-to-r from-secondary/50 to-secondary/30 border border-border/30"
+                }`}
+              >
+                {progress.streak > 0 ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <motion.span
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="text-2xl"
+                    >🔥</motion.span>
+                    <span className="text-sm font-black text-accent">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite !</span>
+                    {progress.streak >= 3 && <span className="text-[9px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold">Momentum</span>}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-lg">⚡</span>
+                    <span className="text-xs text-muted-foreground">Cree ton premier artefact pour lancer ta serie</span>
+                  </div>
+                )}
+              </motion.div>
 
-              {/* Streak */}
-              {progress.streak > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="rounded-2xl bg-gradient-to-r from-accent/12 via-accent/6 to-warning/8 border border-accent/20 p-4 text-center glow-accent"
-                >
-                  <span className="text-2xl">🔥</span>
-                  <span className="text-sm font-bold text-accent ml-2">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite!</span>
-                </motion.div>
-              )}
-
-              {/* Stats grid — Quest focused */}
+              {/* Stats grid — compact, quest-focused */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { v: `J${dNum}`, l: "/20", cls: "text-info", bg: "from-info/10 to-info/5" },
                   { v: `${unlockedZoneCount}/${ZONES.length}`, l: "zones", cls: "text-amber-400", bg: "from-amber-500/10 to-amber-500/5" },
-                  { v: String(progress.totalCreations), l: "forgees", cls: "text-success", bg: "from-success/10 to-success/5" },
+                  { v: String(progress.totalCreations), l: "artefacts", cls: "text-success", bg: "from-success/10 to-success/5" },
                   { v: String(progress.artifacts.filter(a => a.type === "interview_answer").length), l: "reponses", cls: "text-clinical", bg: "from-clinical/10 to-clinical/5" },
                 ].map((s, i) => (
                   <motion.div
@@ -203,7 +226,7 @@ const Index = () => {
                 ))}
               </div>
 
-              {/* Daily Chain — replaces DailyJourney */}
+              {/* Daily Chain */}
               <div className="card-elevated rounded-2xl p-5 sm:p-6">
                 <DailyChain
                   chainStatus={progress.chainStatus}
@@ -227,7 +250,7 @@ const Index = () => {
 
               <MotivBanner />
 
-              {/* Quest Map CTA */}
+              {/* Primary CTA — Explore la carte */}
               <motion.button
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -251,10 +274,10 @@ const Index = () => {
               {/* Quick Zone Access */}
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {[
-                  { t: "vocab" as Tab, i: "🔨", l: "Forge", bg: "from-amber-500/8 to-transparent", zone: "forge" as const },
-                  { t: "gram" as Tab, i: "🌳", l: "Arbre", bg: "from-emerald-500/8 to-transparent", zone: "grammar" as const },
-                  { t: "iv" as Tab, i: "💼", l: "Studio", bg: "from-violet-500/8 to-transparent", zone: "studio" as const },
-                  { t: "sim" as Tab, i: "🏥", l: "Hopital", bg: "from-rose-500/8 to-transparent", zone: "clinical" as const },
+                  { t: "vocab" as Tab, i: "🔨", l: "La Forge", bg: "from-amber-500/8 to-transparent", zone: "forge" as const },
+                  { t: "gram" as Tab, i: "🌳", l: "L'Arbre", bg: "from-emerald-500/8 to-transparent", zone: "grammar" as const },
+                  { t: "iv" as Tab, i: "💼", l: "Le Studio", bg: "from-violet-500/8 to-transparent", zone: "studio" as const },
+                  { t: "sim" as Tab, i: "🏥", l: "L'Hopital", bg: "from-rose-500/8 to-transparent", zone: "clinical" as const },
                   { t: "atelier" as Tab, i: "✨", l: "Ateliers", bg: "from-blue-500/8 to-transparent", zone: "atelier" as const },
                   { t: "portfolio" as Tab, i: "📚", l: "Archives", bg: "from-cyan-500/8 to-transparent", zone: "archive" as const },
                 ].map((a, i) => {
@@ -275,6 +298,11 @@ const Index = () => {
                     >
                       <div className="text-2xl sm:text-3xl mb-2">{isLocked ? "🔒" : a.i}</div>
                       <div className="text-[10px] sm:text-xs font-semibold tracking-tight">{a.l}</div>
+                      {!isLocked && progress.zoneStatus[a.zone] && (
+                        <div className="mt-2 h-1 bg-secondary/40 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500/40 rounded-full transition-all" style={{ width: `${progress.zoneStatus[a.zone].progress * 100}%` }} />
+                        </div>
+                      )}
                     </motion.button>
                   );
                 })}

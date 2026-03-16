@@ -202,7 +202,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
           </div>
 
           {error && (
-            <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-xs text-destructive">{error}</div>
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-400">{error}</div>
           )}
 
           {response && (

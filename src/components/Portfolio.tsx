@@ -72,8 +72,9 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
   return (
     <div className="space-y-5">
       <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-amber-400" /> Mes Creations
+        <BookOpen className="w-6 h-6 text-cyan-400" /> Les Archives
       </h2>
+      <p className="text-xs text-muted-foreground -mt-3">Ta collection d'artefacts — chaque creation est une brique de ton edifice</p>
 
       {/* Global stats */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -151,12 +152,21 @@ export function Portfolio({ artifacts, earnedBadges }: PortfolioProps) {
       {/* Artifact list */}
       {filtered.length === 0 ? (
         <div className="card-elevated rounded-2xl p-10 text-center">
-          <div className="text-5xl mb-4">🔨</div>
-          <p className="text-sm text-muted-foreground">
-            {artifacts.length === 0
-              ? "Tu n'as pas encore cree d'artefacts. Lance ton premier atelier pour commencer."
-              : "Aucun artefact dans cette categorie."}
-          </p>
+          <div className="text-5xl mb-4">{artifacts.length === 0 ? "📚" : "🔍"}</div>
+          {artifacts.length === 0 ? (
+            <>
+              <p className="text-sm font-bold text-foreground mb-1">Tes Archives sont vides — pour l'instant</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                Chaque phrase forgee, chaque diagnostic construit, chaque reponse creee apparaitra ici.
+                Ton premier artefact t'attend dans La Forge ou dans un atelier.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 rounded-full px-4 py-2 border border-amber-500/15">
+                ⚡ Lance ta premiere mission pour remplir tes Archives
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">Aucun artefact dans cette categorie.</p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">

@@ -30,7 +30,7 @@ export function Countdown() {
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-info/5 pointer-events-none" />
       
       <p className="text-center text-[10px] font-semibold uppercase tracking-[4px] text-muted-foreground mb-4 relative">
-        Countdown Jour J
+        ⏱️ Mission Countdown
       </p>
       <div className="flex justify-center gap-3 relative">
         {units.map((u, i) => (
@@ -52,7 +52,7 @@ export function Countdown() {
         ))}
       </div>
       <p className="text-center mt-4 text-xs font-semibold text-primary/80 relative">
-        Dr. Attias-Widmer — Spitalzentrum Biel
+        🎯 Objectif : Spitalzentrum Biel — Dr. Attias-Widmer
       </p>
     </motion.div>
   );

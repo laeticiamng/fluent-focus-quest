@@ -9,7 +9,7 @@ import { IdentityBuilder } from "./ateliers/IdentityBuilder";
 import { DocumentBuilder } from "./ateliers/DocumentBuilder";
 import { BeatLearning } from "./ateliers/BeatLearning";
 import { CareerBuilder } from "./ateliers/CareerBuilder";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft, Zap, ChevronRight } from "lucide-react";
 
 type AtelierMode = "hub" | "phrase" | "script" | "diagnostic" | "case" | "interview" | "identity" | "document" | "beat" | "career";
 
@@ -17,8 +17,12 @@ const ATELIERS = [
   {
     id: "phrase" as AtelierMode,
     icon: "🧪",
-    title: "Labo de phrases",
-    desc: "Tire un mot, construis une phrase médicale — l'IA corrige instantanément",
+    title: "Mini-forge de precision",
+    roomName: "Labo de phrases",
+    desc: "Tire un mot, forge une phrase medicale — l'IA affine instantanement",
+    output: "Phrases medicales forgees",
+    xpReward: "+20 XP / phrase",
+    level: "Tous niveaux",
     color: "from-primary/15 to-info/8",
     border: "border-primary/25",
     accent: "text-primary",
@@ -27,8 +31,12 @@ const ATELIERS = [
   {
     id: "script" as AtelierMode,
     icon: "✍️",
-    title: "Script Builder",
-    desc: "Présentation patient, Übergabe, Selbstvorstellung — écris ton script",
+    title: "Salle de redaction tactique",
+    roomName: "Script Builder",
+    desc: "Presentation patient, Ubergabe, Selbstvorstellung — ecris ton script medical",
+    output: "Scripts medicaux structures",
+    xpReward: "+50 XP / script",
+    level: "Intermediaire",
     color: "from-accent/15 to-warning/8",
     border: "border-accent/25",
     accent: "text-accent",
@@ -37,8 +45,12 @@ const ATELIERS = [
   {
     id: "diagnostic" as AtelierMode,
     icon: "🧠",
-    title: "Diagnostic Builder",
-    desc: "Raisonnement clinique en allemand — construis ton diagnostic étape par étape",
+    title: "Salle de raisonnement clinique",
+    roomName: "Diagnostic Builder",
+    desc: "Construis ton diagnostic etape par etape en allemand medical",
+    output: "Diagnostics structures",
+    xpReward: "+40 XP / diagnostic",
+    level: "Avance",
     color: "from-clinical/15 to-info/8",
     border: "border-clinical/25",
     accent: "text-clinical",
@@ -47,8 +59,12 @@ const ATELIERS = [
   {
     id: "case" as AtelierMode,
     icon: "🧾",
-    title: "Créer ton cas",
-    desc: "Rédige un dossier patient complet — Anamnese, Befund, Therapie",
+    title: "Atelier de simulation complete",
+    roomName: "Createur de cas",
+    desc: "Redige un dossier patient complet — Anamnese, Befund, Therapie",
+    output: "Cas patients complets",
+    xpReward: "+45 XP / cas",
+    level: "Avance",
     color: "from-grammar/15 to-primary/8",
     border: "border-grammar/25",
     accent: "text-grammar",
@@ -57,8 +73,12 @@ const ATELIERS = [
   {
     id: "interview" as AtelierMode,
     icon: "🎙️",
-    title: "Studio d'entretien",
-    desc: "Enregistre ta réponse, écoute-toi, perfectionne ta voix en allemand",
+    title: "Chambre de simulation orale",
+    roomName: "Studio d'entretien",
+    desc: "Enregistre, ecoute-toi, perfectionne ta voix en allemand",
+    output: "Reponses d'entretien",
+    xpReward: "+20 XP / enreg.",
+    level: "Tous niveaux",
     color: "from-accent/15 to-primary/8",
     border: "border-accent/25",
     accent: "text-accent",
@@ -67,18 +87,26 @@ const ATELIERS = [
   {
     id: "identity" as AtelierMode,
     icon: "🇨🇭",
-    title: "Vision Builder",
-    desc: "Construis ton identité de médecin suisse — qui tu es, qui tu deviens",
+    title: "Salle d'identite professionnelle",
+    roomName: "Vision Builder",
+    desc: "Construis ton identite de medecin suisse — qui tu es, qui tu deviens",
+    output: "Profil professionnel",
+    xpReward: "Motivation",
+    level: "Tous niveaux",
     color: "from-success/15 to-info/8",
     border: "border-success/25",
     accent: "text-success",
-    tag: "Identité",
+    tag: "Identite",
   },
   {
     id: "document" as AtelierMode,
     icon: "📄",
-    title: "Documents pro",
+    title: "Bureau des documents medicaux",
+    roomName: "Documents pro",
     desc: "Befundbericht, SBAR, Arztbrief, Konsilanforderung — tous les formats",
+    output: "Documents professionnels",
+    xpReward: "+40 XP / document",
+    level: "Intermediaire",
     color: "from-info/15 to-primary/8",
     border: "border-info/25",
     accent: "text-info",
@@ -87,8 +115,12 @@ const ATELIERS = [
   {
     id: "beat" as AtelierMode,
     icon: "🎵",
-    title: "Beat Learning",
-    desc: "Apprends le vocabulaire au rythme — mémorisation musicale",
+    title: "Studio rythmique cognitif",
+    roomName: "Beat Learning",
+    desc: "Memorise le vocabulaire au rythme — ancrage musical",
+    output: "Memorisation renforcee",
+    xpReward: "Apprentissage",
+    level: "Tous niveaux",
     color: "from-warning/15 to-accent/8",
     border: "border-warning/25",
     accent: "text-warning",
@@ -97,12 +129,16 @@ const ATELIERS = [
   {
     id: "career" as AtelierMode,
     icon: "🏔️",
-    title: "Builder de carrière",
-    desc: "France → Suisse, niveau par niveau — suis ta progression FMH",
+    title: "Tour de progression medicale",
+    roomName: "Builder de carriere",
+    desc: "France → Suisse, etape par etape — visualise ta trajectoire FMH",
+    output: "Vision de carriere",
+    xpReward: "Motivation",
+    level: "Tous niveaux",
     color: "from-warning/15 to-success/8",
     border: "border-warning/25",
     accent: "text-warning",
-    tag: "Carrière",
+    tag: "Carriere",
   },
 ];
 
@@ -149,11 +185,10 @@ export function AtelierHub({ addXp, xp = 0 }: AtelierHubProps) {
         <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-3xl">✨</span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight">Ateliers de création</h2>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight">Les Ateliers</h2>
           </div>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Tu ne révises pas. Tu <span className="text-foreground font-bold">construis</span> ton futur médecin suisse.
-            Chaque mot écrit, chaque phrase créée — c'est du béton pour ton cerveau.
+            9 salles de creation specialisees. Chaque artefact produit te rapproche du Gefäßzentrum.
           </p>
         </div>
       </motion.div>
@@ -166,42 +201,56 @@ export function AtelierHub({ addXp, xp = 0 }: AtelierHubProps) {
         className="rounded-2xl bg-gradient-to-r from-accent/8 to-warning/5 border border-accent/15 px-4 py-3"
       >
         <p className="text-xs text-accent/85 italic leading-relaxed">
-          💡 <strong>Production active</strong> — Chaque création forge des connexions neuronales 3× plus solides que la révision passive. C'est la science.
+          💡 <strong>Production active</strong> — Chaque creation forge des connexions neuronales 3x plus solides que la revision passive.
         </p>
       </motion.div>
 
       {/* Section label */}
       <div>
-        <p className="text-[10px] uppercase tracking-[4px] text-muted-foreground mb-3 px-1">9 ateliers · Choisis ton terrain de jeu</p>
+        <p className="text-[10px] uppercase tracking-[4px] text-muted-foreground mb-4 px-1">9 salles specialisees · Choisis ta mission</p>
 
-        {/* Atelier cards — 2 cols on mobile, 3 on tablet */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Atelier cards — immersive room style */}
+        <div className="space-y-3">
           {ATELIERS.map((a, i) => (
             <motion.button
               key={a.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-              whileHover={{ y: -4, scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
+              transition={{ delay: 0.1 + i * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
+              whileHover={{ y: -2, scale: 1.005 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setMode(a.id)}
-              className={`rounded-2xl bg-gradient-to-br ${a.color} border ${a.border} p-4 sm:p-5 text-left transition-all group relative overflow-hidden`}
+              className={`w-full rounded-2xl bg-gradient-to-r ${a.color} border ${a.border} p-4 sm:p-5 text-left transition-all group relative overflow-hidden`}
             >
               {/* Hover shine */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-2.5">
-                  <span className="text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-200">{a.icon}</span>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${a.accent} opacity-60 group-hover:opacity-100 transition-opacity bg-background/20 rounded-full px-2 py-0.5`}>
-                    {a.tag}
-                  </span>
+              <div className="relative z-10 flex items-center gap-4">
+                {/* Room icon */}
+                <div className={`w-14 h-14 rounded-xl bg-background/30 border border-border/20 flex items-center justify-center text-2xl sm:text-3xl shrink-0 group-hover:scale-110 transition-transform duration-200`}>
+                  {a.icon}
                 </div>
-                <div className="text-xs sm:text-sm font-bold tracking-tight leading-tight">{a.title}</div>
-                <div className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{a.desc}</div>
-                <div className={`mt-3 text-[10px] font-bold ${a.accent} opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5`}>
-                  Commencer →
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-black tracking-tight leading-tight">{a.title}</span>
+                    <span className={`text-[8px] font-bold uppercase tracking-wider ${a.accent} opacity-60 bg-background/20 rounded-full px-2 py-0.5 shrink-0`}>
+                      {a.tag}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">{a.desc}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-[9px] font-bold text-amber-400">{a.xpReward}</span>
+                    <span className="text-[9px] text-muted-foreground/60">·</span>
+                    <span className="text-[9px] text-muted-foreground">{a.level}</span>
+                    <span className="text-[9px] text-muted-foreground/60">·</span>
+                    <span className="text-[9px] text-muted-foreground italic">{a.output}</span>
+                  </div>
                 </div>
+
+                {/* Arrow */}
+                <ChevronRight className={`w-5 h-5 shrink-0 ${a.accent} opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all`} />
               </div>
             </motion.button>
           ))}
@@ -215,13 +264,13 @@ export function AtelierHub({ addXp, xp = 0 }: AtelierHubProps) {
         transition={{ delay: 0.55 }}
         className="card-elevated rounded-2xl p-5"
       >
-        <p className="text-xs font-bold text-muted-foreground mb-4">⚡ Comment ça fonctionne</p>
+        <p className="text-xs font-bold text-muted-foreground mb-4">⚡ Boucle de creation</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { n: "1", t: "Tu choisis", d: "Un atelier parmi 9 formats de création" },
-            { n: "2", t: "Tu crées", d: "Phrases, scripts, cas, documents en allemand médical" },
-            { n: "3", t: "L'IA coach", d: "Corrige, améliore et propose des variantes en temps réel" },
-            { n: "4", t: "Tu gagnes", d: "XP à chaque soumission — la création = la progression" },
+            { n: "1", t: "Choisis ta salle", d: "Un atelier parmi 9 modes de creation" },
+            { n: "2", t: "Construis", d: "Phrases, scripts, cas, documents en allemand medical" },
+            { n: "3", t: "Le coach affine", d: "L'IA corrige, enrichit et propose des variantes" },
+            { n: "4", t: "Gagne et debloque", d: "XP + artefacts + progression vers de nouvelles zones" },
           ].map((s, i) => (
             <div key={i} className="flex items-start gap-2.5">
               <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary shrink-0 mt-0.5">
