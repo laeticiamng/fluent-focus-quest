@@ -36,6 +36,7 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { MissionTimer } from "@/components/MissionTimer";
 import { AchievementsPanel, ACHIEVEMENTS, type AchievementStats } from "@/components/Achievements";
 import { Leaderboard } from "@/components/Leaderboard";
+import { AIStatusBanner } from "@/components/AIStatusBanner";
 
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard";
 
@@ -178,6 +179,9 @@ const Index = () => {
       <div className="ambient-orb ambient-orb-1" />
       <div className="ambient-orb ambient-orb-2" />
       <div className="ambient-orb ambient-orb-3" />
+
+      {/* AI Status Banner — global fallback notification */}
+      <AIStatusBanner />
 
       {/* Onboarding Tutorial */}
       <OnboardingTutorial
