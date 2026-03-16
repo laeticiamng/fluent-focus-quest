@@ -4,7 +4,48 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coac
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-export type AIStatus = "idle" | "loading" | "success" | "error" | "credits_exhausted" | "rate_limited";
+export type AIStatus = "idle" | "loading" | "success" | "error" | "credits_exhausted" | "rate_limited" | "fallback";
+
+// Basic offline feedback when AI is unavailable
+function generateFallback(userMessage: string, mode: string): string {
+  // Extract the word/phrase from the prompt
+  const wordMatch = userMessage.match(/Mot a (?:forger|transmuter)\s*:\s*"?([^"(]+)"?\s*\(([^)]+)\)/i);
+  const phraseMatch = userMessage.match(/(?:Phrase forgee|Formule creee)[^:]*:\s*"([^"]+)"/i);
+
+  const word = wordMatch?.[1]?.trim() || "";
+  const translation = wordMatch?.[2]?.trim() || "";
+  const phrase = phraseMatch?.[1]?.trim() || "";
+
+  if (mode === "phrase-lab" && word && phrase) {
+    const hasWord = phrase.toLowerCase().includes(word.toLowerCase().replace(/^(der|die|das)\s+/i, ""));
+    const hasCapital = /[A-ZÄÖÜ]/.test(phrase.charAt(0));
+    const hasPeriod = phrase.endsWith(".");
+    const wordCount = phrase.split(/\s+/).length;
+
+    const tips: string[] = [];
+    if (hasWord) tips.push(`✅ Tu as bien utilisé "${word}" dans ta phrase.`);
+    else tips.push(`⚠️ Vérifie que "${word}" apparaît dans ta phrase.`);
+    if (!hasCapital) tips.push("💡 En allemand, la phrase commence toujours par une majuscule.");
+    if (!hasPeriod) tips.push("💡 N'oublie pas le point à la fin de ta phrase.");
+    if (wordCount < 4) tips.push("💡 Essaie de construire une phrase plus complète (sujet + verbe + complément).");
+    else if (wordCount >= 6) tips.push("👏 Belle construction ! Phrase bien développée.");
+
+    tips.push(`\n📖 Rappel : "${word}" = ${translation}`);
+    tips.push("\n⏳ Le coach IA est temporairement indisponible. Ces conseils sont générés localement. Tes XP sont bien comptabilisés !");
+
+    return tips.join("\n");
+  }
+
+  // Generic fallback for other modes
+  const genericTips: Record<string, string> = {
+    "phrase-lab": "⏳ Coach IA indisponible. Conseils rapides :\n• Vérifie la majuscule en début de phrase\n• Les noms allemands prennent toujours une majuscule\n• Structure : Sujet + Verbe + Complément\n• Termine par un point\n\nTes XP sont bien comptabilisés !",
+    "script-builder": "⏳ Coach IA indisponible. Conseils rapides :\n• Structure SBAR : Situation → Background → Assessment → Recommendation\n• Utilise le présent pour décrire l'état actuel\n• Sois précis dans les valeurs (Blutdruck, Puls...)\n\nTon script est sauvegardé !",
+    "diagnostic-builder": "⏳ Coach IA indisponible. Conseils rapides :\n• Pense aux diagnostics différentiels\n• Vérifie les Red Flags\n• Structure : Anamnese → Untersuchung → Verdachtsdiagnose\n\nTon raisonnement est sauvegardé !",
+    "case-creator": "⏳ Coach IA indisponible. Conseils rapides :\n• Anamnese complète : Hauptbeschwerde, Vorgeschichte, Medikamente\n• Untersuchung : systématique tête-pieds\n• Diagnose + Differentialdiagnosen\n\nTon cas est sauvegardé !",
+  };
+
+  return genericTips[mode] || "⏳ Coach IA temporairement indisponible. Ta création est sauvegardée et tes XP sont comptabilisés !";
+}
 
 export function useAICoach() {
   const [response, setResponse] = useState("");
@@ -32,26 +73,31 @@ export function useAICoach() {
 
       if (!resp.ok) {
         if (resp.status === 429) {
-          setError("Coach momentanement occupe — reessaie dans quelques secondes. Ta creation est quand meme enregistree !");
-          setStatus("rate_limited");
+          const fallback = generateFallback(userMessage, mode);
+          setResponse(fallback);
+          setError(null);
+          setStatus("fallback");
           setIsLoading(false);
           return;
         }
         if (resp.status === 402) {
-          setError("Le coach IA est temporairement indisponible (credits epuises). Ta creation est sauvegardee — tu gagnes quand meme tes XP. Le feedback reviendra bientot.");
-          setStatus("credits_exhausted");
+          const fallback = generateFallback(userMessage, mode);
+          setResponse(fallback);
+          setError(null);
+          setStatus("fallback");
           setIsLoading(false);
           return;
         }
-        setError("Connexion au coach interrompue. Ta creation reste enregistree et tes XP sont comptabilises.");
+        setError("Connexion au coach interrompue. Ta création reste enregistrée et tes XP sont comptabilisés.");
         setStatus("error");
         setIsLoading(false);
         return;
       }
 
       if (!resp.body) {
-        setError("Le coach n'a pas pu repondre cette fois. Ta creation est sauvegardee.");
-        setStatus("error");
+        const fallback = generateFallback(userMessage, mode);
+        setResponse(fallback);
+        setStatus("fallback");
         setIsLoading(false);
         return;
       }
@@ -120,8 +166,9 @@ export function useAICoach() {
       setIsLoading(false);
     } catch (e) {
       console.error("AI coach error:", e);
-      setError("Connexion au coach interrompue. Pas de panique — ta creation est sauvegardee et tes XP sont comptabilises.");
-      setStatus("error");
+      const fallback = generateFallback(userMessage, mode);
+      setResponse(fallback);
+      setStatus("fallback");
       setIsLoading(false);
     }
   }, []);
