@@ -542,7 +542,7 @@ export const BUILDER_RANKS = [
 export type BuilderRankId = typeof BUILDER_RANKS[number]["id"];
 
 export function getBuilderRank(xp: number) {
-  let rank = BUILDER_RANKS[0];
+  let rank: typeof BUILDER_RANKS[number] = BUILDER_RANKS[0];
   for (const r of BUILDER_RANKS) {
     if (xp >= r.minXp) rank = r;
   }
