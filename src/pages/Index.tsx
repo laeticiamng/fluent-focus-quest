@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Map, BookOpen, Zap, Sparkles } from "lucide-react";
+import { LogOut, Map, Package, KeyRound, Shield } from "lucide-react";
 import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
+import { ESCAPE_ZONES, CENTRAL_MISSION, CHAPTERS, ZONE_TAB_MAP, computeRoomProgress } from "@/data/escapeGame";
 import { Countdown } from "@/components/Countdown";
 import { XPBar, RankBadge } from "@/components/XPBar";
 import { MotivBanner } from "@/components/MotivBanner";
@@ -17,10 +18,11 @@ import { Tools } from "@/components/Tools";
 import { Stats } from "@/components/Stats";
 import { AtelierHub } from "@/components/AtelierHub";
 import { Portfolio } from "@/components/Portfolio";
-import { QuestMap } from "@/components/QuestMap";
+import { EscapeMap } from "@/components/EscapeMap";
 import { StudioWall } from "@/components/StudioWall";
 import { DailyChain } from "@/components/DailyChain";
-import { UnlockReveal, NextUnlockCard } from "@/components/UnlockSystem";
+import { EscapeReveal } from "@/components/EscapeReveal";
+import { Inventory } from "@/components/Inventory";
 import { useProgress } from "@/hooks/useProgress";
 import { ZONES } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
@@ -29,13 +31,13 @@ import { motion } from "framer-motion";
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
-  { id: "dash", icon: "🎯", label: "QG" },
+  { id: "dash", icon: "🏥", label: "Mission" },
   { id: "questmap", icon: "🗺️", label: "Carte" },
-  { id: "atelier", icon: "✨", label: "Ateliers" },
   { id: "vocab", icon: "🔨", label: "Forge" },
   { id: "gram", icon: "🌳", label: "Arbre" },
-  { id: "iv", icon: "💼", label: "Studio" },
-  { id: "sim", icon: "🏥", label: "Hopital" },
+  { id: "iv", icon: "🎙️", label: "Studio" },
+  { id: "sim", icon: "🏥", label: "Clinique" },
+  { id: "atelier", icon: "⚗️", label: "Labo" },
   { id: "portfolio", icon: "📚", label: "Archives" },
   { id: "tools", icon: "🛠️", label: "Outils" },
   { id: "stats", icon: "📊", label: "Stats" },
@@ -48,34 +50,79 @@ const Index = () => {
   const [tab, setTab] = useState<Tab>("dash");
   const progress = useProgress();
 
-  const tStr = new Date().toISOString().split("T")[0];
-  const dIdx = PROG.findIndex(d => d.date === tStr);
-  const dNum = (dIdx + 1) || 1;
-  const totDone = Object.values(progress.done).filter(Boolean).length;
-  const totTasks = PROG.reduce((a, d) => a + d.tasks.length, 0);
-  const pct = Math.round((totDone / totTasks) * 100);
-  const unlockedZoneCount = Object.values(progress.zoneStatus).filter(z => z.unlocked).length;
-  const { rank, nextRank, progressToNext, rankIndex } = getBuilderRank(progress.xp);
+  const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [] };
+  const solvedRoomCount = escapeState.solvedRooms.length;
+  const totalEscapeRooms = ESCAPE_ZONES.reduce((a, z) => a + z.rooms.length, 0);
+  const sigilCount = escapeState.sigilsCollected.length;
+  const inventoryCount = escapeState.inventory.length;
+
+  // Find current chapter
+  const currentChapter = CHAPTERS.find(ch => {
+    const chapterZones = ch.zones;
+    return chapterZones.some(zId => {
+      const zone = ESCAPE_ZONES.find(z => z.id === zId);
+      if (!zone) return false;
+      return zone.rooms.some(r => !escapeState.solvedRooms.includes(r.id));
+    });
+  }) || CHAPTERS[CHAPTERS.length - 1];
+
+  // Find next room to solve
+  const nextRoom = (() => {
+    for (const zone of ESCAPE_ZONES) {
+      const zoneStatus = progress.escapeZoneStatus[zone.id];
+      if (!zoneStatus?.unlocked) continue;
+      for (const room of zone.rooms) {
+        const roomStatus = zoneStatus.rooms.find(r => r.id === room.id);
+        if (roomStatus && (roomStatus.status === "accessible" || roomStatus.status === "in_progress")) {
+          const prog = computeRoomProgress(room, progress.artifacts);
+          return { room, zone, progress: prog };
+        }
+      }
+    }
+    return null;
+  })();
+
+  // Find next locked room (to tease)
+  const nextLockedRoom = (() => {
+    for (const zone of ESCAPE_ZONES) {
+      const zoneStatus = progress.escapeZoneStatus[zone.id];
+      if (!zoneStatus?.unlocked) continue;
+      for (const room of zone.rooms) {
+        const roomStatus = zoneStatus.rooms.find(r => r.id === room.id);
+        if (roomStatus && roomStatus.status === "locked") {
+          return { room, zone };
+        }
+      }
+    }
+    // Find next locked zone
+    for (const zone of ESCAPE_ZONES) {
+      const zoneStatus = progress.escapeZoneStatus[zone.id];
+      if (!zoneStatus?.unlocked) return { room: null, zone };
+    }
+    return null;
+  })();
+
+  const { rank, rankIndex } = getBuilderRank(progress.xp);
 
   return (
     <div className="min-h-screen bg-background ambient-bg">
-      {/* Ambient floating orbs */}
       <div className="ambient-orb ambient-orb-1" />
       <div className="ambient-orb ambient-orb-2" />
       <div className="ambient-orb ambient-orb-3" />
 
-      {/* Unlock Reveal Overlay */}
-      <UnlockReveal
+      {/* Escape Game Reveal Overlay */}
+      <EscapeReveal
+        newEscapeEvents={escapeState.newEscapeEvents || []}
         newUnlocks={progress.questState.newUnlocks}
         onDismiss={progress.clearNewUnlocks}
       />
 
-      {/* Sticky nav */}
+      {/* Sticky nav — escape game themed */}
       <nav className="sticky top-0 z-50 glass-nav border-b border-border/30">
         <div className="max-w-5xl mx-auto flex items-center gap-0.5 px-2 py-2 overflow-x-auto scrollbar-hide">
-          {/* Rank badge in nav */}
-          <div className="shrink-0 mr-1 flex items-center gap-1">
+          <div className="shrink-0 mr-1 flex items-center gap-1.5">
             <RankBadge xp={progress.xp} size="sm" />
+            <Inventory items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} compact />
           </div>
           {NAV.map(n => (
             <button
@@ -114,120 +161,150 @@ const Index = () => {
           transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           {tab === "dash" && (
-            <div className="space-y-5 stagger-children">
-              {/* Hero — Mission Control with countdown */}
+            <div className="space-y-4 stagger-children">
+              {/* HERO: Mission Briefing */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/15 via-card to-grammar/10 border border-amber-500/15 p-6 sm:p-8"
+                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/12 via-card to-primary/8 border border-amber-500/15 p-5 sm:p-7"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
                 <div className="relative z-10">
-                  <Countdown />
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] uppercase tracking-[4px] text-amber-400/70">Protocole Lazarus</span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-black tracking-tight mb-2">{CENTRAL_MISSION.title}</h1>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed max-w-lg">
+                    {currentChapter.narrativeIntro.slice(0, 120)}...
+                  </p>
+                  <div className="mt-4">
+                    <Countdown />
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Builder Rank — prominent */}
-              <XPBar xp={progress.xp} />
-
-              {/* Quest Status — creations + zones */}
+              {/* Mission Progress — primary metric */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: 0.05 }}
                 className="rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">🏰</span>
+                    <Shield className="w-5 h-5 text-amber-400" />
                     <div>
-                      <div className="flex items-center gap-2">
-                        <motion.span
-                          key={progress.creationsToday}
-                          initial={{ scale: 1.5, color: "rgb(245 158 11)" }}
-                          animate={{ scale: 1, color: "inherit" }}
-                          transition={{ duration: 0.5, type: "spring" }}
-                          className="text-xl font-black text-amber-400"
-                        >
-                          {progress.creationsToday}
-                        </motion.span>
-                        <span className="text-xs text-muted-foreground">creations aujourd'hui</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {progress.totalCreations} au total · {unlockedZoneCount}/{ZONES.length} zones debloquees
-                      </p>
+                      <p className="text-xs font-black tracking-tight">Progression du Complexe</p>
+                      <p className="text-[10px] text-muted-foreground">{currentChapter.name}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setTab("questmap")}
-                      className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 rounded-full px-3 py-1.5 border border-amber-500/20 hover:bg-amber-500/15 transition-all"
-                    >
-                      <Map className="w-3 h-3" /> Carte
-                    </button>
-                    <button
-                      onClick={() => setTab("portfolio")}
-                      className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground bg-secondary/50 rounded-full px-3 py-1.5 border border-border/30 hover:text-foreground transition-all"
-                    >
-                      <BookOpen className="w-3 h-3" /> Archives
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-0.5">
+                      {[...Array(6)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center text-[7px] ${
+                            i < sigilCount
+                              ? "bg-amber-500/20 border-amber-500/40"
+                              : "bg-secondary/20 border-border/15"
+                          }`}
+                        >
+                          {i < sigilCount ? "🏅" : "·"}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2.5 bg-secondary/40 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(solvedRoomCount / totalEscapeRooms) * 100}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500/70 to-success/50"
+                    />
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-400">{solvedRoomCount}/{totalEscapeRooms}</span>
+                </div>
+                <div className="flex items-center gap-4 mt-2">
+                  <span className="text-[9px] text-muted-foreground">{sigilCount}/6 Sigils</span>
+                  <span className="text-[9px] text-muted-foreground/40">·</span>
+                  <span className="text-[9px] text-muted-foreground">{inventoryCount} fragments collectes</span>
+                  <span className="text-[9px] text-muted-foreground/40">·</span>
+                  <span className="text-[9px] text-muted-foreground">{progress.totalCreations} artefacts</span>
                 </div>
               </motion.div>
 
-              {/* Streak — always visible, motivational */}
+              {/* NEXT ROOM — primary CTA */}
+              {nextRoom && (
+                <motion.button
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setTab(ZONE_TAB_MAP[nextRoom.zone.id] as Tab || "dash")}
+                  className="w-full rounded-2xl bg-gradient-to-r from-primary/12 via-primary/6 to-transparent border border-primary/20 p-5 text-left relative overflow-hidden group transition-all hover:border-primary/30"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-11 h-11 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+                        {nextRoom.room.icon}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[9px] uppercase tracking-[2px] text-primary/60">Prochaine epreuve</p>
+                        <p className="text-sm font-black tracking-tight">{nextRoom.room.name}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{nextRoom.zone.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-black text-primary">{nextRoom.progress.current}/{nextRoom.progress.threshold}</p>
+                        <p className="text-[9px] text-muted-foreground">pour resoudre</p>
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-secondary/40 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${nextRoom.progress.percentage}%` }}
+                        className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary/30"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">{nextRoom.room.challenge}</p>
+                  </div>
+                </motion.button>
+              )}
+
+              {/* Inventory preview */}
+              <Inventory items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
+
+              {/* Streak */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 }}
-                className={`rounded-2xl p-4 text-center ${
+                className={`rounded-2xl p-3 text-center ${
                   progress.streak > 0
-                    ? "bg-gradient-to-r from-accent/12 via-accent/6 to-warning/8 border border-accent/20 glow-accent"
-                    : "bg-gradient-to-r from-secondary/50 to-secondary/30 border border-border/30"
+                    ? "bg-gradient-to-r from-accent/10 via-accent/5 to-transparent border border-accent/15"
+                    : "bg-secondary/20 border border-border/20"
                 }`}
               >
                 {progress.streak > 0 ? (
                   <div className="flex items-center justify-center gap-2">
-                    <motion.span
-                      animate={{ scale: [1, 1.15, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                      className="text-2xl"
-                    >🔥</motion.span>
-                    <span className="text-sm font-black text-accent">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite !</span>
-                    {progress.streak >= 3 && <span className="text-[9px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold">Momentum</span>}
+                    <motion.span animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-lg">🔥</motion.span>
+                    <span className="text-xs font-black text-accent">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite</span>
+                    {progress.streak >= 3 && <span className="text-[8px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-bold">Momentum</span>}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-lg">⚡</span>
-                    <span className="text-xs text-muted-foreground">Cree ton premier artefact pour lancer ta serie</span>
+                    <span className="text-sm">⚡</span>
+                    <span className="text-[10px] text-muted-foreground">Cree ton premier artefact pour lancer ta serie</span>
                   </div>
                 )}
               </motion.div>
 
-              {/* Stats grid — compact, quest-focused */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { v: `J${dNum}`, l: "/20", cls: "text-info", bg: "from-info/10 to-info/5" },
-                  { v: `${unlockedZoneCount}/${ZONES.length}`, l: "zones", cls: "text-amber-400", bg: "from-amber-500/10 to-amber-500/5" },
-                  { v: String(progress.totalCreations), l: "artefacts", cls: "text-success", bg: "from-success/10 to-success/5" },
-                  { v: String(progress.artifacts.filter(a => a.type === "interview_answer").length), l: "reponses", cls: "text-clinical", bg: "from-clinical/10 to-clinical/5" },
-                ].map((s, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 + i * 0.05 }}
-                    className={`rounded-2xl bg-gradient-to-br ${s.bg} border border-border/40 p-4 text-center`}
-                  >
-                    <div className={`text-2xl sm:text-3xl font-black tracking-tight ${s.cls}`}>{s.v}</div>
-                    <div className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-1">{s.l}</div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Daily Chain */}
-              <div className="card-elevated rounded-2xl p-5 sm:p-6">
+              {/* Daily Mission Protocol */}
+              <div className="card-elevated rounded-2xl p-5">
                 <DailyChain
                   chainStatus={progress.chainStatus}
                   zoneStatus={progress.zoneStatus}
@@ -236,86 +313,116 @@ const Index = () => {
                 />
               </div>
 
-              {/* Next Unlock Card */}
-              <NextUnlockCard artifacts={progress.artifacts} zoneStatus={progress.zoneStatus} />
-
-              {/* Progress bar */}
-              <div className="card-elevated rounded-2xl p-5">
-                <div className="flex justify-between mb-3">
-                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Progression globale</span>
-                  <span className="text-xs sm:text-sm font-bold text-success">{pct}%</span>
-                </div>
-                <Progress value={pct} className="h-2 bg-secondary rounded-full" />
-              </div>
-
-              <MotivBanner />
-
-              {/* Primary CTA — Explore la carte */}
-              <motion.button
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setTab("questmap")}
-                className="w-full rounded-2xl bg-gradient-to-r from-amber-500/15 via-grammar/10 to-accent/12 border border-amber-500/25 p-5 text-left relative overflow-hidden group transition-all hover:border-amber-500/40"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">🗺️</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-black tracking-tight">Explorer la carte des quetes</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{unlockedZoneCount} zone{unlockedZoneCount > 1 ? "s" : ""} debloquee{unlockedZoneCount > 1 ? "s" : ""} — chaque creation ouvre de nouvelles zones</p>
+              {/* Next locked room teaser */}
+              {nextLockedRoom && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                  className="rounded-2xl bg-secondary/15 border border-border/15 p-4 relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 backdrop-blur-[1px] bg-background/10 pointer-events-none" />
+                  <div className="relative z-10 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-secondary/30 border border-border/20 flex items-center justify-center">
+                      <KeyRound className="w-4 h-4 text-muted-foreground/40" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[9px] uppercase tracking-[2px] text-muted-foreground/50">Porte verrouillee</p>
+                      <p className="text-xs font-bold text-muted-foreground/60">
+                        {nextLockedRoom.room ? nextLockedRoom.room.name : nextLockedRoom.zone.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/40 mt-0.5">
+                        {nextLockedRoom.room ? nextLockedRoom.room.unlockRequirement.details : nextLockedRoom.zone.unlockRequirement.details}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-amber-400 font-bold text-lg opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
-                </div>
-              </motion.button>
+                </motion.div>
+              )}
 
-              {/* Quick Zone Access */}
-              <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {[
-                  { t: "vocab" as Tab, i: "🔨", l: "La Forge", bg: "from-amber-500/8 to-transparent", zone: "forge" as const },
-                  { t: "gram" as Tab, i: "🌳", l: "L'Arbre", bg: "from-emerald-500/8 to-transparent", zone: "grammar" as const },
-                  { t: "iv" as Tab, i: "💼", l: "Le Studio", bg: "from-violet-500/8 to-transparent", zone: "studio" as const },
-                  { t: "sim" as Tab, i: "🏥", l: "L'Hopital", bg: "from-rose-500/8 to-transparent", zone: "clinical" as const },
-                  { t: "atelier" as Tab, i: "✨", l: "Ateliers", bg: "from-blue-500/8 to-transparent", zone: "atelier" as const },
-                  { t: "portfolio" as Tab, i: "📚", l: "Archives", bg: "from-cyan-500/8 to-transparent", zone: "archive" as const },
-                ].map((a, i) => {
-                  const isLocked = !progress.zoneStatus[a.zone]?.unlocked;
+              {/* Builder Rank — secondary */}
+              <XPBar xp={progress.xp} />
+
+              {/* Quick zone access — escape game style */}
+              <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                {ESCAPE_ZONES.map((zone, i) => {
+                  const zs = progress.escapeZoneStatus[zone.id];
+                  const isLocked = !zs?.unlocked;
+                  const isCleared = zs?.roomsSolved === zs?.totalRooms;
+                  const tabTarget = ZONE_TAB_MAP[zone.id] as Tab;
+
                   return (
                     <motion.button
-                      key={i}
+                      key={zone.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.35 + i * 0.04 }}
+                      transition={{ delay: 0.3 + i * 0.04 }}
                       whileHover={!isLocked ? { y: -3, scale: 1.02 } : undefined}
                       whileTap={!isLocked ? { scale: 0.97 } : undefined}
-                      onClick={() => { if (!isLocked) setTab(a.t); }}
+                      onClick={() => { if (!isLocked) setTab(tabTarget); }}
                       disabled={isLocked}
-                      className={`rounded-2xl bg-gradient-to-b ${a.bg} border border-border/40 p-4 sm:p-5 text-center transition-all ${
-                        isLocked ? "opacity-40 cursor-not-allowed" : "hover:border-border/60"
+                      className={`rounded-2xl border p-3 sm:p-4 text-center transition-all relative overflow-hidden ${
+                        isLocked
+                          ? "opacity-30 cursor-not-allowed bg-secondary/10 border-border/10"
+                          : isCleared
+                          ? "bg-gradient-to-b from-success/10 to-transparent border-success/20"
+                          : "bg-gradient-to-b from-primary/8 to-transparent border-border/30 hover:border-border/50"
                       }`}
                     >
-                      <div className="text-2xl sm:text-3xl mb-2">{isLocked ? "🔒" : a.i}</div>
-                      <div className="text-[10px] sm:text-xs font-semibold tracking-tight">{a.l}</div>
-                      {!isLocked && progress.zoneStatus[a.zone] && (
-                        <div className="mt-2 h-1 bg-secondary/40 rounded-full overflow-hidden">
-                          <div className="h-full bg-amber-500/40 rounded-full transition-all" style={{ width: `${progress.zoneStatus[a.zone].progress * 100}%` }} />
+                      {isLocked && <div className="absolute inset-0 backdrop-blur-[1px] bg-background/30" />}
+                      <div className="relative z-10">
+                        <div className="text-xl sm:text-2xl mb-1">
+                          {isLocked ? "🔒" : isCleared ? "✅" : zone.icon}
                         </div>
-                      )}
+                        <div className="text-[9px] sm:text-[10px] font-bold tracking-tight leading-tight">
+                          {zone.name.replace("Aile de la ", "").replace("Aile de l'", "").replace("Aile du ", "").replace("Aile d'", "").slice(0, 12)}
+                        </div>
+                        {!isLocked && zs && (
+                          <div className="mt-1.5 h-1 bg-secondary/30 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${isCleared ? "bg-success/50" : "bg-amber-500/40"}`}
+                              style={{ width: `${zs.progress * 100}%` }}
+                            />
+                          </div>
+                        )}
+                        {!isLocked && zs && (
+                          <p className="text-[8px] text-muted-foreground mt-1">{zs.roomsSolved}/{zs.totalRooms}</p>
+                        )}
+                      </div>
                     </motion.button>
                   );
                 })}
               </div>
+
+              {/* Explore map CTA */}
+              <motion.button
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTab("questmap")}
+                className="w-full rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/15 p-4 text-left group transition-all hover:border-amber-500/25"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">🗺️</div>
+                  <div className="flex-1">
+                    <p className="text-xs font-black tracking-tight">Explorer la carte du Complexe</p>
+                    <p className="text-[10px] text-muted-foreground">{solvedRoomCount} salles resolues — {totalEscapeRooms - solvedRoomCount} portes encore verrouillees</p>
+                  </div>
+                  <Map className="w-4 h-4 text-amber-400/40 group-hover:text-amber-400 transition-colors" />
+                </div>
+              </motion.button>
+
+              <MotivBanner />
             </div>
           )}
 
           {tab === "questmap" && (
-            <QuestMap
-              zoneStatus={progress.zoneStatus}
-              currentZoneId={progress.questState.currentZoneId}
-              onSelectZone={progress.setCurrentZone}
-              onNavigate={setTab}
+            <EscapeMap
+              escapeZoneStatus={progress.escapeZoneStatus}
+              artifacts={progress.artifacts}
+              onNavigate={(t) => setTab(t as Tab)}
+              sigilsCollected={escapeState.sigilsCollected}
             />
           )}
           {tab === "hq" && (
