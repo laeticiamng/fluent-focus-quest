@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { reportAIFailure, reportAIRecovery, isAIInFallback } from "./useAIStatus";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`;
-let aiCreditsExhausted = false;
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -134,11 +133,11 @@ function generateFallback(userMessage: string, mode: string): string {
       const hasMedical = /\b(patient|diagnos|therap|untersuch|befund|ultraschall|angiolog|chirurg|klinik|notaufnahme)\b/i.test(msg);
       const hasPeriod = /[.!?]$/.test(msg.trim());
 
-      let lang = 6 + (hasCapital ? 3 : 0) + (hasPeriod ? 2 : 0) + (hasVerb ? 4 : 0) + (wordCount > 15 ? 3 : 0);
-      let struct = 5 + (wordCount >= 20 ? 5 : 0) + (msg.split(/[.!?]+/).filter((s: string) => s.trim()).length >= 2 ? 5 : 0);
-      let med = 5 + (hasMedical ? 8 : 0) + (wordCount > 25 ? 3 : 0);
-      let conf = 5 + (/\bich\b/i.test(msg) ? 4 : 0) + (/\b(ich bin|ich habe|ich möchte)\b/i.test(msg) ? 5 : 0);
-      let pers = 5 + (hasMedical ? 4 : 0) + (wordCount > 30 ? 4 : 0) + (/\b(erfahrung|konkret|beispiel)\b/i.test(msg) ? 4 : 0);
+      const lang = 6 + (hasCapital ? 3 : 0) + (hasPeriod ? 2 : 0) + (hasVerb ? 4 : 0) + (wordCount > 15 ? 3 : 0);
+      const struct = 5 + (wordCount >= 20 ? 5 : 0) + (msg.split(/[.!?]+/).filter((s: string) => s.trim()).length >= 2 ? 5 : 0);
+      const med = 5 + (hasMedical ? 8 : 0) + (wordCount > 25 ? 3 : 0);
+      const conf = 5 + (/\bich\b/i.test(msg) ? 4 : 0) + (/\b(ich bin|ich habe|ich möchte)\b/i.test(msg) ? 5 : 0);
+      const pers = 5 + (hasMedical ? 4 : 0) + (wordCount > 30 ? 4 : 0) + (/\b(erfahrung|konkret|beispiel)\b/i.test(msg) ? 4 : 0);
 
       const clamp = (n: number) => Math.max(0, Math.min(20, Math.round(n)));
       const scores = { language: clamp(lang), structure: clamp(struct), medicalReasoning: clamp(med), confidence: clamp(conf), persuasion: clamp(pers) };
@@ -196,10 +195,10 @@ export function useAICoach() {
       return;
     }
 
-    if (aiCreditsExhausted || isAIInFallback()) {
-      reportAIFailure("credits_exhausted");
+    // Only skip AI if currently in fallback — but always try if status recovered
+    if (isAIInFallback()) {
       setResponse(generateFallback(userMessage, mode));
-      setError("Le coach IA est temporairement indisponible (crédits épuisés). Feedback local activé.");
+      setError("Le coach IA est temporairement indisponible. Feedback local activé.");
       setStatus("fallback");
       setIsLoading(false);
       return;
@@ -227,7 +226,6 @@ export function useAICoach() {
           return;
         }
         if (resp.status === 402) {
-          aiCreditsExhausted = true;
           reportAIFailure("credits_exhausted");
           setResponse(generateFallback(userMessage, mode));
           setError("Le coach IA est temporairement indisponible (crédits épuisés). Feedback local activé.");
@@ -341,7 +339,6 @@ export function useAICoach() {
       // Cache successful response
       if (fullText) {
         setCachedResponse(userMessage, mode, fullText);
-        aiCreditsExhausted = false; // Reset credit flag on success
         reportAIRecovery();
       }
       setStatus("success");

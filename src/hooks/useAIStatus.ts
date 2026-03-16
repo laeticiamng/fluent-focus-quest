@@ -150,12 +150,16 @@ export function useAIStatus() {
     return runHealthCheck();
   }, []);
 
-  // Auto health check on mount + every 2 minutes
+  // Auto health check — delayed on mount (avoid blocking startup), then every 2 minutes
+  // If in fallback, check more frequently (every 30 seconds) to detect recovery quickly
   useEffect(() => {
-    runHealthCheck();
-    const interval = setInterval(runHealthCheck, 120_000);
-    return () => clearInterval(interval);
-  }, []);
+    const initialDelay = setTimeout(runHealthCheck, 3000); // Don't block app startup
+    const interval = setInterval(
+      runHealthCheck,
+      current.status !== "available" ? 30_000 : 120_000,
+    );
+    return () => { clearTimeout(initialDelay); clearInterval(interval); };
+  }, [current.status]);
 
   return {
     ...current,
