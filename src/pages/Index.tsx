@@ -1,8 +1,47 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Component, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Map, Package, KeyRound, Shield } from "lucide-react";
 import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
+
+// ── Tab-level Error Boundary — catches crashes in individual tabs ──
+class TabErrorBoundary extends Component<{ tabName: string; children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { tabName: string; children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error(`[TabError:${this.props.tabName}]`, error.message);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-2xl p-8 text-center space-y-3 border border-border/30" style={{ background: "hsl(var(--card))" }}>
+          <div className="text-3xl">🔧</div>
+          <p className="text-sm font-bold">Cette section a rencontre une erreur</p>
+          <p className="text-xs text-muted-foreground">Ta progression est sauvegardee. Essaie de changer d'onglet ou de recharger.</p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="px-4 py-1.5 rounded-lg bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
+          >
+            Reessayer
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function safeLocalGet(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeLocalSet(key: string, value: string) {
+  try { localStorage.setItem(key, value); } catch { /* quota exceeded or unavailable */ }
+}
 import { ESCAPE_ZONES, CENTRAL_MISSION, CHAPTERS, ZONE_TAB_MAP, computeRoomProgress } from "@/data/escapeGame";
 import { Countdown } from "@/components/Countdown";
 import { XPBar, RankBadge } from "@/components/XPBar";
@@ -90,11 +129,11 @@ const Index = () => {
   const prevTabRef = useRef<Tab>("dash");
   const progress = useProgress();
   const [tutorialCompleted, setTutorialCompleted] = useState(() => {
-    return localStorage.getItem(TUTORIAL_STORAGE_KEY) === "true";
+    return safeLocalGet(TUTORIAL_STORAGE_KEY) === "true";
   });
 
   const handleTutorialComplete = () => {
-    localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
+    safeLocalSet(TUTORIAL_STORAGE_KEY, "true");
     setTutorialCompleted(true);
   };
 
@@ -255,6 +294,7 @@ const Index = () => {
       {/* Content — with camera transitions */}
       <main className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-20">
         <CameraTransitionLayer transitionKey={tab} direction={cameraDirection}>
+          <TabErrorBoundary tabName={tab} key={tab}>
           {tab === "dash" && (
             <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
               <div className="space-y-4 stagger-children">
@@ -724,6 +764,7 @@ const Index = () => {
             </AtmosphericSceneWrapper>
           )}
           {tab === "cal" && <CalendarView done={progress.done} toggleTask={progress.toggleTask} />}
+          </TabErrorBoundary>
         </CameraTransitionLayer>
       </main>
     </div>

@@ -440,7 +440,8 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien forge. Ne di
     const card = cards[cardIdx];
     const isDone = qA === "done";
     const questionField = reversed ? "fr" : "de";
-    const label = globalQuiz ? "Defi Global" : `${DECKS[di!].icon} ${DECKS[di!].name}`;
+    const currentDeck = di !== null ? DECKS[di] : null;
+    const label = globalQuiz ? "Defi Global" : currentDeck ? `${currentDeck.icon} ${currentDeck.name}` : "Quiz";
 
     return (
       <AtmosphericSceneWrapper atmosphere="forge" intensity="low">

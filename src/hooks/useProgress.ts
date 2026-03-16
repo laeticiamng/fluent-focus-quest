@@ -391,22 +391,26 @@ export function useProgress() {
     if (!user) { setState(defaultState); setLoaded(false); return; }
 
     const load = async () => {
-      const { data } = await supabase
-        .from("user_progress")
-        .select("progress_data")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from("user_progress")
+          .select("progress_data")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (data?.progress_data) {
-        const loaded = data.progress_data as unknown as Partial<ProgressState>;
-        setState({
-          ...defaultState,
-          ...loaded,
-          artifacts: loaded.artifacts || [],
-          earnedBadges: loaded.earnedBadges || [],
-          questState: { ...defaultQuestState, ...(loaded.questState || {}) },
-          escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
-        });
+        if (data?.progress_data) {
+          const loaded = data.progress_data as unknown as Partial<ProgressState>;
+          setState({
+            ...defaultState,
+            ...loaded,
+            artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
+            earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
+            questState: { ...defaultQuestState, ...(loaded.questState || {}) },
+            escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+          });
+        }
+      } catch (err) {
+        console.error("[useProgress] Load failed:", err);
       }
       setLoaded(true);
     };
@@ -419,12 +423,16 @@ export function useProgress() {
 
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await supabase
-        .from("user_progress")
-        .upsert([{
-          user_id: user.id,
-          progress_data: JSON.parse(JSON.stringify(state)),
-        }], { onConflict: "user_id" });
+      try {
+        await supabase
+          .from("user_progress")
+          .upsert([{
+            user_id: user.id,
+            progress_data: JSON.parse(JSON.stringify(state)),
+          }], { onConflict: "user_id" });
+      } catch (err) {
+        console.error("[useProgress] Save failed:", err);
+      }
     }, 1000);
 
     return () => clearTimeout(saveTimer.current);

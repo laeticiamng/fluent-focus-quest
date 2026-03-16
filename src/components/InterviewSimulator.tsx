@@ -796,6 +796,18 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     );
   }
 
-  // Fallback
-  return null;
+  // Fallback — should not happen, but prevents blank render
+  return (
+    <div className="rounded-2xl p-8 text-center space-y-3">
+      <div className="text-3xl">🎯</div>
+      <p className="text-sm font-bold">Simulateur d'entretien</p>
+      <p className="text-xs text-muted-foreground">Chargement en cours...</p>
+      <button
+        onClick={() => setSimState("zone_select")}
+        className="px-4 py-2 rounded-xl bg-violet-500/15 text-violet-400 text-xs font-bold hover:bg-violet-500/25 transition-colors"
+      >
+        Retour aux zones
+      </button>
+    </div>
+  );
 }

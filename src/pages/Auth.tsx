@@ -24,8 +24,9 @@ export default function Auth() {
         if (error) throw error;
         toast.success("Vérifie ton email pour confirmer ton compte !");
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Erreur de connexion. Reessaie.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
  * Tracks: credits exhausted, rate limited, last health check, fallback mode.
  */
 
-type AIGlobalStatus = "available" | "fallback" | "credits_exhausted" | "rate_limited" | "offline";
+type AIGlobalStatus = "available" | "fallback" | "degraded" | "credits_exhausted" | "rate_limited" | "offline" | "unknown";
 
 interface AIStatusState {
   status: AIGlobalStatus;
@@ -74,9 +74,13 @@ export function isAIInFallback(): boolean {
 }
 
 const HEALTH_CHECK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`;
+let healthCheckInProgress = false;
 
 /** Run a lightweight health check against the edge function */
 async function runHealthCheck(): Promise<boolean> {
+  // Prevent concurrent health checks
+  if (healthCheckInProgress) return state.status === "available";
+  healthCheckInProgress = true;
   try {
     const resp = await fetch(HEALTH_CHECK_URL, {
       method: "POST",
@@ -133,6 +137,8 @@ async function runHealthCheck(): Promise<boolean> {
   } catch {
     reportAIFailure("network");
     return false;
+  } finally {
+    healthCheckInProgress = false;
   }
 }
 
