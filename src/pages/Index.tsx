@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Map, Package, KeyRound, Shield } from "lucide-react";
 import { PROG } from "@/data/content";
@@ -32,8 +32,12 @@ import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import PuzzleEngine from "@/components/PuzzleEngine";
 import MetaPuzzle from "@/components/MetaPuzzle";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+import { MissionTimer } from "@/components/MissionTimer";
+import { AchievementsPanel, ACHIEVEMENTS, type AchievementStats } from "@/components/Achievements";
+import { Leaderboard } from "@/components/Leaderboard";
 
-type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🏥", label: "Mission" },
@@ -46,6 +50,8 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "portfolio", icon: "📚", label: "Archives" },
   { id: "puzzles", icon: "🧩", label: "Enigmes" },
   { id: "lazarus", icon: "🔮", label: "Lazarus" },
+  { id: "achievements", icon: "🏆", label: "Succes" },
+  { id: "leaderboard", icon: "🥇", label: "Classement" },
   { id: "tools", icon: "🛠️", label: "Outils" },
   { id: "stats", icon: "📊", label: "Stats" },
   { id: "cal", icon: "📅", label: "Plan" },
@@ -64,17 +70,29 @@ const TAB_ATMOSPHERE: Record<string, "forge" | "grammar" | "studio" | "clinical"
   portfolio: "archive",
   puzzles: "aerzterat",
   lazarus: "neutral",
+  achievements: "neutral",
+  leaderboard: "neutral",
   tools: "neutral",
   stats: "neutral",
   cal: "neutral",
   motiv: "neutral",
 };
 
+const TUTORIAL_STORAGE_KEY = "fluent-focus-tutorial-completed";
+
 const Index = () => {
   const { signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("dash");
   const prevTabRef = useRef<Tab>("dash");
   const progress = useProgress();
+  const [tutorialCompleted, setTutorialCompleted] = useState(() => {
+    return localStorage.getItem(TUTORIAL_STORAGE_KEY) === "true";
+  });
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem(TUTORIAL_STORAGE_KEY, "true");
+    setTutorialCompleted(true);
+  };
 
   const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [], solvedPuzzles: [], protocolActivated: false };
   const solvedRoomCount = escapeState.solvedRooms.length;
@@ -126,6 +144,28 @@ const Index = () => {
 
   const { rank, rankIndex } = getBuilderRank(progress.xp);
 
+  // Achievement stats
+  const achievementStats: AchievementStats = {
+    totalArtifacts: progress.artifacts.length,
+    totalXp: progress.xp,
+    streak: progress.streak,
+    solvedRooms: solvedRoomCount,
+    solvedPuzzles: escapeState.solvedPuzzles?.length || 0,
+    sigilsCollected: sigilCount,
+    phraseCount: progress.artifacts.filter(a => a.type === "phrase_forged").length,
+    grammarCount: progress.artifacts.filter(a => a.type === "grammar_phrase" || a.type === "grammar_rule" || a.type === "grammar_transform").length,
+    interviewCount: progress.artifacts.filter(a => a.type === "interview_answer").length,
+    clinicalCount: progress.artifacts.filter(a => a.type === "diagnostic" || a.type === "clinical_note" || a.type === "case_patient").length,
+    atelierCount: progress.artifacts.filter(a => a.type === "script" || a.type === "document").length,
+    completedChains: progress.questState.completedChains,
+    pomodoroCount: progress.pomodoroCount,
+  };
+
+  // Compute unlocked achievements
+  const unlockedAchievementIds = ACHIEVEMENTS
+    .filter(a => a.condition(achievementStats))
+    .map(a => a.id);
+
   const handleTabChange = (newTab: Tab) => {
     prevTabRef.current = tab;
     setTab(newTab);
@@ -138,6 +178,12 @@ const Index = () => {
       <div className="ambient-orb ambient-orb-1" />
       <div className="ambient-orb ambient-orb-2" />
       <div className="ambient-orb ambient-orb-3" />
+
+      {/* Onboarding Tutorial */}
+      <OnboardingTutorial
+        isFirstVisit={!tutorialCompleted}
+        onComplete={handleTutorialComplete}
+      />
 
       {/* Escape Game Reveal Overlay — 3D Premium */}
       <RewardReveal3D
@@ -212,8 +258,14 @@ const Index = () => {
                     <p className="text-[11px] text-muted-foreground leading-relaxed max-w-lg">
                       {currentChapter.narrativeIntro.slice(0, 120)}...
                     </p>
-                    <div className="mt-4">
+                    <div className="mt-4 flex items-center gap-3">
                       <Countdown />
+                      <MissionTimer
+                        missionId={currentChapter.id}
+                        durationMinutes={30}
+                        onBonusXp={progress.addXp}
+                        compact
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -384,6 +436,13 @@ const Index = () => {
                     completedChains={progress.questState.completedChains}
                   />
                 </div>
+
+                {/* Mission Timer — full widget */}
+                <MissionTimer
+                  missionId={currentChapter.id}
+                  durationMinutes={30}
+                  onBonusXp={progress.addXp}
+                />
 
                 {/* Next locked room teaser — 3D locked door */}
                 {nextLockedRoom && (
@@ -609,6 +668,25 @@ const Index = () => {
               <MetaPuzzle
                 sigilsCollected={escapeState.sigilsCollected}
                 onActivateProtocol={progress.activateProtocol}
+              />
+            </AtmosphericSceneWrapper>
+          )}
+          {tab === "achievements" && (
+            <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
+              <AchievementsPanel
+                stats={achievementStats}
+                unlockedIds={unlockedAchievementIds}
+              />
+            </AtmosphericSceneWrapper>
+          )}
+          {tab === "leaderboard" && (
+            <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
+              <Leaderboard
+                currentXp={progress.xp}
+                currentStreak={progress.streak}
+                currentSigils={sigilCount}
+                currentRooms={solvedRoomCount}
+                currentArtifacts={progress.artifacts.length}
               />
             </AtmosphericSceneWrapper>
           )}
