@@ -182,7 +182,7 @@ export function Leaderboard({ currentXp, currentStreak, currentSigils, currentRo
                       </span>
                     )}
                   </div>
-                  <p className="text-[9px] text-muted-foreground/60">{rank}</p>
+                  <p className="text-[9px] text-muted-foreground/60">{rank.icon} {rank.name}</p>
                 </div>
 
                 {/* Stats */}
