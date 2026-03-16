@@ -141,7 +141,7 @@ export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards, addArtif
   };
 
   const handleForgeSubmit = () => {
-    if (!forgePhrase.trim() || forgePhrase.trim().length < 5 || !di) return;
+    if (!forgePhrase.trim() || forgePhrase.trim().length < 5 || di === null) return;
     const card = DECKS[di].cards[cardOrder[ci]];
     const prompt = `${FORGE_AI_PERSONA}
 
