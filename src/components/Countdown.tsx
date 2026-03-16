@@ -11,12 +11,15 @@ export function Countdown() {
   const hh = Math.max(0, Math.floor((diff % 864e5) / 36e5));
   const mn = Math.max(0, Math.floor((diff % 36e5) / 6e4));
   const sc = Math.max(0, Math.floor((diff % 6e4) / 1e3));
+  const totalDays = Math.ceil((TARGET.getTime() - new Date("2025-01-01").getTime()) / 864e5);
+  const elapsed = totalDays - dd;
+  const progress = Math.min(100, Math.max(0, (elapsed / totalDays) * 100));
 
   const units = [
-    { v: dd, l: "jours" },
-    { v: hh, l: "heures" },
-    { v: mn, l: "min" },
-    { v: sc, l: "sec" },
+    { v: dd, l: "J", full: "jours" },
+    { v: hh, l: "H", full: "heures" },
+    { v: mn, l: "M", full: "min" },
+    { v: sc, l: "S", full: "sec" },
   ];
 
   return (
@@ -24,36 +27,85 @@ export function Countdown() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="room-3d rounded-2xl p-6 relative overflow-hidden"
-      style={{ boxShadow: "var(--shadow-3d-lg)" }}
+      className="rounded-2xl p-5 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(145deg, hsl(var(--card)), hsl(220 60% 8%))",
+        border: "1px solid hsl(var(--border) / 0.5)",
+        boxShadow: "0 8px 32px -8px hsl(220 80% 5% / 0.6), inset 0 1px 0 hsl(0 0% 100% / 0.03)",
+      }}
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-info/5 pointer-events-none" />
-      
-      <p className="text-center text-[10px] font-semibold uppercase tracking-[4px] text-muted-foreground mb-4 relative">
-        ⏱️ Mission Countdown
+      {/* Ambient glow */}
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-24 bg-primary/8 blur-[40px] rounded-full pointer-events-none" />
+
+      <p className="text-center text-[9px] font-bold uppercase tracking-[3px] text-muted-foreground/70 mb-4 relative">
+        🎯 Countdown
       </p>
-      <div className="flex justify-center gap-3 relative">
+
+      {/* Timer digits */}
+      <div className="flex justify-center items-center gap-1.5 sm:gap-2 relative mb-4">
         {units.map((u, i) => (
-          <motion.div
-            key={i}
-            className="text-center"
-            animate={i === 3 ? { scale: [1, 1.04, 1] } : {}}
-            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="w-16 h-16 rounded-xl bg-secondary/60 flex items-center justify-center mb-1.5 room-3d" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
-              <span className={`font-mono text-2xl font-black tracking-tight ${
-                i === 0 ? "gradient-text" : "text-foreground"
-              }`}>
-                {String(u.v).padStart(2, "0")}
-              </span>
-            </div>
-            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">{u.l}</span>
-          </motion.div>
+          <div key={i} className="flex items-center gap-1.5 sm:gap-2">
+            <motion.div
+              className="text-center"
+              animate={i === 3 ? { scale: [1, 1.03, 1] } : {}}
+              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div
+                className="w-[3.5rem] sm:w-16 h-14 sm:h-16 rounded-xl flex items-center justify-center relative overflow-hidden"
+                style={{
+                  background: i === 0
+                    ? "linear-gradient(180deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))"
+                    : "linear-gradient(180deg, hsl(0 0% 100% / 0.06), hsl(0 0% 100% / 0.02))",
+                  border: i === 0
+                    ? "1px solid hsl(var(--primary) / 0.2)"
+                    : "1px solid hsl(0 0% 100% / 0.06)",
+                  boxShadow: i === 0
+                    ? "0 4px 16px -4px hsl(var(--primary) / 0.15), inset 0 1px 0 hsl(var(--primary) / 0.1)"
+                    : "inset 0 1px 0 hsl(0 0% 100% / 0.04)",
+                }}
+              >
+                {/* Divider line */}
+                <div className="absolute left-0 right-0 top-1/2 h-px bg-black/20" />
+                <span className={`font-mono text-xl sm:text-2xl font-black tracking-tight relative z-10 ${
+                  i === 0 ? "text-primary" : "text-foreground/90"
+                }`}>
+                  {String(u.v).padStart(2, "0")}
+                </span>
+              </div>
+              <span className="text-[8px] font-semibold text-muted-foreground/50 uppercase tracking-widest mt-1 block">{u.full}</span>
+            </motion.div>
+            {i < 3 && (
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="text-muted-foreground/30 font-bold text-lg -mt-4"
+              >
+                :
+              </motion.span>
+            )}
+          </div>
         ))}
       </div>
-      <p className="text-center mt-4 text-xs font-semibold text-primary/80 relative">
-        🎯 Objectif : Spitalzentrum Biel — Dr. Attias-Widmer
+
+      {/* Progress bar */}
+      <div className="relative mb-3">
+        <div className="h-1 rounded-full bg-secondary/60 overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[8px] text-muted-foreground/40">Début</span>
+          <span className="text-[8px] text-primary/60 font-semibold">{Math.round(progress)}%</span>
+          <span className="text-[8px] text-muted-foreground/40">Objectif</span>
+        </div>
+      </div>
+
+      <p className="text-center text-[10px] font-semibold text-primary/70 relative">
+        Spitalzentrum Biel — Dr. Attias-Widmer
       </p>
     </motion.div>
   );
