@@ -197,6 +197,8 @@ export interface EscapeGameState {
   currentMissionStep: string; // narrative bookmark
   sigilsCollected: string[]; // master_sigil fragment names
   newEscapeEvents: string[]; // for reveal animations
+  solvedPuzzles: string[]; // puzzle IDs that have been solved
+  protocolActivated: boolean; // whether Protocole Lazarus meta-puzzle is complete
 }
 
 export interface QuestState {
@@ -234,6 +236,8 @@ const defaultEscapeState: EscapeGameState = {
   currentMissionStep: "ch1",
   sigilsCollected: [],
   newEscapeEvents: [],
+  solvedPuzzles: [],
+  protocolActivated: false,
 };
 
 const defaultQuestState: QuestState = {
@@ -549,6 +553,42 @@ export function useProgress() {
     });
   }, []);
 
+  const solvePuzzle = useCallback((puzzleId: string, xpEarned: number) => {
+    setState(s => {
+      const escapeState = s.escapeState || defaultEscapeState;
+      const solvedPuzzles = escapeState.solvedPuzzles || [];
+      if (solvedPuzzles.includes(puzzleId)) return s;
+
+      const { streak, lastActiveDate } = calcStreak(s.lastActiveDate, s.streak);
+      return {
+        ...s,
+        xp: s.xp + xpEarned,
+        streak,
+        lastActiveDate,
+        escapeState: {
+          ...escapeState,
+          solvedPuzzles: [...solvedPuzzles, puzzleId],
+          newEscapeEvents: [...escapeState.newEscapeEvents, `puzzle_solved:${puzzleId}`],
+        },
+      };
+    });
+  }, []);
+
+  const activateProtocol = useCallback(() => {
+    setState(s => {
+      const escapeState = s.escapeState || defaultEscapeState;
+      return {
+        ...s,
+        xp: s.xp + 200,
+        escapeState: {
+          ...escapeState,
+          protocolActivated: true,
+          newEscapeEvents: [...escapeState.newEscapeEvents, "protocol_lazarus_activated"],
+        },
+      };
+    });
+  }, []);
+
   const clearNewUnlocks = useCallback(() => {
     setState(s => ({
       ...s,
@@ -670,6 +710,6 @@ export function useProgress() {
     addQuizScore, toggleHardCard, setNotes, addPomodoro, toggleGrammarExercise,
     addArtifact, creationsToday, totalCreations,
     clearNewUnlocks, setCurrentZone, zoneStatus, chainStatus,
-    escapeZoneStatus,
+    escapeZoneStatus, solvePuzzle, activateProtocol,
   };
 }

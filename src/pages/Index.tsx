@@ -27,8 +27,10 @@ import { useProgress } from "@/hooks/useProgress";
 import { ZONES } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import PuzzleEngine from "@/components/PuzzleEngine";
+import MetaPuzzle from "@/components/MetaPuzzle";
 
-type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🏥", label: "Mission" },
@@ -39,6 +41,8 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "sim", icon: "🏥", label: "Clinique" },
   { id: "atelier", icon: "⚗️", label: "Labo" },
   { id: "portfolio", icon: "📚", label: "Archives" },
+  { id: "puzzles", icon: "🧩", label: "Enigmes" },
+  { id: "lazarus", icon: "🔮", label: "Lazarus" },
   { id: "tools", icon: "🛠️", label: "Outils" },
   { id: "stats", icon: "📊", label: "Stats" },
   { id: "cal", icon: "📅", label: "Plan" },
@@ -50,7 +54,7 @@ const Index = () => {
   const [tab, setTab] = useState<Tab>("dash");
   const progress = useProgress();
 
-  const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [] };
+  const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [], solvedPuzzles: [], protocolActivated: false };
   const solvedRoomCount = escapeState.solvedRooms.length;
   const totalEscapeRooms = ESCAPE_ZONES.reduce((a, z) => a + z.rooms.length, 0);
   const sigilCount = escapeState.sigilsCollected.length;
@@ -201,7 +205,7 @@ const Index = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex gap-0.5">
-                      {[...Array(6)].map((_, i) => (
+                      {[...Array(7)].map((_, i) => (
                         <div
                           key={i}
                           className={`w-4 h-4 rounded-full border flex items-center justify-center text-[7px] ${
@@ -228,7 +232,7 @@ const Index = () => {
                   <span className="text-[10px] font-bold text-amber-400">{solvedRoomCount}/{totalEscapeRooms}</span>
                 </div>
                 <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[9px] text-muted-foreground">{sigilCount}/6 Sigils</span>
+                  <span className="text-[9px] text-muted-foreground">{sigilCount}/7 Sigils</span>
                   <span className="text-[9px] text-muted-foreground/40">·</span>
                   <span className="text-[9px] text-muted-foreground">{inventoryCount} fragments collectes</span>
                   <span className="text-[9px] text-muted-foreground/40">·</span>
@@ -487,6 +491,18 @@ const Index = () => {
               rat={progress.rat}
               artifacts={progress.artifacts}
               zoneStatus={progress.zoneStatus}
+            />
+          )}
+          {tab === "puzzles" && (
+            <PuzzleEngine
+              onPuzzleSolved={progress.solvePuzzle}
+              solvedPuzzleIds={escapeState.solvedPuzzles || []}
+            />
+          )}
+          {tab === "lazarus" && (
+            <MetaPuzzle
+              sigilsCollected={escapeState.sigilsCollected}
+              onActivateProtocol={progress.activateProtocol}
             />
           )}
           {tab === "cal" && <CalendarView done={progress.done} toggleTask={progress.toggleTask} />}
