@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import {
+  ESCAPE_ZONES,
+  computeRoomProgress,
+  computeRoomStatus,
+  computeZoneStatus,
+  type EscapeFragment,
+  type FragmentType,
+  type RoomStatus,
+} from "@/data/escapeGame";
 
 interface QuizScore {
   correct: number;
@@ -36,7 +45,6 @@ export interface Artifact {
 }
 
 export const XP_VALUES = {
-  // Creation (high value)
   PHRASE_FORGED: 20,
   DEFINITION_WRITTEN: 15,
   PHRASE_ASSEMBLED: 10,
@@ -51,7 +59,6 @@ export const XP_VALUES = {
   CASE_PATIENT: 45,
   DOCUMENT: 40,
   RECORDING: 20,
-  // Passive (low value)
   FLASHCARD_FLIP: 3,
   QCM_CORRECT: 5,
   GRAMMAR_QCM: 5,
@@ -61,7 +68,7 @@ export const XP_VALUES = {
   ANALYSIS: 30,
 } as const;
 
-// ===== QUEST ZONE SYSTEM =====
+// ===== LEGACY ZONE SYSTEM (kept for backward compat) =====
 export type ZoneId = "forge" | "grammar" | "studio" | "clinical" | "atelier" | "archive";
 
 export interface Zone {
@@ -93,13 +100,8 @@ export interface QuestStep {
 
 export const ZONES: Zone[] = [
   {
-    id: "forge",
-    name: "La Forge",
-    icon: "🔨",
-    description: "Forge tes premieres armes linguistiques",
-    color: "amber",
-    unlockCondition: () => true,
-    unlockHint: "Toujours accessible",
+    id: "forge", name: "La Forge", icon: "🔨", description: "Forge tes premieres armes linguistiques", color: "amber",
+    unlockCondition: () => true, unlockHint: "Toujours accessible",
     rooms: [
       { id: "forge-vocab", name: "Enclume a mots", icon: "📖", unlockCondition: () => true, unlockHint: "" },
       { id: "forge-phrases", name: "Etabli de phrases", icon: "✍️", unlockCondition: (a) => a.filter(x => x.type === "phrase_forged").length >= 3, unlockHint: "Forge 3 phrases" },
@@ -107,13 +109,8 @@ export const ZONES: Zone[] = [
     ],
   },
   {
-    id: "grammar",
-    name: "L'Arbre des Regles",
-    icon: "🌳",
-    description: "Construis l'architecture de ta grammaire",
-    color: "grammar",
-    unlockCondition: (a) => a.filter(x => x.type === "phrase_forged").length >= 5,
-    unlockHint: "Forge 5 phrases pour debloquer",
+    id: "grammar", name: "L'Arbre des Regles", icon: "🌳", description: "Construis l'architecture de ta grammaire", color: "grammar",
+    unlockCondition: (a) => a.filter(x => x.type === "phrase_forged").length >= 5, unlockHint: "Forge 5 phrases pour debloquer",
     rooms: [
       { id: "gram-roots", name: "Racines", icon: "🌱", unlockCondition: () => true, unlockHint: "" },
       { id: "gram-branches", name: "Branches", icon: "🌿", unlockCondition: (a) => a.filter(x => x.type === "grammar_phrase" || x.type === "grammar_rule").length >= 3, unlockHint: "Construis 3 regles" },
@@ -121,13 +118,8 @@ export const ZONES: Zone[] = [
     ],
   },
   {
-    id: "studio",
-    name: "Le Studio",
-    icon: "💼",
-    description: "Prepare tes reponses d'entretien comme un pro",
-    color: "accent",
-    unlockCondition: (a) => a.filter(x => x.type === "grammar_phrase" || x.type === "grammar_rule" || x.type === "grammar_transform").length >= 3,
-    unlockHint: "Construis 3 regles de grammaire",
+    id: "studio", name: "Le Studio", icon: "💼", description: "Prepare tes reponses d'entretien comme un pro", color: "accent",
+    unlockCondition: (a) => a.filter(x => x.type === "grammar_phrase" || x.type === "grammar_rule" || x.type === "grammar_transform").length >= 3, unlockHint: "Construis 3 regles de grammaire",
     rooms: [
       { id: "studio-prep", name: "Salle de preparation", icon: "📝", unlockCondition: () => true, unlockHint: "" },
       { id: "studio-record", name: "Studio d'enregistrement", icon: "🎙️", unlockCondition: (a) => a.filter(x => x.type === "interview_answer").length >= 5, unlockHint: "Cree 5 reponses" },
@@ -135,13 +127,8 @@ export const ZONES: Zone[] = [
     ],
   },
   {
-    id: "clinical",
-    name: "L'Hopital",
-    icon: "🏥",
-    description: "Raisonnement clinique en allemand medical",
-    color: "clinical",
-    unlockCondition: (a) => a.filter(x => x.type === "interview_answer").length >= 3,
-    unlockHint: "Cree 3 reponses d'entretien",
+    id: "clinical", name: "L'Hopital", icon: "🏥", description: "Raisonnement clinique en allemand medical", color: "clinical",
+    unlockCondition: (a) => a.filter(x => x.type === "interview_answer").length >= 3, unlockHint: "Cree 3 reponses d'entretien",
     rooms: [
       { id: "clin-triage", name: "Triage", icon: "🚑", unlockCondition: () => true, unlockHint: "" },
       { id: "clin-ward", name: "Service", icon: "🩺", unlockCondition: (a) => a.filter(x => x.type === "diagnostic" || x.type === "clinical_note").length >= 3, unlockHint: "3 diagnostics construits" },
@@ -149,13 +136,8 @@ export const ZONES: Zone[] = [
     ],
   },
   {
-    id: "atelier",
-    name: "Les Ateliers",
-    icon: "✨",
-    description: "9 ateliers de creation avancee",
-    color: "primary",
-    unlockCondition: (a) => a.filter(x => x.type === "diagnostic" || x.type === "clinical_note").length >= 1,
-    unlockHint: "Construis 1 diagnostic clinique",
+    id: "atelier", name: "Les Ateliers", icon: "✨", description: "9 ateliers de creation avancee", color: "primary",
+    unlockCondition: (a) => a.filter(x => x.type === "diagnostic" || x.type === "clinical_note").length >= 1, unlockHint: "Construis 1 diagnostic clinique",
     rooms: [
       { id: "atl-basic", name: "Ateliers de base", icon: "🧪", unlockCondition: () => true, unlockHint: "" },
       { id: "atl-advanced", name: "Ateliers avances", icon: "⚡", unlockCondition: (a) => a.length >= 20, unlockHint: "20 creations au total" },
@@ -163,13 +145,8 @@ export const ZONES: Zone[] = [
     ],
   },
   {
-    id: "archive",
-    name: "Les Archives",
-    icon: "📚",
-    description: "Ton portfolio et tes statistiques de progression",
-    color: "info",
-    unlockCondition: (a) => a.length >= 10,
-    unlockHint: "Cree 10 artefacts au total",
+    id: "archive", name: "Les Archives", icon: "📚", description: "Ton portfolio et tes statistiques de progression", color: "info",
+    unlockCondition: (a) => a.length >= 10, unlockHint: "Cree 10 artefacts au total",
     rooms: [
       { id: "arch-gallery", name: "Galerie", icon: "🖼️", unlockCondition: () => true, unlockHint: "" },
       { id: "arch-stats", name: "Observatoire", icon: "📊", unlockCondition: (a) => a.length >= 25, unlockHint: "25 creations" },
@@ -178,13 +155,13 @@ export const ZONES: Zone[] = [
   },
 ];
 
-// Daily chain steps — sequential, each requires previous
+// ===== DAILY CHAIN (now: Daily Mission Protocol) =====
 export const DAILY_CHAIN_STEPS: { id: string; label: string; activeLabel: string; icon: string; zoneId: ZoneId; artifactTypes: ArtifactType[]; minCount: number }[] = [
   { id: "chain-forge", label: "Forge 2 phrases", activeLabel: "Forge en cours", icon: "🔨", zoneId: "forge", artifactTypes: ["phrase_forged"], minCount: 2 },
   { id: "chain-grammar", label: "Construis 1 regle", activeLabel: "Construction en cours", icon: "🌳", zoneId: "grammar", artifactTypes: ["grammar_phrase", "grammar_rule", "grammar_transform"], minCount: 1 },
-  { id: "chain-studio", label: "Cree 1 reponse", activeLabel: "Creation en cours", icon: "💼", zoneId: "studio", artifactTypes: ["interview_answer"], minCount: 1 },
+  { id: "chain-studio", label: "Cree 1 reponse", activeLabel: "Creation en cours", icon: "🎙️", zoneId: "studio", artifactTypes: ["interview_answer"], minCount: 1 },
   { id: "chain-clinical", label: "Construis 1 diagnostic", activeLabel: "Diagnostic en cours", icon: "🏥", zoneId: "clinical", artifactTypes: ["diagnostic", "clinical_note"], minCount: 1 },
-  { id: "chain-free", label: "Creation libre", activeLabel: "Creation libre en cours", icon: "✨", zoneId: "atelier", artifactTypes: [], minCount: 1 },
+  { id: "chain-free", label: "Creation libre", activeLabel: "Creation libre en cours", icon: "⚗️", zoneId: "atelier", artifactTypes: [], minCount: 1 },
 ];
 
 export const CREATION_BADGES = [
@@ -202,14 +179,34 @@ export const CREATION_BADGES = [
   { id: "creator_100", label: "Architecte", emoji: "👑", condition: (a: Artifact[]) => a.length >= 100 },
 ] as const;
 
+// ===== ESCAPE GAME STATE =====
+export interface InventoryItem {
+  id: string;
+  type: FragmentType;
+  name: string;
+  icon: string;
+  description: string;
+  roomSource: string;
+  obtainedAt: string;
+}
+
+export interface EscapeGameState {
+  solvedRooms: string[];
+  inventory: InventoryItem[];
+  discoveredRooms: string[];
+  currentMissionStep: string; // narrative bookmark
+  sigilsCollected: string[]; // master_sigil fragment names
+  newEscapeEvents: string[]; // for reveal animations
+}
+
 export interface QuestState {
   currentZoneId: ZoneId;
   unlockedZones: ZoneId[];
   unlockedRooms: string[];
-  chainProgress: Record<string, number>; // chainStepId -> count for today
-  chainDate: string; // YYYY-MM-DD
-  completedChains: number; // total completed daily chains
-  newUnlocks: string[]; // zone/room IDs just unlocked (for reveal animation)
+  chainProgress: Record<string, number>;
+  chainDate: string;
+  completedChains: number;
+  newUnlocks: string[];
 }
 
 interface ProgressState {
@@ -227,7 +224,17 @@ interface ProgressState {
   artifacts: Artifact[];
   earnedBadges: string[];
   questState: QuestState;
+  escapeState: EscapeGameState;
 }
+
+const defaultEscapeState: EscapeGameState = {
+  solvedRooms: [],
+  inventory: [],
+  discoveredRooms: ["forge-anvil"],
+  currentMissionStep: "ch1",
+  sigilsCollected: [],
+  newEscapeEvents: [],
+};
 
 const defaultQuestState: QuestState = {
   currentZoneId: "forge",
@@ -247,6 +254,7 @@ const defaultState: ProgressState = {
   artifacts: [],
   earnedBadges: [],
   questState: defaultQuestState,
+  escapeState: defaultEscapeState,
 };
 
 function calcStreak(lastDate: string, currentStreak: number): { streak: number; lastActiveDate: string } {
@@ -285,18 +293,15 @@ function updateChainProgress(artifacts: Artifact[], questState: QuestState): Que
   const today = new Date().toISOString().split("T")[0];
   const todayArtifacts = artifacts.filter(a => a.date.startsWith(today));
 
-  // Reset chain if new day
   const chainProgress: Record<string, number> = {};
   for (const step of DAILY_CHAIN_STEPS) {
     if (step.artifactTypes.length === 0) {
-      // "Free creation" — any artifact counts
       chainProgress[step.id] = todayArtifacts.length > 0 ? 1 : 0;
     } else {
       chainProgress[step.id] = todayArtifacts.filter(a => step.artifactTypes.includes(a.type)).length;
     }
   }
 
-  // Check if chain is complete
   let chainComplete = true;
   for (const step of DAILY_CHAIN_STEPS) {
     if (chainProgress[step.id] < step.minCount) {
@@ -313,6 +318,62 @@ function updateChainProgress(artifacts: Artifact[], questState: QuestState): Que
       ? questState.completedChains + 1
       : questState.completedChains,
   };
+}
+
+// ===== CHECK ESCAPE GAME ROOM SOLVES =====
+function checkEscapeRoomSolves(artifacts: Artifact[], escapeState: EscapeGameState): {
+  newSolvedRooms: string[];
+  newFragments: InventoryItem[];
+  newSigils: string[];
+  newDiscoveredRooms: string[];
+} {
+  const newSolvedRooms: string[] = [];
+  const newFragments: InventoryItem[] = [];
+  const newSigils: string[] = [];
+  const newDiscoveredRooms: string[] = [];
+  const allSolved = [...escapeState.solvedRooms];
+
+  for (const zone of ESCAPE_ZONES) {
+    // Check zone unlock first
+    const zoneStatus = computeZoneStatus(zone, allSolved, artifacts);
+    if (!zoneStatus.unlocked) continue;
+
+    for (const room of zone.rooms) {
+      if (allSolved.includes(room.id)) continue;
+
+      const status = computeRoomStatus(room, allSolved, artifacts, artifacts.length);
+
+      // Track newly discovered rooms
+      if ((status === "accessible" || status === "in_progress" || status === "solved") &&
+          !escapeState.discoveredRooms.includes(room.id)) {
+        newDiscoveredRooms.push(room.id);
+      }
+
+      if (status === "solved") {
+        newSolvedRooms.push(room.id);
+        allSolved.push(room.id);
+
+        // Generate reward fragment
+        const fragment: InventoryItem = {
+          id: generateId(),
+          type: room.reward.type,
+          name: room.reward.name,
+          icon: room.reward.icon,
+          description: room.reward.description,
+          roomSource: room.id,
+          obtainedAt: new Date().toISOString(),
+        };
+        newFragments.push(fragment);
+
+        // Track sigils
+        if (room.reward.type === "master_sigil") {
+          newSigils.push(room.reward.name);
+        }
+      }
+    }
+  }
+
+  return { newSolvedRooms, newFragments, newSigils, newDiscoveredRooms };
 }
 
 export function useProgress() {
@@ -334,7 +395,14 @@ export function useProgress() {
 
       if (data?.progress_data) {
         const loaded = data.progress_data as unknown as Partial<ProgressState>;
-        setState({ ...defaultState, ...loaded, artifacts: loaded.artifacts || [], earnedBadges: loaded.earnedBadges || [], questState: { ...defaultQuestState, ...(loaded.questState || {}) } });
+        setState({
+          ...defaultState,
+          ...loaded,
+          artifacts: loaded.artifacts || [],
+          earnedBadges: loaded.earnedBadges || [],
+          questState: { ...defaultQuestState, ...(loaded.questState || {}) },
+          escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+        });
       }
       setLoaded(true);
     };
@@ -427,7 +495,7 @@ export function useProgress() {
       const newArtifacts = [...s.artifacts, newArtifact];
       const { streak, lastActiveDate } = calcStreak(s.lastActiveDate, s.streak);
 
-      // Check for newly earned badges
+      // Check badges
       const newBadges = [...(s.earnedBadges || [])];
       for (const badge of CREATION_BADGES) {
         if (!newBadges.includes(badge.id) && badge.condition(newArtifacts)) {
@@ -435,12 +503,26 @@ export function useProgress() {
         }
       }
 
-      // Check zone/room unlocks
+      // Check legacy zone/room unlocks
       const tempState = { ...s, artifacts: newArtifacts, earnedBadges: newBadges };
       const { zones: newZones, rooms: newRooms } = checkUnlocks(newArtifacts, tempState);
 
       // Update chain progress
       const updatedQuestState = updateChainProgress(newArtifacts, s.questState);
+
+      // ===== ESCAPE GAME: Check room solves =====
+      const escapeState = s.escapeState || defaultEscapeState;
+      const {
+        newSolvedRooms,
+        newFragments,
+        newSigils,
+        newDiscoveredRooms,
+      } = checkEscapeRoomSolves(newArtifacts, escapeState);
+
+      const escapeEvents: string[] = [];
+      if (newSolvedRooms.length > 0) escapeEvents.push(...newSolvedRooms.map(r => `room_solved:${r}`));
+      if (newFragments.length > 0) escapeEvents.push(...newFragments.map(f => `fragment:${f.name}`));
+      if (newSigils.length > 0) escapeEvents.push(...newSigils.map(s => `sigil:${s}`));
 
       return {
         ...s,
@@ -455,12 +537,24 @@ export function useProgress() {
           unlockedRooms: [...updatedQuestState.unlockedRooms, ...newRooms],
           newUnlocks: [...newZones, ...newRooms],
         },
+        escapeState: {
+          ...escapeState,
+          solvedRooms: [...escapeState.solvedRooms, ...newSolvedRooms],
+          inventory: [...escapeState.inventory, ...newFragments],
+          discoveredRooms: [...new Set([...escapeState.discoveredRooms, ...newDiscoveredRooms])],
+          sigilsCollected: [...new Set([...escapeState.sigilsCollected, ...newSigils])],
+          newEscapeEvents: escapeEvents,
+        },
       };
     });
   }, []);
 
   const clearNewUnlocks = useCallback(() => {
-    setState(s => ({ ...s, questState: { ...s.questState, newUnlocks: [] } }));
+    setState(s => ({
+      ...s,
+      questState: { ...s.questState, newUnlocks: [] },
+      escapeState: { ...(s.escapeState || defaultEscapeState), newEscapeEvents: [] },
+    }));
   }, []);
 
   const setCurrentZone = useCallback((zoneId: ZoneId) => {
@@ -475,7 +569,7 @@ export function useProgress() {
   );
   const totalCreations = state.artifacts.length;
 
-  // Zone unlock status
+  // Legacy zone status
   const zoneStatus = useMemo(() => {
     const status: Record<ZoneId, { unlocked: boolean; progress: number; rooms: { id: string; unlocked: boolean }[] }> = {} as any;
     for (const zone of ZONES) {
@@ -494,7 +588,32 @@ export function useProgress() {
     return status;
   }, [state.questState.unlockedZones, state.questState.unlockedRooms]);
 
-  // Chain status for today
+  // ===== ESCAPE GAME: Computed zone/room status =====
+  const escapeZoneStatus = useMemo(() => {
+    const escapeState = state.escapeState || defaultEscapeState;
+    const result: Record<string, {
+      unlocked: boolean;
+      roomsSolved: number;
+      totalRooms: number;
+      progress: number;
+      rooms: Array<{ id: string; status: RoomStatus; progress: number }>;
+    }> = {};
+
+    for (const zone of ESCAPE_ZONES) {
+      const zs = computeZoneStatus(zone, escapeState.solvedRooms, state.artifacts);
+      const rooms = zone.rooms.map(room => {
+        const status = zs.unlocked
+          ? computeRoomStatus(room, escapeState.solvedRooms, state.artifacts, state.artifacts.length)
+          : "locked" as RoomStatus;
+        const prog = computeRoomProgress(room, state.artifacts);
+        return { id: room.id, status, progress: prog.percentage };
+      });
+      result[zone.id] = { ...zs, rooms };
+    }
+    return result;
+  }, [state.artifacts, state.escapeState]);
+
+  // Chain status
   const chainStatus = useMemo(() => {
     const todayArtifacts = state.artifacts.filter(a => a.date.startsWith(today));
     return DAILY_CHAIN_STEPS.map((step, i) => {
@@ -502,7 +621,6 @@ export function useProgress() {
         ? (todayArtifacts.length > 0 ? 1 : 0)
         : todayArtifacts.filter(a => step.artifactTypes.includes(a.type)).length;
       const completed = count >= step.minCount;
-      // Previous step must be completed for this to be active
       const previousCompleted = i === 0 || (() => {
         const prev = DAILY_CHAIN_STEPS[i - 1];
         const prevCount = prev.artifactTypes.length === 0
@@ -530,6 +648,21 @@ export function useProgress() {
         },
       }));
     }
+    // Sync escape game state on load
+    const escapeState = state.escapeState || defaultEscapeState;
+    const { newSolvedRooms, newFragments, newSigils, newDiscoveredRooms } = checkEscapeRoomSolves(state.artifacts, escapeState);
+    if (newSolvedRooms.length > 0 || newDiscoveredRooms.length > 0) {
+      setState(s => ({
+        ...s,
+        escapeState: {
+          ...(s.escapeState || defaultEscapeState),
+          solvedRooms: [...new Set([...(s.escapeState || defaultEscapeState).solvedRooms, ...newSolvedRooms])],
+          inventory: [...(s.escapeState || defaultEscapeState).inventory, ...newFragments],
+          discoveredRooms: [...new Set([...(s.escapeState || defaultEscapeState).discoveredRooms, ...newDiscoveredRooms])],
+          sigilsCollected: [...new Set([...(s.escapeState || defaultEscapeState).sigilsCollected, ...newSigils])],
+        },
+      }));
+    }
   }, [loaded]);
 
   return {
@@ -537,5 +670,6 @@ export function useProgress() {
     addQuizScore, toggleHardCard, setNotes, addPomodoro, toggleGrammarExercise,
     addArtifact, creationsToday, totalCreations,
     clearNewUnlocks, setCurrentZone, zoneStatus, chainStatus,
+    escapeZoneStatus,
   };
 }

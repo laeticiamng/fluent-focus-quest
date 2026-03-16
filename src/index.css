@@ -372,3 +372,100 @@ textarea:focus {
     hsl(var(--accent) / 0.12) 100%
   );
 }
+
+/* === ESCAPE GAME: Locked door effect === */
+@keyframes lock-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+.lock-pulse {
+  animation: lock-pulse 3s ease-in-out infinite;
+}
+
+/* === ESCAPE GAME: Key shimmer === */
+@keyframes key-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.key-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--accent) / 0.15) 25%,
+    hsl(var(--accent) / 0.4) 50%,
+    hsl(var(--accent) / 0.15) 75%
+  );
+  background-size: 200% 100%;
+  animation: key-shimmer 2.5s ease-in-out infinite;
+}
+
+/* === ESCAPE GAME: Fragment glow === */
+@keyframes fragment-glow {
+  0%, 100% { box-shadow: 0 0 8px -2px hsl(var(--accent) / 0.2); }
+  50% { box-shadow: 0 0 16px -2px hsl(var(--accent) / 0.4); }
+}
+.fragment-glow {
+  animation: fragment-glow 2s ease-in-out infinite;
+}
+
+/* === ESCAPE GAME: Sigil rotation === */
+@keyframes sigil-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(2deg); }
+  50% { transform: translateY(-5px) rotate(0deg); }
+  75% { transform: translateY(-3px) rotate(-2deg); }
+}
+.sigil-float {
+  animation: sigil-float 4s ease-in-out infinite;
+}
+
+/* === ESCAPE GAME: Room reveal === */
+@keyframes room-reveal {
+  0% { opacity: 0; transform: scale(0.95); filter: blur(4px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+.room-reveal {
+  animation: room-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* === ESCAPE GAME: Fog of war === */
+.fog-overlay {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background) / 0.85) 0%,
+    hsl(var(--background) / 0.7) 40%,
+    hsl(var(--background) / 0.9) 100%
+  );
+  backdrop-filter: blur(2px);
+}
+
+/* === ESCAPE GAME: Door unlock animation === */
+@keyframes door-unlock {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-5deg); }
+  40% { transform: rotate(5deg); }
+  60% { transform: rotate(-3deg); }
+  80% { transform: rotate(2deg); }
+  100% { transform: rotate(0deg); }
+}
+.door-unlock {
+  animation: door-unlock 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* === ESCAPE GAME: Mechanism activated border === */
+.mechanism-border {
+  position: relative;
+}
+.mechanism-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, hsl(var(--accent) / 0.25), hsl(var(--success) / 0.15), hsl(var(--primary) / 0.2));
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mechanism-border:hover::after {
+  opacity: 1;
+}
