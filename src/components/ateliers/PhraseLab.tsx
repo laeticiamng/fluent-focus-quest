@@ -5,8 +5,10 @@ import { DECKS } from "@/data/content";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Shuffle, Send, RotateCcw, Sparkles, Copy, Check } from "lucide-react";
+import { Shuffle, Send, RotateCcw, Sparkles, Copy, Check, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
+
+const ALCHEMIST_PERSONA = `Tu es l'Alchimiste des Mots, un savant excentrique qui transforme les mots bruts en phrases d'or. Tu utilises des metaphores de laboratoire : "cet alliage est prometteur", "ta formule manque d'un reactif", "excellente reaction chimique entre sujet et verbe".`;
 
 export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
@@ -28,7 +30,7 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!sentence.trim() || !currentWord) return;
-    const prompt = `Mot: ${currentWord.de} (${currentWord.fr})\n\nPhrase créée par l'étudiante:\n"${sentence}"\n\nCorrige et améliore cette phrase médicale.`;
+    const prompt = `${ALCHEMIST_PERSONA}\n\nMot a transmuter: ${currentWord.de} (${currentWord.fr})\n\nFormule creee par l'apprenti:\n"${sentence}"\n\nAnalyse cette formule : grammaire, contexte medical, et propose une version enrichie. Sois concis (max 80 mots). Utilise des metaphores de laboratoire.`;
     ask(prompt, "phrase-lab");
     setSubmitted(true);
     addXp(15);
@@ -46,13 +48,32 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🧪</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Labo de phrases</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Crée des phrases médicales — l'IA corrige et améliore</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(142 71% 45% / 0.08), hsl(var(--card)), hsl(186 70% 50% / 0.04))",
+          border: "1px solid hsl(142 71% 45% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(142 71% 45% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotateY: [0, 8, -8, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-emerald-500/12 border border-emerald-500/15 flex items-center justify-center"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(142 71% 45% / 0.2)" }}
+          >
+            <FlaskConical className="w-6 h-6 text-emerald-400" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Le Laboratoire</h2>
+            <p className="text-[10px] text-emerald-400/50 font-medium">Domaine de l'Alchimiste des Mots</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Word picker */}
       {!currentWord ? (
@@ -68,13 +89,17 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
         </motion.button>
       ) : (
         <div className="space-y-4">
-          {/* Current word card */}
+          {/* Current word card — reagent */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl bg-gradient-to-r from-primary/12 to-info/8 border border-primary/20 p-5 sm:p-6 text-center"
+            className="rounded-2xl room-3d room-accessible p-5 sm:p-6 text-center relative overflow-hidden"
+            style={{ boxShadow: "var(--shadow-3d-md)" }}
           >
-            <p className="text-[10px] uppercase tracking-[3px] text-primary/70 mb-2">Ton mot</p>
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-16 bg-emerald-500/[0.05] blur-[25px] rounded-full" />
+            </div>
+            <p className="text-[10px] uppercase tracking-[3px] text-emerald-400/70 mb-2 relative z-10">Reactif</p>
             <p className="text-2xl sm:text-3xl font-black tracking-tight">{currentWord.de}</p>
             <p className="text-sm text-muted-foreground mt-1">{currentWord.fr}</p>
           </motion.div>
@@ -123,14 +148,28 @@ export function PhraseLab({ addXp }: { addXp: (n: number) => void }) {
 
           {response && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="card-elevated rounded-2xl p-5 border-l-[3px] border-success/40"
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(142 71% 45% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(142 71% 45% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(142 71% 45% / 0.1)",
+              }}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-success" />
-                  <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div
+                    animate={{ rotateY: [0, 8, -8, 0] }}
+                    transition={{ duration: 5, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm"
+                  >
+                    🧪
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[2px]">Alchimiste</p>
+                    <p className="text-[9px] text-emerald-400/40">Resultat de l'experience</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}

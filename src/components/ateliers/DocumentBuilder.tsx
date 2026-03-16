@@ -16,6 +16,8 @@ const DOCUMENTS = [
   { id: "konsil", icon: "🔬", title: "Konsilanforderung", desc: "Demande d'avis spécialisé", placeholder: "Konsilanforderung an: Angiologie\nPatient: ...\nFragestellung: ..." },
 ];
 
+const KANZLER_PERSONA = `Tu es le Kanzler, chancelier de la documentation medicale. Tu evalues les documents avec la precision d'un redacteur en chef. Utilise des metaphores de chancellerie : "ce document est digne du sceau royal", "ta formulation officielle est precise", "ce passage necessite plus de rigueur protocolaire". Max 100 mots.`;
+
 export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
   const { response, isLoading, error, ask, reset } = useAICoach();
@@ -26,7 +28,7 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
-    ask(`Type de document médical: ${selected.title} (${selected.desc})\n\nDocument rédigé par l'étudiante:\n"${text}"\n\nCorrige et améliore ce document médical. Évalue le format, le contenu, et la langue.`, "script-builder");
+    ask(`${KANZLER_PERSONA}\n\nType de document officiel: ${selected.title} (${selected.desc})\n\nDocument redige par la candidate:\n"${text}"\n\nEvalue le format, contenu, langue. Propose une version enrichie. Commence par les points forts.`, "script-builder");
     setSubmitted(true);
     addXp(25);
     celebrate("task");
@@ -50,13 +52,32 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">📄</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Documents pro</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Crée tes documents médicaux professionnels en allemand</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(210 70% 50% / 0.08), hsl(var(--card)), hsl(186 70% 50% / 0.04))",
+          border: "1px solid hsl(210 70% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(210 70% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-blue-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotateY: [0, 5, -5, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-blue-500/12 border border-blue-500/15 flex items-center justify-center"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(210 70% 50% / 0.2)" }}
+          >
+            <FileText className="w-6 h-6 text-blue-400" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">La Chancellerie</h2>
+            <p className="text-[10px] text-blue-400/50 font-medium">Bureau du Kanzler</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {!selected ? (
         <div className="grid grid-cols-2 gap-3">
@@ -117,11 +138,24 @@ export function DocumentBuilder({ addXp }: { addXp: (n: number) => void }) {
           {error && <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-400">{error}</div>}
 
           {response && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-info/40">
+            <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(210 70% 50% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(210 70% 50% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(210 70% 50% / 0.1)",
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-info" />
-                  <p className="text-xs font-bold text-info uppercase tracking-wider">Coach IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div animate={{ rotateY: [0, 5, -5, 0] }} transition={{ duration: 5, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center text-sm">
+                    📜
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-[2px]">Kanzler</p>
+                    <p className="text-[9px] text-blue-400/40">Sceau officiel</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}

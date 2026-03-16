@@ -52,15 +52,21 @@ export function DailyChain({ chainStatus, zoneStatus, onNavigate, completedChain
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl bg-gradient-to-br from-success/12 to-amber-500/6 border border-success/20 p-5 text-center"
+        className="rounded-2xl room-3d room-solved p-6 text-center relative overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, hsl(142 71% 45% / 0.1), hsl(var(--card)), hsl(32 95% 55% / 0.05))",
+          border: "1px solid hsl(142 71% 45% / 0.2)",
+          boxShadow: "var(--shadow-3d-xl), 0 0 40px -12px hsl(142 71% 45% / 0.15)",
+        }}
       >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent" />
         <motion.div
-          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-          className="text-3xl mb-2"
+          animate={{ rotateY: [0, 360], scale: [1, 1.15, 1] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 4 }}
+          className="text-4xl mb-3 inline-block"
         >🔓</motion.div>
-        <p className="text-sm font-black text-success tracking-tight">Protocole quotidien complete</p>
-        <p className="text-[10px] text-success/70 mt-1">
+        <p className="text-sm font-black text-emerald-400 tracking-tight">Protocole quotidien complete</p>
+        <p className="text-[10px] text-emerald-400/50 mt-1">
           {completedChains} protocole{completedChains > 1 ? "s" : ""} complete{completedChains > 1 ? "s" : ""}.
           Chaque protocole renforce ta progression dans le Complexe.
         </p>
@@ -110,15 +116,25 @@ export function DailyChain({ chainStatus, zoneStatus, onNavigate, completedChain
                     }
                   }}
                   disabled={isLocked}
-                  className={`w-full rounded-2xl p-3 text-left transition-all group relative overflow-hidden ${
+                  className={`w-full rounded-2xl p-3 text-left transition-all group relative overflow-hidden room-3d ${
                     step.completed
-                      ? "bg-success/5 border border-success/15 opacity-70"
+                      ? "room-solved"
                       : step.active
-                      ? `bg-gradient-to-r ${colors.bg} border ${colors.border}`
+                      ? "room-in-progress"
                       : isLocked
-                      ? "bg-secondary/15 border border-border/10 opacity-40 cursor-not-allowed"
-                      : "bg-secondary/30 border border-border/20"
+                      ? "room-locked cursor-not-allowed"
+                      : "room-accessible"
                   }`}
+                  style={{
+                    background: step.completed
+                      ? "linear-gradient(145deg, hsl(142 71% 45% / 0.06), hsl(var(--card)))"
+                      : step.active
+                      ? `linear-gradient(145deg, ${colors.text.replace('text-', 'hsl(').replace('-400', ' 60% 55%')} / 0.08), hsl(var(--card)))`
+                      : undefined,
+                    border: step.completed ? "1px solid hsl(142 71% 45% / 0.12)" : undefined,
+                    boxShadow: step.active ? "var(--shadow-3d-md)" : "var(--shadow-3d-sm)",
+                    opacity: isLocked ? 0.4 : step.completed ? 0.7 : 1,
+                  }}
                 >
                   {step.active && (
                     <div className="absolute inset-0 bg-gradient-to-r from-white/3 to-transparent pointer-events-none" />

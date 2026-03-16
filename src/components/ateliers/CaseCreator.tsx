@@ -10,6 +10,8 @@ import { toast } from "sonner";
 
 const SECTIONS = ["Anamnese", "Klinische Untersuchung", "Diagnose", "Therapie"];
 
+const ARCHIVAR_PERSONA = `Tu es l'Archiviste Medical, gardien des dossiers patients. Tu evalues les cas avec la precision d'un documentaliste hospitalier. Utilise des metaphores d'archive : "ce dossier est bien classe", "il manque une piece au puzzle clinique", "excellente documentation". Max 100 mots.`;
+
 export function CaseCreator({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
   const { response, isLoading, error, ask, reset } = useAICoach();
@@ -42,7 +44,7 @@ export function CaseCreator({ addXp }: { addXp: (n: number) => void }) {
     if (selectedCase === null) return;
     const sc = SCENARIOS[selectedCase];
     const caseText = SECTIONS.map(s => `${s}:\n${sections[s] || "(nicht ausgefüllt)"}`).join("\n\n");
-    const prompt = `Klinischer Fall: ${sc.title}\nSituation: ${sc.sit}\n\nPatientenakte der Studentin:\n${caseText}\n\nBewerte den Fall.`;
+    const prompt = `${ARCHIVAR_PERSONA}\n\nKlinischer Fall: ${sc.title}\nSituation: ${sc.sit}\n\nPatientenakte der Kandidatin:\n${caseText}\n\nBewerte le dossier : completude, precision, langue. Commence par reconnaitre les points forts.`;
     ask(prompt, "case-creator");
     setSubmitted(true);
     addXp(30);
@@ -53,13 +55,32 @@ export function CaseCreator({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🧾</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Créer ton cas patient</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Rédige un dossier patient complet en allemand</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(186 70% 50% / 0.08), hsl(var(--card)), hsl(152 70% 50% / 0.04))",
+          border: "1px solid hsl(186 70% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(186 70% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotateY: [0, 5, -5, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-cyan-500/12 border border-cyan-500/15 flex items-center justify-center"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(186 70% 50% / 0.2)" }}
+          >
+            <ClipboardList className="w-6 h-6 text-cyan-400" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Les Archives</h2>
+            <p className="text-[10px] text-cyan-400/50 font-medium">Bureau de l'Archiviste Medical</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {selectedCase === null ? (
         <div className="space-y-3">
@@ -148,11 +169,24 @@ export function CaseCreator({ addXp }: { addXp: (n: number) => void }) {
           )}
 
           {response && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-grammar/40">
+            <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(186 70% 50% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(186 70% 50% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(186 70% 50% / 0.1)",
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-grammar" />
-                  <p className="text-xs font-bold text-grammar uppercase tracking-wider">Oberarzt IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div animate={{ rotateY: [0, 5, -5, 0] }} transition={{ duration: 5, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/20 flex items-center justify-center text-sm">
+                    📁
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[2px]">Archiviste</p>
+                    <p className="text-[9px] text-cyan-400/40">Evaluation du dossier</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}

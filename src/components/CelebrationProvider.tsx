@@ -179,17 +179,30 @@ function CelebrationOverlay({ events }: { events: CelebrationEvent[] }) {
               />
             ))}
 
-            {/* Toast message */}
+            {/* Toast message — volumetric 3D */}
             <motion.div
               className="absolute top-16 left-1/2 -translate-x-1/2"
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              initial={{ opacity: 0, y: -20, scale: 0.85, rotateX: 15 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95, rotateX: -5 }}
+              transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              <div className="glass rounded-2xl px-5 py-3 flex items-center gap-2.5 shadow-lg max-w-[320px]">
-                <span className="text-xl">{event.emoji}</span>
-                <span className="text-xs font-semibold text-foreground">{event.message}</span>
+              <div className="room-3d rounded-2xl px-5 py-3.5 flex items-center gap-3 max-w-[340px] relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.95))",
+                  border: "1px solid hsl(var(--border) / 0.3)",
+                  boxShadow: "var(--shadow-3d-lg), 0 8px 32px -8px hsl(0 0% 0% / 0.4)",
+                }}
+              >
+                <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+                <motion.span
+                  className="text-xl"
+                  animate={{ scale: [1, 1.2, 1], rotateY: [0, 180, 360] }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                >
+                  {event.emoji}
+                </motion.span>
+                <span className="text-xs font-semibold text-foreground relative z-10">{event.message}</span>
               </div>
             </motion.div>
           </motion.div>

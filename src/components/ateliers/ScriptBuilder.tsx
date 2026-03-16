@@ -4,8 +4,10 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, RotateCcw, Sparkles, FileText, Copy, Check } from "lucide-react";
+import { Send, RotateCcw, Sparkles, FileText, Copy, Check, PenTool } from "lucide-react";
 import { toast } from "sonner";
+
+const SCRIBE_PERSONA = `Tu es le Scribe Royal, gardien des protocoles medicaux. Tu analyses les scripts avec l'oeil d'un redacteur professionnel hospitalier. Utilise des metaphores d'ecriture : "ce paragraphe est cisele", "ta plume manque de precision", "excellente formulation — digne d'un Arztbrief professionnel".`;
 
 const TEMPLATES = [
   {
@@ -48,7 +50,7 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
-    const prompt = `Type de script: ${selected.title}\nConsigne: ${selected.prompt}\n\nTexte de l'étudiante:\n"${text}"\n\nCorrige et améliore ce script médical.`;
+    const prompt = `${SCRIBE_PERSONA}\n\nType de parchemin: ${selected.title}\nConsigne: ${selected.prompt}\n\nTexte de l'apprenti scribe:\n"${text}"\n\nAnalyse ce script : structure, langue, contenu medical. Propose une version enrichie. Sois concis (max 100 mots).`;
     ask(prompt, "script-builder");
     setSubmitted(true);
     addXp(20);
@@ -73,13 +75,32 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">✍️</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Script Builder</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Construis tes scripts médicaux en allemand</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(270 60% 55% / 0.08), hsl(var(--card)), hsl(270 40% 35% / 0.04))",
+          border: "1px solid hsl(270 60% 55% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(270 60% 55% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-violet-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotateY: [0, 8, -8, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-violet-500/12 border border-violet-500/15 flex items-center justify-center"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(270 60% 55% / 0.2)" }}
+          >
+            <PenTool className="w-6 h-6 text-violet-400" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Le Scriptorium</h2>
+            <p className="text-[10px] text-violet-400/50 font-medium">Salle du Scribe Royal</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {!selected ? (
         <div className="grid grid-cols-2 gap-3">
@@ -146,11 +167,24 @@ export function ScriptBuilder({ addXp }: { addXp: (n: number) => void }) {
           )}
 
           {response && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-accent/40">
+            <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(270 60% 55% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(270 60% 55% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(270 60% 55% / 0.1)",
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accent" />
-                  <p className="text-xs font-bold text-accent uppercase tracking-wider">Coach IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div animate={{ rotateY: [0, 8, -8, 0] }} transition={{ duration: 5, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-sm">
+                    ✍️
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-violet-400 uppercase tracking-[2px]">Scribe Royal</p>
+                    <p className="text-[9px] text-violet-400/40">Verdict du parchemin</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}

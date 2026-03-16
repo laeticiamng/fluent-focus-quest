@@ -14,6 +14,8 @@ const PROMPTS = [
   { id: "patient", icon: "🤝", title: "Mon médecin idéal", prompt: "Décris le médecin que tu veux devenir pour tes patients, en allemand.", placeholder: "Für meine Patienten möchte ich eine Ärztin sein, die..." },
 ];
 
+const ORACLE_PERSONA = `Tu es l'Oracle du Parcours, guide spirituel des medecins en devenir. Tu analyses les visions de carriere avec sagesse. Utilise des metaphores de voyage : "ta boussole pointe dans la bonne direction", "ce chemin est trace avec clarte", "ta vision est lumineuse". Max 80 mots.`;
+
 export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
   const { response, isLoading, error, ask, reset } = useAICoach();
@@ -33,7 +35,7 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!text.trim() || !selected) return;
-    ask(`L'étudiante écrit son identité médicale suisse.\n\nThème: ${selected.title}\nConsigne: ${selected.prompt}\n\nTexte:\n"${text}"\n\nCorrige l'allemand, améliore le style, et propose une version plus professionnelle et naturelle. Explique sur Französisch.`, "script-builder");
+    ask(`${ORACLE_PERSONA}\n\nTheme de reflexion: ${selected.title}\nConsigne: ${selected.prompt}\n\nTexte de la candidate:\n"${text}"\n\nCorrige l'allemand, enrichis le style. Propose une version plus professionnelle. Commence par valoriser sa vision.`, "script-builder");
     setSubmitted(true);
     addXp(20);
     celebrate("task");
@@ -48,13 +50,32 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🇨🇭</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Vision Board</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Construis ton identité de médecin suisse en allemand</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(142 71% 45% / 0.08), hsl(var(--card)), hsl(38 92% 50% / 0.04))",
+          border: "1px solid hsl(142 71% 45% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(142 71% 45% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -3, 0], rotateZ: [-2, 2, -2] }}
+            transition={{ duration: 5, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-emerald-500/12 border border-emerald-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(142 71% 45% / 0.2)" }}
+          >
+            🔮
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Le Miroir de l'Oracle</h2>
+            <p className="text-[10px] text-emerald-400/50 font-medium">Chambre de Reflexion</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {!selected ? (
         <div className="grid grid-cols-2 gap-3">
@@ -108,11 +129,24 @@ export function IdentityBuilder({ addXp }: { addXp: (n: number) => void }) {
 
           {error && <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-400">{error}</div>}
           {response && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-success/40">
+            <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(142 71% 45% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(142 71% 45% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(142 71% 45% / 0.1)",
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-success" />
-                  <p className="text-xs font-bold text-success uppercase tracking-wider">Coach IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 3, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm">
+                    🔮
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[2px]">Oracle</p>
+                    <p className="text-[9px] text-emerald-400/40">Vision eclairee</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}
