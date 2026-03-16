@@ -37,14 +37,16 @@ import { MissionTimer } from "@/components/MissionTimer";
 import { AchievementsPanel, ACHIEVEMENTS, type AchievementStats } from "@/components/Achievements";
 import { Leaderboard } from "@/components/Leaderboard";
 import { AIStatusBanner } from "@/components/AIStatusBanner";
+import { InterviewSimulator } from "@/components/InterviewSimulator";
 
-type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard";
+type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard" | "simulator";
 
 const NAV: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🏥", label: "Mission" },
   { id: "questmap", icon: "🗺️", label: "Carte" },
   { id: "vocab", icon: "🔨", label: "Forge" },
   { id: "gram", icon: "🌳", label: "Arbre" },
+  { id: "simulator", icon: "🎯", label: "Entretien" },
   { id: "iv", icon: "🎙️", label: "Studio" },
   { id: "sim", icon: "🏥", label: "Clinique" },
   { id: "atelier", icon: "⚗️", label: "Labo" },
@@ -63,6 +65,7 @@ const NAV: { id: Tab; icon: string; label: string }[] = [
 const TAB_ATMOSPHERE: Record<string, "forge" | "grammar" | "studio" | "clinical" | "laboratory" | "archive" | "aerzterat" | "neutral"> = {
   dash: "neutral",
   questmap: "neutral",
+  simulator: "studio",
   vocab: "forge",
   gram: "grammar",
   iv: "studio",
@@ -144,6 +147,24 @@ const Index = () => {
   })();
 
   const { rank, rankIndex } = getBuilderRank(progress.xp);
+
+  // Interview readiness metrics
+  const lastSimScore = (() => {
+    const simArtifacts = progress.artifacts.filter(a => a.type === "interview_answer" && a.metadata?.globalScore);
+    if (simArtifacts.length === 0) return null;
+    const last = simArtifacts.sort((a, b) => b.date.localeCompare(a.date))[0];
+    return last.metadata?.globalScore as number;
+  })();
+
+  const readinessPercent = (() => {
+    const interviewAnswers = progress.artifacts.filter(a => a.type === "interview_answer");
+    const uniqueQuestions = new Set(interviewAnswers.map(a => a.metadata?.simQuestionId)).size;
+    const totalQuestions = 25; // total across 6 zones
+    const questionCoverage = Math.min(1, uniqueQuestions / totalQuestions) * 40;
+    const scoreComponent = lastSimScore ? (lastSimScore / 100) * 40 : 0;
+    const practiceComponent = Math.min(1, interviewAnswers.length / 30) * 20;
+    return Math.round(questionCoverage + scoreComponent + practiceComponent);
+  })();
 
   // Achievement stats
   const achievementStats: AchievementStats = {
@@ -263,7 +284,7 @@ const Index = () => {
                       {currentChapter.narrativeIntro.slice(0, 120)}...
                     </p>
                     <div className="mt-4 flex items-center gap-3">
-                      <Countdown />
+                      <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
                       <MissionTimer
                         missionId={currentChapter.id}
                         durationMinutes={30}
@@ -622,6 +643,14 @@ const Index = () => {
                 addXp={progress.addXp}
               />
             </AtmosphericSceneWrapper>
+          )}
+          {tab === "simulator" && (
+            <InterviewSimulator
+              addXp={progress.addXp}
+              onNavigate={(t) => handleTabChange(t as Tab)}
+              addArtifact={progress.addArtifact}
+              artifacts={progress.artifacts}
+            />
           )}
           {tab === "iv" && (
             <AtmosphericSceneWrapper atmosphere="studio" intensity="low">
