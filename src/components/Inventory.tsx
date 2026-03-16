@@ -55,7 +55,12 @@ export function Inventory({ items, sigilsCollected, compact = false }: Inventory
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => setIsOpen(true)}
-        className="w-full rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-4 text-left transition-all hover:border-amber-500/30 group"
+        className="w-full rounded-2xl room-3d p-4 text-left transition-all hover:border-amber-500/30 group"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.1), hsl(var(--card)), transparent)",
+          border: "1px solid hsl(38 92% 50% / 0.2)",
+          boxShadow: "var(--shadow-3d-md)",
+        }}
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
@@ -100,7 +105,12 @@ export function Inventory({ items, sigilsCollected, compact = false }: Inventory
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative z-10 w-full max-w-md mx-4 mb-4 sm:mb-0 max-h-[80vh] overflow-hidden rounded-3xl bg-card border border-border/50 shadow-2xl"
+              className="relative z-10 w-full max-w-md mx-4 mb-4 sm:mb-0 max-h-[80vh] overflow-hidden rounded-3xl room-3d"
+              style={{
+                background: "linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.95))",
+                border: "1px solid hsl(38 92% 50% / 0.15)",
+                boxShadow: "var(--shadow-3d-xl), 0 0 60px -12px hsl(38 92% 50% / 0.15)",
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}

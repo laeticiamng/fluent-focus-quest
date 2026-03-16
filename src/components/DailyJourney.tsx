@@ -53,7 +53,12 @@ export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl bg-gradient-to-br from-success/15 to-success/5 border border-success/25 p-5 text-center"
+        className="rounded-2xl room-3d room-solved p-5 text-center relative overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, hsl(142 71% 45% / 0.1), hsl(var(--card)), hsl(38 92% 50% / 0.05))",
+          border: "1px solid hsl(142 71% 45% / 0.2)",
+          boxShadow: "var(--shadow-3d-xl), 0 0 40px -12px hsl(142 71% 45% / 0.15)",
+        }}
       >
         <div className="text-3xl mb-2">🏛️</div>
         <p className="text-sm font-black text-success tracking-tight">Atelier du jour termine !</p>
@@ -91,13 +96,23 @@ export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
             >
               <button
                 onClick={() => onNavigate(step.tab)}
-                className={`w-full rounded-2xl p-3.5 text-left transition-all group relative overflow-hidden ${
+                className={`w-full rounded-2xl p-3.5 text-left transition-all group relative overflow-hidden room-3d ${
                   isPast
-                    ? "bg-success/5 border border-success/15 opacity-60"
+                    ? "room-solved"
                     : isNext
-                    ? `bg-gradient-to-r ${step.color} border border-current/20`
-                    : "bg-secondary/40 border border-border/30 hover:border-border/50"
+                    ? "room-in-progress"
+                    : "room-accessible"
                 }`}
+                style={{
+                  background: isPast
+                    ? "linear-gradient(145deg, hsl(142 71% 45% / 0.06), hsl(var(--card)))"
+                    : isNext
+                    ? `linear-gradient(145deg, hsl(var(--card)), hsl(var(--card)))`
+                    : undefined,
+                  border: isPast ? "1px solid hsl(142 71% 45% / 0.12)" : undefined,
+                  boxShadow: isNext ? "var(--shadow-3d-md)" : "var(--shadow-3d-sm)",
+                  opacity: isPast ? 0.6 : 1,
+                }}
               >
                 {isNext && (
                   <div className="absolute inset-0 bg-gradient-to-r from-white/3 to-transparent pointer-events-none" />

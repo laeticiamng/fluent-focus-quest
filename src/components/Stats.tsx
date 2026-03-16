@@ -75,7 +75,33 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-black tracking-tight">📊 Architecture de progression</h2>
+      {/* Header — Le Chroniqueur */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(187 100% 42% / 0.08), hsl(var(--card)), hsl(38 92% 50% / 0.04))",
+          border: "1px solid hsl(187 100% 42% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(187 100% 42% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-cyan-500/12 border border-cyan-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(187 100% 42% / 0.2)" }}
+          >
+            📊
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">La Salle des Chroniques</h2>
+            <p className="text-[10px] text-cyan-400/50 font-medium">Archives du Chroniqueur</p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Primary: Creation stats */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -85,7 +111,8 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
           { v: `${streak}`, l: "streak 🔥", cls: "text-primary" },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="card-elevated rounded-2xl p-3.5 text-center">
+            className="room-3d rounded-2xl p-3.5 text-center"
+            style={{ boxShadow: "var(--shadow-3d-sm)" }}>
             <div className={`text-xl font-black ${s.cls}`}>{s.v}</div>
             <div className="text-[9px] font-medium text-muted-foreground mt-0.5">{s.l}</div>
           </motion.div>
@@ -93,7 +120,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       </div>
 
       {/* Production breakdown */}
-      <div className="card-elevated rounded-2xl p-4">
+      <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Detail de production</p>
         <div className="grid grid-cols-2 gap-2.5">
           {[
@@ -115,7 +142,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Production by day chart */}
       {artifacts.length > 0 && (
-        <div className="card-elevated rounded-2xl p-5">
+        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">🔨 Creations par jour</h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={productionByDay}>
@@ -130,7 +157,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Production pie */}
       {productionPie.length > 0 && (
-        <div className="card-elevated rounded-2xl p-5">
+        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">🎯 Repartition des creations</h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -146,7 +173,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Zone progression */}
       {zoneStatus && (
-        <div className="card-elevated rounded-2xl p-5">
+        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-md)" }}>
           <h3 className="text-sm font-bold mb-4">🗺️ Progression des zones</h3>
           <div className="space-y-3">
             {ZONES.map(zone => {
@@ -186,7 +213,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
           { v: `${pomodoroCount}`, l: "pomodoros", cls: "text-info" },
           { v: `${totalHard}`, l: "mots ⭐", cls: "text-primary" },
         ].map((s, i) => (
-          <div key={i} className="card-elevated rounded-2xl p-2.5 text-center">
+          <div key={i} className="room-3d rounded-2xl p-2.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
             <div className={`text-lg font-black ${s.cls}`}>{s.v}</div>
             <div className="text-[8px] font-medium text-muted-foreground mt-0.5">{s.l}</div>
           </div>
@@ -194,7 +221,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       </div>
 
       {quizData.length > 0 && (
-        <div className="card-elevated rounded-2xl p-5">
+        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">📈 Score moyen par deck</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={quizData}>
@@ -208,7 +235,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       )}
 
       {artifacts.length === 0 && quizData.length === 0 && (
-        <div className="card-elevated rounded-2xl p-10 text-center">
+        <div className="room-3d rounded-2xl p-10 text-center" style={{ boxShadow: "var(--shadow-3d-md)" }}>
           <div className="text-5xl mb-4">🔨</div>
           <p className="text-sm text-muted-foreground">Commence a creer pour voir tes stats de production !</p>
         </div>

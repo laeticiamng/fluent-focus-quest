@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SCENARIOS, DECKS } from "@/data/content";
-import { Check, Languages, Sparkles, FileText } from "lucide-react";
+import { Check, Languages, Sparkles, FileText, HeartPulse, Stethoscope, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,8 +9,8 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { toast } from "sonner";
 import type { Artifact } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
+import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
 
-// Build a lookup: German term → French translation from all DECKS
 const DE_FR_LOOKUP: Record<string, string> = {};
 DECKS.forEach(dk => {
   dk.cards.forEach(c => {
@@ -25,6 +25,16 @@ function lookupTranslation(term: string): string | null {
   return DE_FR_LOOKUP[term.toLowerCase()] || DE_FR_LOOKUP[clean] || null;
 }
 
+const PATIENT_NARRATIVES = [
+  "Le moniteur bipe regulierement... le patient attend votre diagnostic.",
+  "Les constantes se stabilisent... mais quelque chose ne colle pas.",
+  "L'urgence est calme ce soir. Vous consultez le dossier du patient...",
+  "Le Oberarzt observe par-dessus votre epaule. Soyez precise.",
+  "Le patient grimace de douleur. Chaque seconde compte.",
+];
+
+const OBERARZT_PERSONA = `Tu es l'Oberarzt, un medecin senior bienveillant mais exigeant. Tu encadres les jeunes medecins dans leur raisonnement clinique. Tu parles avec l'autorite d'un chef de service : "ton raisonnement est structure", "tu as bien identifie les symptomes cardinaux", "attention a ne pas oublier le diagnostic differentiel". Tu utilises des termes medicaux allemands quand c'est pertinent.`;
+
 interface ClinicalProps {
   addArtifact?: (artifact: Omit<Artifact, "id" | "date">) => void;
   artifacts?: Artifact[];
@@ -38,7 +48,6 @@ export function Clinical({ addArtifact, artifacts = [], addXp }: ClinicalProps) 
   const { celebrate } = useCelebration();
   const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
 
-  // Construction mode state
   const [hypotheses, setHypotheses] = useState("");
   const [clinicalNote, setClinicalNote] = useState("");
   const [hypothesesSubmitted, setHypothesesSubmitted] = useState(false);
@@ -59,7 +68,6 @@ export function Clinical({ addArtifact, artifacts = [], addXp }: ClinicalProps) 
   const handleHypothesesSubmit = () => {
     if (hypotheses.trim().length < 10) return;
     setHypothesesSubmitted(true);
-    // Reveal first 3 steps
     setScs(Math.max(scs, 3));
 
     if (addArtifact) {
@@ -73,19 +81,19 @@ export function Clinical({ addArtifact, artifacts = [], addXp }: ClinicalProps) 
     }
 
     celebrate("creation");
-    toast("🏥 Hypotheses construites ! +40 XP", { description: "Diagnostic en cours de construction" });
+    toast("🏥 Hypotheses soumises a l'Oberarzt ! +40 XP", { description: "Le diagnostic prend forme..." });
   };
 
   const handleClinicalNoteSubmit = () => {
     if (clinicalNote.trim().length < 20) return;
 
     const scenario = SCENARIOS[sci];
-    const prompt = `Tu es un coach d'atelier clinique en medecine. Tu accompagnes la construction d'un raisonnement clinique.
+    const prompt = `${OBERARZT_PERSONA}
 
 Scenario : ${scenario.title} — ${scenario.sit}
 Vocabulaire cle : ${scenario.vocab.join(", ")}
-Hypotheses de l'utilisateur : "${hypotheses}"
-Note clinique construite par l'utilisateur : "${clinicalNote}"
+Hypotheses de la candidate : "${hypotheses}"
+Note clinique construite : "${clinicalNote}"
 
 Analyse sa construction clinique :
 1. Le raisonnement est-il logique et structure ?
@@ -93,11 +101,10 @@ Analyse sa construction clinique :
 3. Manque-t-il des elements importants ?
 4. Propose une version enrichie de sa note
 
-Sois concis (max 100 mots). Commence par reconnaitre la qualite de sa construction. Dis "ta construction clinique" et "version enrichie".`;
+Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton d'un Oberarzt bienveillant mais exigeant.`;
 
     aiAsk(prompt, "phrase-lab");
     setNoteSubmitted(true);
-    // Reveal all steps
     setScs(scenario.steps.length);
 
     if (addArtifact) {
@@ -112,205 +119,338 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite de sa constructi
     }
 
     celebrate("creation");
-    toast("📝 Note clinique construite ! +35 XP", { description: "Ajoutee a ton dossier clinique" });
+    toast("📋 Note clinique validee par l'Oberarzt ! +35 XP", { description: "Dossier patient complete" });
   };
 
+  const narrative = PATIENT_NARRATIVES[sci % PATIENT_NARRATIVES.length];
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black flex items-center gap-2">
-          <FileText className="w-5 h-5 text-clinical" /> L'Hopital
-        </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowTranslations(v => !v)}
-            className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
-              showTranslations
-                ? "bg-primary/12 border-primary/25 text-primary"
-                : "bg-secondary border-border/40 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Languages className="w-3.5 h-3.5" />
-            🇫🇷
-          </button>
-        </div>
-      </div>
-
-      {/* Creation stats */}
-      {clinicalCreationCount > 0 && (
-        <div className="rounded-2xl bg-clinical/8 border border-clinical/15 p-3 flex items-center justify-between">
-          <span className="text-xs font-bold text-clinical">🏥 Dossiers construits</span>
-          <span className="text-sm font-black text-clinical">{clinicalCreationCount}</span>
-        </div>
-      )}
-
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {SCENARIOS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => resetForScenario(i)}
-            className={`shrink-0 flex-1 min-w-0 rounded-lg border p-2.5 text-center transition-all ${
-              sci === i ? "border-primary bg-primary/10" : "border-border bg-card"
-            }`}
-          >
-            <div className="text-xl">{s.icon}</div>
-            <div className={`text-[9px] mt-1 truncate ${sci === i ? "text-primary" : "text-muted-foreground"}`}>{s.title}</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="rounded-xl border border-primary/30 bg-card p-4">
-        <h3 className="text-sm font-bold text-primary mb-3">{SCENARIOS[sci].icon} {SCENARIOS[sci].title}</h3>
-
-        {/* Situation */}
-        <div className="rounded-lg bg-info/10 border-l-[3px] border-info px-3 py-2.5 mb-4">
-          <p className="text-xs leading-relaxed">{SCENARIOS[sci].sit}</p>
-        </div>
-
-        {/* Vocab tags with optional translations */}
-        <div className="flex gap-1.5 flex-wrap mb-4">
-          {SCENARIOS[sci].vocab.map((v, i) => {
-            const fr = showTranslations ? lookupTranslation(v) : null;
-            return (
-              <div key={i} className="flex flex-col items-center">
-                <span className="text-[10px] bg-grammar/10 text-grammar px-2 py-0.5 rounded-full border border-grammar/20 font-medium">
-                  {v}
-                </span>
-                <AnimatePresence>
-                  {fr && (
-                    <motion.span
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="text-[9px] text-primary/70 mt-0.5 font-medium"
-                    >
-                      {fr}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* CONSTRUCTION MODE — Hypotheses */}
-        {showConstructionMode && (
-          <div className="rounded-xl bg-amber-500/5 border border-amber-500/15 p-4 mb-4 space-y-3">
-            <p className="text-xs font-bold text-amber-400">🔨 Construis ton raisonnement</p>
-
-            {/* Step 1: Hypotheses */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground mb-2">
-                Etape 1 — Tes hypotheses diagnostiques
-              </p>
-              <Textarea
-                value={hypotheses}
-                onChange={e => setHypotheses(e.target.value)}
-                placeholder="Quelles sont tes hypotheses ? (en allemand si possible) Verdachtsdiagnosen..."
-                className="min-h-[70px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
-                disabled={hypothesesSubmitted}
-              />
-              {!hypothesesSubmitted ? (
-                <Button
-                  onClick={handleHypothesesSubmit}
-                  disabled={hypotheses.trim().length < 10}
-                  className="w-full rounded-xl text-xs mt-2 bg-amber-500 hover:bg-amber-600 text-white"
-                >
-                  🏥 Soumettre mes hypotheses +40 XP
-                </Button>
-              ) : (
-                <p className="text-[10px] text-amber-400 font-medium mt-2">✓ Hypotheses soumises — les etapes se revelent</p>
-              )}
-            </div>
-
-            {/* Step 2: Clinical note (only after hypotheses) */}
-            {hypothesesSubmitted && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-              >
-                <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground mb-2">
-                  Etape 2 — Ta note clinique / synthese
-                </p>
-                <Textarea
-                  value={clinicalNote}
-                  onChange={e => setClinicalNote(e.target.value)}
-                  placeholder="Redige ta note clinique : anamnese, examen, decision, plan... (en allemand)"
-                  className="min-h-[100px] bg-secondary/50 border-border/40 rounded-xl text-sm resize-none"
-                  disabled={noteSubmitted}
-                />
-                {!noteSubmitted ? (
-                  <Button
-                    onClick={handleClinicalNoteSubmit}
-                    disabled={clinicalNote.trim().length < 20 || aiLoading}
-                    className="w-full rounded-xl text-xs mt-2 bg-clinical hover:bg-clinical/80 text-white"
-                  >
-                    {aiLoading ? (
-                      <><Sparkles className="w-3.5 h-3.5 animate-spin mr-1" /> Analyse en cours...</>
-                    ) : (
-                      "📝 Soumettre ma note clinique +35 XP"
-                    )}
-                  </Button>
-                ) : (
-                  <p className="text-[10px] text-clinical font-medium mt-2">✓ Note clinique construite</p>
-                )}
-
-                {aiError && (
-                  <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 mt-2">{aiError}</div>
-                )}
-
-                {/* AI feedback */}
-                {aiResponse && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl bg-clinical/5 border border-clinical/15 p-4 mt-3"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-3.5 h-3.5 text-clinical" />
-                      <span className="text-[10px] font-bold text-clinical uppercase tracking-wider">Coach clinique</span>
-                    </div>
-                    <p className="text-xs leading-relaxed whitespace-pre-wrap text-foreground/85">{aiResponse}</p>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
+    <AtmosphericSceneWrapper atmosphere="clinical" intensity="medium">
+      <div className="space-y-4">
+        {/* Hospital header — immersive */}
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl p-6 room-3d"
+          style={{
+            background: "linear-gradient(145deg, hsl(346 77% 50% / 0.06), hsl(var(--card)), hsl(346 50% 35% / 0.03))",
+            border: "1px solid hsl(346 77% 50% / 0.1)",
+            boxShadow: "var(--shadow-3d-xl), 0 0 60px -16px hsl(346 77% 50% / 0.1)",
+          }}
+        >
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-rose-500/[0.03] blur-[50px] rounded-full translate-x-1/4 -translate-y-1/4" />
           </div>
+          <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-rose-400/10 to-transparent" />
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="door-icon-3d w-14 h-14 rounded-2xl bg-rose-500/12 border border-rose-500/15 flex items-center justify-center"
+                  style={{ boxShadow: "var(--shadow-3d-md), 0 0 20px -6px hsl(346 77% 50% / 0.2)" }}
+                >
+                  <HeartPulse className="w-7 h-7 text-rose-400" />
+                </motion.div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight">L'Hopital</h2>
+                  <p className="text-[10px] text-rose-400/50 font-medium">Service de l'Oberarzt</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowTranslations(v => !v)}
+                  className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
+                    showTranslations
+                      ? "bg-primary/12 border-primary/25 text-primary"
+                      : "bg-secondary/60 border-border/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Languages className="w-3.5 h-3.5" />
+                  FR
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Dossier stats */}
+        {clinicalCreationCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="room-3d rounded-2xl p-3.5 flex items-center justify-between"
+            style={{
+              background: "linear-gradient(145deg, hsl(346 77% 50% / 0.06), hsl(var(--card)))",
+              border: "1px solid hsl(346 77% 50% / 0.1)",
+              boxShadow: "var(--shadow-3d-sm)",
+            }}
+          >
+            <span className="text-xs font-bold text-rose-400/80 flex items-center gap-2">
+              <Stethoscope className="w-3.5 h-3.5" /> Dossiers construits
+            </span>
+            <span className="text-sm font-black text-rose-400">{clinicalCreationCount}</span>
+          </motion.div>
         )}
 
-        {/* Steps — gradually revealed */}
-        <div className="space-y-2">
-          {SCENARIOS[sci].steps.map((st, i) => (
-            <div
+        {/* Scenario selector — patient rooms */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          {SCENARIOS.map((s, i) => (
+            <motion.button
               key={i}
-              onClick={() => {
-                if (hypothesesSubmitted || !showConstructionMode) {
-                  setScs(Math.max(scs, i + 1));
-                }
+              whileTap={{ scale: 0.96 }}
+              onClick={() => resetForScenario(i)}
+              className={`shrink-0 flex-1 min-w-0 rounded-xl p-3 text-center transition-all room-3d ${
+                sci === i
+                  ? "room-in-progress"
+                  : "room-accessible"
+              }`}
+              style={{
+                border: sci === i ? "1px solid hsl(346 77% 50% / 0.25)" : "1px solid hsl(var(--border) / 0.3)",
+                boxShadow: sci === i ? "var(--shadow-3d-md), 0 0 16px -4px hsl(346 77% 50% / 0.15)" : "var(--shadow-3d-sm)",
               }}
-              className={`flex gap-2.5 items-start ${(hypothesesSubmitted || !showConstructionMode) ? "cursor-pointer" : "cursor-default"}`}
             >
-              <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                i < scs ? "bg-success text-primary-foreground" : "bg-secondary text-foreground"
-              }`}>
-                {i < scs ? <Check className="w-3.5 h-3.5" /> : i + 1}
-              </div>
-              <p className={`text-xs leading-relaxed ${i <= scs ? "" : "blur-sm"} ${i < scs ? "text-foreground" : "text-muted-foreground"}`}>
-                {st}
-              </p>
-            </div>
+              <div className="text-xl">{s.icon}</div>
+              <div className={`text-[9px] mt-1 truncate font-medium ${sci === i ? "text-rose-400" : "text-muted-foreground"}`}>{s.title}</div>
+            </motion.button>
           ))}
         </div>
 
-        {!showConstructionMode && (
-          <button
-            onClick={() => setShowConstructionMode(true)}
-            className="w-full mt-4 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs font-bold text-amber-400 text-center"
+        {/* Active scenario — patient card */}
+        <motion.div
+          key={sci}
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="room-3d rounded-2xl p-5 relative overflow-hidden"
+          style={{
+            background: "linear-gradient(145deg, hsl(346 77% 50% / 0.04), hsl(var(--card)))",
+            border: "1px solid hsl(346 77% 50% / 0.12)",
+            boxShadow: "var(--shadow-3d-lg)",
+          }}
+        >
+          <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-rose-400/8 to-transparent" />
+
+          {/* Patient narrative — ambient */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-[10px] italic text-rose-400/35 mb-3"
           >
-            🔨 Passer en mode construction
-          </button>
-        )}
+            {narrative}
+          </motion.p>
+
+          <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-2">
+            {SCENARIOS[sci].icon} {SCENARIOS[sci].title}
+          </h3>
+
+          {/* Situation — patient briefing */}
+          <div className="rounded-xl bg-blue-500/8 border-l-[3px] border-blue-400/40 px-4 py-3 mb-4">
+            <p className="text-[10px] uppercase tracking-[2px] text-blue-400/60 mb-1">Briefing Patient</p>
+            <p className="text-xs leading-relaxed">{SCENARIOS[sci].sit}</p>
+          </div>
+
+          {/* Vocab tags with monitor feel */}
+          <div className="flex gap-1.5 flex-wrap mb-4">
+            {SCENARIOS[sci].vocab.map((v, i) => {
+              const fr = showTranslations ? lookupTranslation(v) : null;
+              return (
+                <div key={i} className="flex flex-col items-center">
+                  <span className="text-[10px] bg-emerald-500/8 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/15 font-medium">
+                    {v}
+                  </span>
+                  <AnimatePresence>
+                    {fr && (
+                      <motion.span
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[9px] text-primary/70 mt-0.5 font-medium"
+                      >
+                        {fr}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CONSTRUCTION MODE — Diagnostic Table */}
+          {showConstructionMode && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl p-4 mb-4 space-y-4 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(32 95% 55% / 0.04), hsl(var(--secondary) / 0.5))",
+                border: "1px solid hsl(32 95% 55% / 0.1)",
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400/70" />
+                <p className="text-xs font-bold text-amber-400/80">Construis ton raisonnement clinique</p>
+              </div>
+
+              {/* Phase 1: Hypotheses */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground/60 mb-2 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-amber-500/15 text-amber-400 flex items-center justify-center text-[10px] font-bold">1</span>
+                  Verdachtsdiagnosen — Tes hypotheses
+                </p>
+                <Textarea
+                  value={hypotheses}
+                  onChange={e => setHypotheses(e.target.value)}
+                  placeholder="Quelles sont tes hypotheses ? Verdachtsdiagnosen: ..."
+                  className="min-h-[70px] bg-secondary/40 border-border/30 rounded-xl text-sm resize-none focus:border-rose-500/25"
+                  disabled={hypothesesSubmitted}
+                />
+                {!hypothesesSubmitted ? (
+                  <Button
+                    onClick={handleHypothesesSubmit}
+                    disabled={hypotheses.trim().length < 10}
+                    className="w-full rounded-xl text-xs mt-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white h-11"
+                    style={{ boxShadow: "0 4px 16px -4px hsl(32 95% 55% / 0.3)" }}
+                  >
+                    <Stethoscope className="w-3.5 h-3.5 mr-1.5" /> Presenter a l'Oberarzt +40 XP
+                  </Button>
+                ) : (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-[10px] text-emerald-400 font-medium mt-2 flex items-center gap-1.5"
+                  >
+                    <Check className="w-3 h-3" /> Hypotheses acceptees — les etapes cliniques se revelent
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Phase 2: Clinical note */}
+              <AnimatePresence>
+                {hypothesesSubmitted && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="overflow-hidden"
+                  >
+                    <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground/60 mb-2 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-rose-500/15 text-rose-400 flex items-center justify-center text-[10px] font-bold">2</span>
+                      Klinische Notiz — Ta note clinique
+                    </p>
+                    <Textarea
+                      value={clinicalNote}
+                      onChange={e => setClinicalNote(e.target.value)}
+                      placeholder="Redige ta note clinique : Anamnese, Untersuchung, Diagnose, Therapieplan..."
+                      className="min-h-[100px] bg-secondary/40 border-border/30 rounded-xl text-sm resize-none focus:border-rose-500/25"
+                      disabled={noteSubmitted}
+                    />
+                    {!noteSubmitted ? (
+                      <Button
+                        onClick={handleClinicalNoteSubmit}
+                        disabled={clinicalNote.trim().length < 20 || aiLoading}
+                        className="w-full rounded-xl text-xs mt-2 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white h-11"
+                        style={{ boxShadow: "0 4px 16px -4px hsl(346 77% 50% / 0.3)" }}
+                      >
+                        {aiLoading ? (
+                          <><Sparkles className="w-3.5 h-3.5 animate-spin mr-1.5" /> L'Oberarzt examine...</>
+                        ) : (
+                          <><FileText className="w-3.5 h-3.5 mr-1.5" /> Soumettre au Chef de Service +35 XP</>
+                        )}
+                      </Button>
+                    ) : (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-[10px] text-emerald-400 font-medium mt-2 flex items-center gap-1.5"
+                      >
+                        <Check className="w-3 h-3" /> Note clinique validee par l'Oberarzt
+                      </motion.p>
+                    )}
+
+                    {aiError && (
+                      <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 mt-2">{aiError}</div>
+                    )}
+
+                    {/* AI feedback — Oberarzt */}
+                    {aiResponse && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className="room-3d rounded-xl p-5 mt-3 relative overflow-hidden"
+                        style={{
+                          background: "linear-gradient(145deg, hsl(346 77% 50% / 0.06), hsl(var(--card)))",
+                          border: "1px solid hsl(346 77% 50% / 0.12)",
+                          boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(346 77% 50% / 0.1)",
+                        }}
+                      >
+                        <div className="flex items-center gap-2.5 mb-3 relative z-10">
+                          <motion.div
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-lg"
+                          >
+                            🩺
+                          </motion.div>
+                          <div>
+                            <p className="text-[10px] font-black text-rose-400 uppercase tracking-[2px]">Oberarzt</p>
+                            <p className="text-[9px] text-rose-400/40">Evaluation du Chef de Service</p>
+                          </div>
+                        </div>
+                        <p className="text-xs leading-relaxed whitespace-pre-wrap text-foreground/85 relative z-10">{aiResponse}</p>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* Steps — progressive reveal with hospital monitor feel */}
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground/50 mb-2">Protokoll — Etapes cliniques</p>
+            {SCENARIOS[sci].steps.map((st, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: i <= scs ? 1 : 0.4, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => {
+                  if (hypothesesSubmitted || !showConstructionMode) {
+                    setScs(Math.max(scs, i + 1));
+                  }
+                }}
+                className={`flex gap-2.5 items-start p-2 rounded-lg transition-all ${
+                  (hypothesesSubmitted || !showConstructionMode) ? "cursor-pointer hover:bg-secondary/30" : "cursor-default"
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold transition-colors ${
+                  i < scs
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"
+                    : "bg-secondary/60 text-foreground border border-border/20"
+                }`}>
+                  {i < scs ? <Check className="w-3.5 h-3.5" /> : i + 1}
+                </div>
+                <p className={`text-xs leading-relaxed transition-all ${i <= scs ? "" : "blur-sm"} ${i < scs ? "text-foreground" : "text-muted-foreground"}`}>
+                  {st}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          {!showConstructionMode && (
+            <button
+              onClick={() => setShowConstructionMode(true)}
+              className="w-full mt-4 rounded-xl bg-amber-500/8 border border-amber-500/15 p-3.5 text-xs font-bold text-amber-400 text-center hover:bg-amber-500/12 transition-all"
+            >
+              <Stethoscope className="w-3.5 h-3.5 inline mr-1.5" />
+              Ouvrir la table de diagnostic
+            </button>
+          )}
+        </motion.div>
       </div>
-    </div>
+    </AtmosphericSceneWrapper>
   );
 }

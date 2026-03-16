@@ -155,7 +155,8 @@ export default function PuzzleEngine({ onPuzzleSolved, solvedPuzzleIds, currentR
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleSelectZone(zone.id)}
-                className={`p-4 rounded-xl bg-gradient-to-br ${colors.bg} ${colors.border} border text-left transition-all hover:shadow-lg ${colors.glow}`}
+                className={`p-4 rounded-2xl room-3d bg-gradient-to-br ${colors.bg} ${colors.border} border text-left transition-all ${colors.glow}`}
+                style={{ boxShadow: "var(--shadow-3d-md)" }}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">{zone.icon}</span>
@@ -179,7 +180,7 @@ export default function PuzzleEngine({ onPuzzleSolved, solvedPuzzleIds, currentR
         </div>
 
         {/* Stats */}
-        <div className="mt-4 p-3 rounded-lg bg-white/5 border border-white/10">
+        <div className="mt-4 p-3 rounded-2xl room-3d" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <div className="flex items-center justify-between text-sm">
             <span className="text-white/50">Enigmes resolues</span>
             <span className="text-white/80 font-bold">
@@ -229,11 +230,16 @@ export default function PuzzleEngine({ onPuzzleSolved, solvedPuzzleIds, currentR
                     whileTap={{ scale: 0.99 }}
                     onClick={() => !isSolved && handleStartPuzzle(puzzle)}
                     disabled={isSolved}
-                    className={`w-full p-3 rounded-lg border text-left transition-all ${
-                      isSolved
-                        ? "bg-emerald-500/10 border-emerald-500/20 opacity-70"
-                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                    className={`w-full p-3 rounded-2xl room-3d text-left transition-all ${
+                      isSolved ? "room-solved" : "room-accessible"
                     }`}
+                    style={{
+                      background: isSolved
+                        ? "linear-gradient(145deg, hsl(142 71% 45% / 0.06), hsl(var(--card)))"
+                        : undefined,
+                      boxShadow: "var(--shadow-3d-sm)",
+                      opacity: isSolved ? 0.7 : 1,
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -276,7 +282,7 @@ export default function PuzzleEngine({ onPuzzleSolved, solvedPuzzleIds, currentR
         </button>
 
         {/* Puzzle header */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10">
+        <div className="p-4 rounded-2xl room-3d" style={{ boxShadow: "var(--shadow-3d-lg)" }}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xl">{typeInfo.icon}</span>
             <h2 className="text-lg font-bold text-white/90">{activePuzzle.title}</h2>

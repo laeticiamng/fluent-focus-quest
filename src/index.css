@@ -469,3 +469,616 @@ textarea:focus {
 .mechanism-border:hover::after {
   opacity: 1;
 }
+
+/* ============================================================
+   PSEUDO-3D IMMERSIVE DESIGN SYSTEM
+   ============================================================ */
+
+/* === 3D DESIGN TOKENS === */
+:root {
+  /* Depth layers */
+  --depth-bg: 0;
+  --depth-floor: 1;
+  --depth-card: 2;
+  --depth-elevated: 3;
+  --depth-floating: 4;
+  --depth-overlay: 5;
+
+  /* Perspective */
+  --perspective-map: 900px;
+  --perspective-card: 1200px;
+  --perspective-room: 800px;
+
+  /* Isometric angles */
+  --iso-x: 55deg;
+  --iso-z: -15deg;
+  --tilt-subtle: 2deg;
+  --tilt-card: 5deg;
+
+  /* Volumetric shadows */
+  --shadow-3d-sm: 0 2px 4px -1px hsl(0 0% 0% / 0.3), 0 4px 8px -2px hsl(0 0% 0% / 0.15);
+  --shadow-3d-md: 0 4px 8px -2px hsl(0 0% 0% / 0.35), 0 8px 20px -4px hsl(0 0% 0% / 0.2), 0 16px 40px -8px hsl(0 0% 0% / 0.1);
+  --shadow-3d-lg: 0 8px 16px -4px hsl(0 0% 0% / 0.4), 0 16px 40px -8px hsl(0 0% 0% / 0.25), 0 32px 64px -16px hsl(0 0% 0% / 0.15);
+  --shadow-3d-xl: 0 12px 24px -6px hsl(0 0% 0% / 0.45), 0 24px 56px -12px hsl(0 0% 0% / 0.3), 0 48px 80px -24px hsl(0 0% 0% / 0.2);
+
+  /* Lighting direction (top-left) */
+  --light-angle: 135deg;
+  --light-top: hsl(0 0% 100% / 0.06);
+  --light-bottom: hsl(0 0% 0% / 0.15);
+
+  /* Zone atmosphere colors */
+  --atmo-forge: 32 95% 55%;
+  --atmo-grammar: 152 60% 48%;
+  --atmo-studio: 265 55% 62%;
+  --atmo-clinical: 350 65% 55%;
+  --atmo-laboratory: 215 90% 58%;
+  --atmo-archive: 185 70% 48%;
+  --atmo-aerzterat: 240 60% 55%;
+}
+
+/* === 3D PERSPECTIVE CONTAINER === */
+.perspective-3d {
+  perspective: var(--perspective-map);
+  perspective-origin: 50% 40%;
+}
+
+.perspective-card-3d {
+  perspective: var(--perspective-card);
+  perspective-origin: 50% 50%;
+}
+
+/* === ISOMETRIC MAP CONTAINER === */
+.iso-map {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-subtle));
+}
+
+/* === 3D ROOM CARD — Volumetric door/room === */
+.room-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: var(--shadow-3d-md);
+}
+
+.room-3d::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(var(--light-angle), var(--light-top), transparent 50%, var(--light-bottom));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+/* Side face (pseudo 3D depth) */
+.room-3d::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 6px;
+  border-radius: 0 0 inherit inherit;
+  background: linear-gradient(to bottom, hsl(var(--card) / 0.5), hsl(0 0% 0% / 0.3));
+  transform: skewX(0deg);
+  z-index: -1;
+}
+
+.room-3d:hover {
+  transform: translateY(-4px) rotateX(1deg);
+  box-shadow: var(--shadow-3d-lg);
+}
+
+/* === ROOM STATES === */
+
+/* Locked: dark metal, muted, depth sunk */
+.room-locked {
+  background: linear-gradient(
+    var(--light-angle),
+    hsl(225 14% 10%),
+    hsl(225 14% 8%)
+  );
+  border: 1px solid hsl(225 14% 14%);
+  box-shadow:
+    inset 0 2px 4px hsl(0 0% 0% / 0.3),
+    var(--shadow-3d-sm);
+  filter: brightness(0.7) saturate(0.4);
+}
+
+.room-locked::before {
+  background: linear-gradient(var(--light-angle), hsl(0 0% 100% / 0.02), transparent 40%);
+}
+
+/* Accessible: door ajar, inner light visible */
+.room-accessible {
+  background: linear-gradient(
+    var(--light-angle),
+    hsl(var(--card)),
+    hsl(225 18% 9%)
+  );
+  border: 1px solid hsl(var(--primary) / 0.25);
+  box-shadow:
+    var(--shadow-3d-md),
+    inset 0 0 20px -8px hsl(var(--primary) / 0.1);
+}
+
+.room-accessible::before {
+  background: linear-gradient(
+    var(--light-angle),
+    hsl(var(--primary) / 0.08),
+    transparent 50%,
+    var(--light-bottom)
+  );
+}
+
+/* In progress: pulsating light, vibrant */
+.room-in-progress {
+  background: linear-gradient(
+    var(--light-angle),
+    hsl(var(--card)),
+    hsl(225 18% 9%)
+  );
+  border: 1px solid hsl(var(--warning) / 0.35);
+  box-shadow:
+    var(--shadow-3d-md),
+    inset 0 0 24px -8px hsl(var(--warning) / 0.12);
+}
+
+@keyframes room-pulse-3d {
+  0%, 100% {
+    box-shadow: var(--shadow-3d-md), inset 0 0 24px -8px hsl(var(--warning) / 0.12), 0 0 0 0 hsl(var(--warning) / 0);
+  }
+  50% {
+    box-shadow: var(--shadow-3d-md), inset 0 0 32px -8px hsl(var(--warning) / 0.18), 0 0 20px -4px hsl(var(--warning) / 0.1);
+  }
+}
+
+.room-in-progress {
+  animation: room-pulse-3d 3s ease-in-out infinite;
+}
+
+/* Solved: noble, sealed, archived */
+.room-solved {
+  background: linear-gradient(
+    var(--light-angle),
+    hsl(var(--success) / 0.08),
+    hsl(var(--card))
+  );
+  border: 1px solid hsl(var(--success) / 0.25);
+  box-shadow:
+    var(--shadow-3d-sm),
+    inset 0 1px 0 0 hsl(var(--success) / 0.1);
+}
+
+/* === FOG OF WAR 3D === */
+.fog-3d {
+  position: relative;
+  overflow: hidden;
+}
+
+.fog-3d::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse at 30% 40%, hsl(var(--background) / 0.9), transparent 60%),
+    radial-gradient(ellipse at 70% 60%, hsl(var(--background) / 0.85), transparent 50%);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+  z-index: 10;
+  animation: fog-drift 12s ease-in-out infinite alternate;
+}
+
+@keyframes fog-drift {
+  0% { transform: translate(-2%, -1%); }
+  100% { transform: translate(2%, 1%); }
+}
+
+/* === ZONE HALO (accessible glow) === */
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+.zone-halo {
+  position: relative;
+}
+
+.zone-halo::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, var(--halo-color, hsl(var(--primary) / 0.15)), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: halo-pulse 4s ease-in-out infinite;
+}
+
+/* === CONNECTION PATH (isometric) === */
+.path-connector {
+  position: relative;
+}
+
+.path-connector::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom,
+    hsl(var(--primary) / 0.3),
+    hsl(var(--primary) / 0.1) 40%,
+    hsl(var(--border) / 0.15) 60%,
+    transparent
+  );
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* === DOOR ICON 3D === */
+.door-icon-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+
+.door-icon-3d::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(var(--light-angle), hsl(0 0% 100% / 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+/* === ARTIFACT 3D (floating capsule) === */
+@keyframes artifact-float {
+  0%, 100% { transform: translateY(0) rotateY(0deg); }
+  25% { transform: translateY(-4px) rotateY(5deg); }
+  50% { transform: translateY(-6px) rotateY(0deg); }
+  75% { transform: translateY(-4px) rotateY(-5deg); }
+}
+
+.artifact-3d {
+  transform-style: preserve-3d;
+  box-shadow: var(--shadow-3d-md);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.artifact-3d:hover {
+  transform: translateY(-6px) rotateY(8deg) scale(1.05);
+  box-shadow: var(--shadow-3d-lg);
+}
+
+.artifact-float {
+  animation: artifact-float 5s ease-in-out infinite;
+}
+
+/* === SIGIL 3D (rotating seal) === */
+@keyframes sigil-rotate-3d {
+  0% { transform: rotateY(0deg) rotateX(5deg); }
+  50% { transform: rotateY(180deg) rotateX(-5deg); }
+  100% { transform: rotateY(360deg) rotateX(5deg); }
+}
+
+@keyframes sigil-shimmer {
+  0%, 100% { box-shadow: 0 0 12px -2px hsl(var(--accent) / 0.3), var(--shadow-3d-sm); }
+  50% { box-shadow: 0 0 24px -2px hsl(var(--accent) / 0.5), var(--shadow-3d-md); }
+}
+
+.sigil-3d {
+  transform-style: preserve-3d;
+  animation: sigil-shimmer 3s ease-in-out infinite;
+}
+
+.sigil-3d:hover {
+  animation: sigil-rotate-3d 2s ease-in-out;
+}
+
+/* === CAMERA TRANSITIONS === */
+@keyframes camera-zoom-in {
+  0% { transform: scale(0.92) translateY(20px); opacity: 0; filter: blur(4px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes camera-zoom-out {
+  0% { transform: scale(1.05); opacity: 0; filter: blur(2px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+@keyframes camera-slide-right {
+  0% { transform: translateX(-40px) scale(0.97); opacity: 0; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes camera-slide-left {
+  0% { transform: translateX(40px) scale(0.97); opacity: 0; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.camera-enter-room {
+  animation: camera-zoom-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.camera-exit-room {
+  animation: camera-zoom-out 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.camera-slide-right {
+  animation: camera-slide-right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.camera-slide-left {
+  animation: camera-slide-left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* === ATMOSPHERIC SCENE WRAPPER === */
+.atmo-scene {
+  position: relative;
+  overflow: hidden;
+}
+
+.atmo-scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    hsl(var(--background) / 0.03) 40%,
+    hsl(var(--background) / 0.08) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* === DEPTH-OF-FIELD BLUR for secondary elements === */
+.dof-bg {
+  filter: blur(1px);
+  opacity: 0.7;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.dof-bg:hover,
+.dof-bg:focus-within {
+  filter: blur(0);
+  opacity: 1;
+}
+
+/* === PARALLAX LAYERS === */
+.parallax-layer-bg {
+  transform: translateZ(-2px) scale(1.2);
+}
+
+.parallax-layer-mid {
+  transform: translateZ(-1px) scale(1.1);
+}
+
+.parallax-layer-fg {
+  transform: translateZ(0);
+}
+
+/* === REWARD REVEAL 3D === */
+@keyframes reward-drop {
+  0% { transform: translateY(-80px) rotateX(90deg) scale(0.3); opacity: 0; }
+  40% { transform: translateY(10px) rotateX(-10deg) scale(1.1); opacity: 1; }
+  60% { transform: translateY(-5px) rotateX(5deg) scale(0.95); }
+  80% { transform: translateY(2px) rotateX(-2deg) scale(1.02); }
+  100% { transform: translateY(0) rotateX(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes reward-glow-ring {
+  0% { transform: scale(0.5) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(1.5) rotate(360deg); opacity: 0; }
+}
+
+@keyframes reward-particles-burst {
+  0% { transform: scale(0); opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.reward-drop {
+  animation: reward-drop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.reward-glow-ring {
+  animation: reward-glow-ring 1.2s ease-out both;
+}
+
+.reward-particles-burst {
+  animation: reward-particles-burst 0.8s ease-out both;
+}
+
+/* === TOTEM PEDESTAL === */
+.totem-pedestal {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.totem-pedestal::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 15%;
+  right: 15%;
+  height: 8px;
+  background: radial-gradient(ellipse at center, hsl(0 0% 0% / 0.35), transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+/* === UNLOCK SEQUENCE ANIMATION === */
+@keyframes unlock-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-3px) rotate(-2deg); }
+  20% { transform: translateX(3px) rotate(2deg); }
+  30% { transform: translateX(-2px) rotate(-1deg); }
+  40% { transform: translateX(2px) rotate(1deg); }
+  50% { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes unlock-light-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.unlock-shake {
+  animation: unlock-shake 0.6s ease-in-out;
+}
+
+.unlock-light-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.unlock-light-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.15), transparent);
+  animation: unlock-light-sweep 1s ease-out 0.3s both;
+}
+
+/* === VOLUMETRIC INNER LIGHT (for open doors) === */
+@keyframes inner-light-flicker {
+  0%, 100% { opacity: 0.6; }
+  30% { opacity: 0.8; }
+  60% { opacity: 0.5; }
+  90% { opacity: 0.7; }
+}
+
+.inner-light {
+  position: relative;
+}
+
+.inner-light::before {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  background: radial-gradient(ellipse at center,
+    var(--inner-light-color, hsl(var(--primary) / 0.12)),
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: inner-light-flicker 4s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* === ISOMETRIC ZONE BUILDING === */
+.iso-building {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+
+/* Top face */
+.iso-building::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom right,
+    hsl(0 0% 100% / 0.04),
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Right face (depth) */
+.iso-building::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: -4px;
+  bottom: -8px;
+  top: 8px;
+  border-radius: inherit;
+  background: hsl(0 0% 0% / 0.2);
+  z-index: -1;
+  filter: blur(1px);
+}
+
+.iso-building:hover {
+  transform: translateY(-6px);
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  .room-3d, .artifact-3d, .sigil-3d, .iso-building, .door-icon-3d {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .room-3d:hover, .artifact-3d:hover, .iso-building:hover {
+    transform: none !important;
+  }
+
+  .fog-3d::after,
+  .zone-halo::before,
+  .inner-light::before {
+    animation: none !important;
+  }
+
+  .camera-enter-room,
+  .camera-exit-room,
+  .camera-slide-right,
+  .camera-slide-left {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .reward-drop,
+  .reward-glow-ring,
+  .reward-particles-burst,
+  .unlock-shake,
+  .artifact-float {
+    animation: none !important;
+  }
+
+  .ambient-orb,
+  .ambient-orb-1,
+  .ambient-orb-2,
+  .ambient-orb-3 {
+    animation: none !important;
+  }
+
+  .dof-bg {
+    filter: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* === PERFORMANCE FALLBACK (low-power devices) === */
+@media (max-width: 640px) {
+  .fog-3d::after {
+    backdrop-filter: none;
+    background: hsl(var(--background) / 0.85);
+  }
+
+  .room-3d::after {
+    display: none;
+  }
+
+  .iso-building::after {
+    display: none;
+  }
+
+  .dof-bg {
+    filter: none;
+    opacity: 0.85;
+  }
+}

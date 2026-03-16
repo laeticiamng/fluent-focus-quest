@@ -9,8 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Shuffle, ChevronDown, ChevronUp, Sparkles, Copy, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
+const REGISSEUR_PERSONA = `Tu es le Regisseur, maitre de la mise en scene des entretiens medicaux. Tu analyses les performances avec l'oeil d'un directeur artistique exigeant mais bienveillant. Utilise des metaphores de theatre : "ta replique porte bien", "cette scene manque de conviction", "excellent jeu de scene".`;
+
 function buildAnalysisPrompt(question: string, reference: string, said: string) {
-  return `Tu es un coach médical bienveillant et expert. Une médecin se prépare à son entretien en allemand pour le Spitalzentrum Biel (Suisse).
+  return `${REGISSEUR_PERSONA}
+
+Tu es un coach médical bienveillant et expert. Une médecin se prépare à son entretien en allemand pour le Spitalzentrum Biel (Suisse).
 
 Question posée : "${question}"
 Réponse de référence : "${reference}"
@@ -79,14 +83,32 @@ export function InterviewStudio({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🎙</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Studio d'entretien</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Enregistre → écoute → analyse IA → améliore</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(32 95% 55% / 0.08), hsl(var(--card)), hsl(270 60% 55% / 0.04))",
+          border: "1px solid hsl(32 95% 55% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(32 95% 55% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-amber-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotateY: [0, 8, -8, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-amber-500/12 border border-amber-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(32 95% 55% / 0.2)" }}
+          >
+            🎙
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Le Plateau</h2>
+            <p className="text-[10px] text-amber-400/50 font-medium">Scene du Regisseur</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {!q ? (
         <div className="space-y-4">
@@ -197,9 +219,15 @@ export function InterviewStudio({ addXp }: { addXp: (n: number) => void }) {
                 className="card-elevated rounded-2xl p-5 border-l-[3px] border-clinical/40"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-clinical" />
-                    <p className="text-xs font-bold text-clinical uppercase tracking-wider">Coach IA · Analyse</p>
+                  <div className="flex items-center gap-2.5">
+                    <motion.div animate={{ rotateY: [0, 8, -8, 0] }} transition={{ duration: 5, repeat: Infinity }}
+                      className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-sm">
+                      🎬
+                    </motion.div>
+                    <div>
+                      <p className="text-[10px] font-black text-amber-400 uppercase tracking-[2px]">Regisseur</p>
+                      <p className="text-[9px] text-amber-400/40">Analyse de scene</p>
+                    </div>
                   </div>
                   <button
                     onClick={handleCopy}

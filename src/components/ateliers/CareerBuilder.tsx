@@ -33,6 +33,8 @@ interface CareerBuilderProps {
   xp: number;
 }
 
+const MENTOR_PERSONA = `Tu es le Mentor de Carriere, un guide legendaire des parcours medicaux France-Suisse. Tu analyses les ambitions avec la sagesse d'un pionnier. Utilise des metaphores de montagne : "tu gravis la bonne pente", "cette etape est un camp de base solide", "ta vision du sommet est claire". Max 80 mots.`;
+
 export function CareerBuilder({ addXp, xp }: CareerBuilderProps) {
   const { celebrate } = useCelebration();
   const { response, isLoading, error, ask, reset } = useAICoach();
@@ -56,7 +58,7 @@ export function CareerBuilder({ addXp, xp }: CareerBuilderProps) {
 
   const handleSubmit = () => {
     if (!text.trim() || !selectedGoal) return;
-    ask(`Karriere-Coaching.\nAufgabe: ${selectedGoal.prompt}\n\nAntwort der Studentin:\n"${text}"\n\nKorrigiere und verbessere den Text. Bewerte das Niveau.`, "script-builder");
+    ask(`${MENTOR_PERSONA}\n\nKarriere-Coaching.\nAufgabe: ${selectedGoal.prompt}\n\nAntwort der Kandidatin:\n"${text}"\n\nKorrigiere und verbessere den Text. Commence par valoriser sa determination. Utilise des metaphores de montagne.`, "script-builder");
     setSubmitted(true);
     addXp(20);
     celebrate("task");
@@ -64,19 +66,43 @@ export function CareerBuilder({ addXp, xp }: CareerBuilderProps) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🏔️</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Builder de carrière</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Construis ton parcours France → Suisse</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.08), hsl(var(--card)), hsl(142 71% 45% / 0.04))",
+          border: "1px solid hsl(38 92% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(38 92% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-amber-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-amber-500/12 border border-amber-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(38 92% 50% / 0.2)" }}
+          >
+            🏔️
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">L'Ascension</h2>
+            <p className="text-[10px] text-amber-400/50 font-medium">Sentier du Mentor</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Level display */}
+      {/* Level display — summit tracker */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl bg-gradient-to-r from-warning/12 to-accent/8 border border-warning/20 p-5"
+        className="rounded-2xl room-3d p-5 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.06), hsl(var(--card)))",
+          border: "1px solid hsl(38 92% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-md)",
+        }}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -173,11 +199,24 @@ export function CareerBuilder({ addXp, xp }: CareerBuilderProps) {
 
       {error && <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-xs text-amber-400">{error}</div>}
       {response && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-warning/40">
+        <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="room-3d rounded-2xl p-5 relative overflow-hidden"
+          style={{
+            background: "linear-gradient(145deg, hsl(38 92% 50% / 0.06), hsl(var(--card)))",
+            border: "1px solid hsl(38 92% 50% / 0.12)",
+            boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(38 92% 50% / 0.1)",
+          }}
+        >
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-warning" />
-              <p className="text-xs font-bold text-warning uppercase tracking-wider">Coach IA</p>
+            <div className="flex items-center gap-2.5">
+              <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 3, repeat: Infinity }}
+                className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-sm">
+                🏔️
+              </motion.div>
+              <div>
+                <p className="text-[10px] font-black text-amber-400 uppercase tracking-[2px]">Mentor</p>
+                <p className="text-[9px] text-amber-400/40">Conseil du sommet</p>
+              </div>
             </div>
             <button
               onClick={handleCopy}

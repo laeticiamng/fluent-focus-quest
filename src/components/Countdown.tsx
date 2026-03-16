@@ -24,7 +24,8 @@ export function Countdown() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="card-elevated rounded-2xl p-6 relative overflow-hidden"
+      className="room-3d rounded-2xl p-6 relative overflow-hidden"
+      style={{ boxShadow: "var(--shadow-3d-lg)" }}
     >
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-info/5 pointer-events-none" />
@@ -40,7 +41,7 @@ export function Countdown() {
             animate={i === 3 ? { scale: [1, 1.04, 1] } : {}}
             transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className="w-16 h-16 rounded-xl bg-secondary/60 flex items-center justify-center mb-1.5">
+            <div className="w-16 h-16 rounded-xl bg-secondary/60 flex items-center justify-center mb-1.5 room-3d" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
               <span className={`font-mono text-2xl font-black tracking-tight ${
                 i === 0 ? "gradient-text" : "text-foreground"
               }`}>

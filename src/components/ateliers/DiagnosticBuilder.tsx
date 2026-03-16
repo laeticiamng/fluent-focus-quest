@@ -66,6 +66,8 @@ const CASES = [
   },
 ];
 
+const CHEFARZT_PERSONA = `Tu es le Chefarzt, directeur du service de medecine vasculaire. Tu evalues les diagnostics avec la rigueur d'un chef de service. Utilise des metaphores medicales : "ton raisonnement est methodique", "n'oublie pas le diagnostic differentiel", "excellente demarche clinique". Sois bienveillant mais exigeant. Max 100 mots.`;
+
 export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
   const { celebrate } = useCelebration();
   const { response, isLoading, error, ask, reset } = useAICoach();
@@ -94,7 +96,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   const handleSubmit = () => {
     if (!diagnosis.trim() || !currentCase) return;
-    const prompt = `Symptome des Patienten:\n${currentCase.symptoms.map(s => `- ${s.de}`).join("\n")}\n\nVerdachtsdiagnose der Studentin:\n"${diagnosis}"\n\nBewerte die Diagnose und das klinische Reasoning.`;
+    const prompt = `${CHEFARZT_PERSONA}\n\nSymptome des Patienten:\n${currentCase.symptoms.map(s => `- ${s.de}`).join("\n")}\n\nVerdachtsdiagnose der Kandidatin:\n"${diagnosis}"\n\nBewerte die Diagnose und das klinische Reasoning. Commence par reconnaitre les points forts.`;
     ask(prompt, "diagnostic-builder");
     setSubmitted(true);
     addXp(25);
@@ -103,13 +105,32 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🧠</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Diagnostic Builder</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Construis ton raisonnement clinique en allemand</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(346 77% 50% / 0.08), hsl(var(--card)), hsl(210 70% 50% / 0.04))",
+          border: "1px solid hsl(346 77% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(346 77% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-rose-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-rose-500/12 border border-rose-500/15 flex items-center justify-center"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(346 77% 50% / 0.2)" }}
+          >
+            <Brain className="w-6 h-6 text-rose-400" />
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">Salle de Diagnostic</h2>
+            <p className="text-[10px] text-rose-400/50 font-medium">Bureau du Chefarzt</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {!currentCase ? (
         <div className="space-y-3">
@@ -206,11 +227,24 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
           )}
 
           {response && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-elevated rounded-2xl p-5 border-l-[3px] border-clinical/40">
+            <motion.div initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="room-3d rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(346 77% 50% / 0.06), hsl(var(--card)))",
+                border: "1px solid hsl(346 77% 50% / 0.12)",
+                boxShadow: "var(--shadow-3d-sm), 0 0 20px -6px hsl(346 77% 50% / 0.1)",
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-clinical" />
-                  <p className="text-xs font-bold text-clinical uppercase tracking-wider">Oberarzt IA</p>
+                <div className="flex items-center gap-2.5">
+                  <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}
+                    className="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-sm">
+                    🩺
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-[2px]">Chefarzt</p>
+                    <p className="text-[9px] text-rose-400/40">Evaluation diagnostique</p>
+                  </div>
                 </div>
                 <button
                   onClick={handleCopy}

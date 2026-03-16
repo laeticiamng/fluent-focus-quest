@@ -61,13 +61,40 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
 
   return (
     <div className="space-y-5">
-      <h2 className="text-2xl font-black tracking-tight">🛠️ Salle des outils</h2>
+      {/* Header — L'Atelier du Maitre */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(210 100% 52% / 0.08), hsl(var(--card)), hsl(38 92% 50% / 0.04))",
+          border: "1px solid hsl(210 100% 52% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(210 100% 52% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-blue-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-blue-500/12 border border-blue-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(210 100% 52% / 0.2)" }}
+          >
+            🛠️
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">L'Atelier du Maitre</h2>
+            <p className="text-[10px] text-blue-400/50 font-medium">Etabli de l'Artisan</p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Pomodoro */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card-elevated rounded-2xl p-6"
+        className="room-3d rounded-2xl p-6"
+        style={{ boxShadow: "var(--shadow-3d-md)" }}
       >
         <div className="flex justify-between items-center mb-5">
           <h3 className="text-sm font-bold text-primary">⏱️ Session de forge</h3>
@@ -98,7 +125,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       </motion.div>
 
       {/* Notes */}
-      <div className="card-elevated rounded-2xl p-5">
+      <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <h3 className="text-sm font-bold mb-3">📝 Mon carnet de bord</h3>
         <textarea
           value={notes}
@@ -109,7 +136,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       </div>
 
       {/* Voice Recorder */}
-      <div className="card-elevated rounded-2xl p-5">
+      <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <h3 className="text-sm font-bold mb-3">🎙️ Studio vocal</h3>
         <p className="text-[11px] text-muted-foreground mb-3">Enregistre, reecoute, perfectionne. Chaque prise est un artefact de progression.</p>
         <VoiceRecorder label="Enregistrement atelier" />
@@ -118,7 +145,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Templates */}
       <h3 className="text-sm font-bold">📄 Templates & Modèles</h3>
       {TEMPLATES.map((tpl, ti) => (
-        <div key={ti} className="card-elevated rounded-2xl overflow-hidden">
+        <div key={ti} className="room-3d rounded-2xl overflow-hidden" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <button
             onClick={() => setOpenTemplate(openTemplate === ti ? null : ti)}
             className="w-full p-4 text-left flex items-center gap-3 hover:bg-secondary/30 transition-colors"
@@ -155,7 +182,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Survival */}
       <h3 className="text-sm font-bold">🆘 Phrases de survie</h3>
       {SURVIVAL.map((cat, ci) => (
-        <div key={ci} className={`card-elevated rounded-2xl p-4 border-l-[3px] ${SURV_COLORS[ci].split(" ")[0]}`}>
+        <div key={ci} className={`room-3d rounded-2xl p-4 border-l-[3px] ${SURV_COLORS[ci].split(" ")[0]}`} style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className={`text-xs font-bold mb-3 ${SURV_COLORS[ci].split(" ")[1]}`}>{cat.cat}</p>
           <div className="space-y-2.5">
             {cat.items.map((p, pi) => (
@@ -171,13 +198,13 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* DO / DON'T */}
       <h3 className="text-sm font-bold">🇨🇭 DO / DON'T Jour J</h3>
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="card-elevated rounded-2xl p-4 border-l-[3px] border-success/20">
+        <div className="room-3d rounded-2xl p-4 border-l-[3px] border-success/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold text-success mb-2.5">✅ DO</p>
           {["15 min en avance","Serrer la main","Grüezi / Uf Widerluege","Vouvoyer (Sie)","Poser des questions","Remercier chacun","Accepter le café","Contact visuel","Sourire naturel"].map((d, i) => (
             <p key={i} className="text-[10px] leading-[1.6]">{d}</p>
           ))}
         </div>
-        <div className="card-elevated rounded-2xl p-4 border-l-[3px] border-primary/20">
+        <div className="room-3d rounded-2xl p-4 border-l-[3px] border-primary/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold text-primary mb-2.5">❌ DON'T</p>
           {["Jamais en retard","Pas tutoyer","Pas interrompre","Pas critiquer FR vs CH","Pas de téléphone","Pas voix forte","Email merci le soir","Pas bras croisés","Pas mâcher gum"].map((d, i) => (
             <p key={i} className="text-[10px] leading-[1.6]">{d}</p>
@@ -188,7 +215,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Checklist */}
       <h3 className="text-sm font-bold">✅ Checklist Jour J</h3>
       {CHECKLIST.map((cat, catI) => (
-        <div key={catI} className="card-elevated rounded-2xl p-4">
+        <div key={catI} className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold mb-3">{cat.cat}</p>
           <div className="space-y-2">
             {cat.items.map((item, itemI) => {

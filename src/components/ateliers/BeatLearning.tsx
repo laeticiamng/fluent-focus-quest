@@ -65,13 +65,32 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">🎵</span>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">Beat Learning</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Apprends au rythme — prononce chaque mot sur le beat</p>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        style={{
+          background: "linear-gradient(145deg, hsl(38 92% 50% / 0.08), hsl(var(--card)), hsl(270 60% 55% / 0.04))",
+          border: "1px solid hsl(38 92% 50% / 0.12)",
+          boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(38 92% 50% / 0.12)",
+        }}
+      >
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-amber-400/10 to-transparent" />
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ scale: [1, 1.1, 1], rotateZ: [-3, 3, -3] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="door-icon-3d w-12 h-12 rounded-xl bg-amber-500/12 border border-amber-500/15 flex items-center justify-center text-2xl"
+            style={{ boxShadow: "var(--shadow-3d-sm), 0 0 14px -4px hsl(38 92% 50% / 0.2)" }}
+          >
+            🎵
+          </motion.div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight">La Salle du Rythme</h2>
+            <p className="text-[10px] text-amber-400/50 font-medium">Chambre du Metronome</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Deck selection */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
@@ -113,10 +132,15 @@ export function BeatLearning({ addXp }: { addXp: (n: number) => void }) {
         </button>
       </div>
 
-      {/* Current word display */}
+      {/* Current word display — rhythmic anvil */}
       {current && (
         <motion.div
-          className="rounded-2xl bg-gradient-to-br from-warning/12 via-card to-accent/8 border border-warning/20 p-8 sm:p-12 text-center relative overflow-hidden"
+          className="rounded-2xl room-3d room-accessible p-8 sm:p-12 text-center relative overflow-hidden"
+          style={{
+            background: "linear-gradient(145deg, hsl(38 92% 50% / 0.06), hsl(var(--card)))",
+            border: "1px solid hsl(38 92% 50% / 0.12)",
+            boxShadow: "var(--shadow-3d-lg)",
+          }}
         >
           {/* Beat pulse */}
           {playing && (

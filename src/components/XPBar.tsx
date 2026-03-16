@@ -36,22 +36,30 @@ export function XPBar({ xp, compact = false }: XPBarProps) {
 
   return (
     <>
-      {/* Rank up celebration */}
+      {/* Rank up celebration — volumetric 3D */}
       <AnimatePresence>
         {showRankUp && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`rounded-2xl bg-gradient-to-r ${rank.bg} border ${rank.border} p-5 text-center mb-2 ${rank.glow}`}
+            initial={{ opacity: 0, scale: 0.85, y: -15, rotateX: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            className="room-3d rounded-2xl p-6 text-center mb-2 relative overflow-hidden"
+            style={{
+              background: `linear-gradient(145deg, hsl(var(--card)), hsl(var(--card)))`,
+              boxShadow: "var(--shadow-3d-xl), 0 0 60px -12px hsl(38 92% 50% / 0.3)",
+            }}
           >
+            <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-amber-400/15 to-transparent" />
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-amber-500/[0.06] blur-[40px] rounded-full" />
+            </div>
             <motion.div
-              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.2, 1] }}
-              transition={{ duration: 1 }}
-              className="text-4xl mb-2"
+              animate={{ rotateY: [0, 360], scale: [1, 1.3, 1] }}
+              transition={{ duration: 1.5 }}
+              className="text-5xl mb-3 inline-block relative z-10"
             >{rank.icon}</motion.div>
-            <p className={`text-sm font-black ${rank.color}`}>Rang obtenu : {rank.name} !</p>
-            <p className="text-[10px] text-muted-foreground mt-1">{rank.desc}</p>
+            <p className={`text-sm font-black ${rank.color} relative z-10`}>Rang obtenu : {rank.name} !</p>
+            <p className="text-[10px] text-muted-foreground mt-1 relative z-10">{rank.desc}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -60,17 +68,29 @@ export function XPBar({ xp, compact = false }: XPBarProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className={`card-elevated rounded-2xl p-4 relative overflow-hidden`}
+        className="room-3d rounded-2xl p-4 relative overflow-hidden"
+        style={{
+          background: rankIndex >= 2
+            ? `linear-gradient(145deg, hsl(38 92% 50% / 0.06), hsl(var(--card)))`
+            : undefined,
+          border: rankIndex >= 2 ? "1px solid hsl(38 92% 50% / 0.1)" : undefined,
+          boxShadow: "var(--shadow-3d-md)",
+        }}
       >
+        {/* Top edge highlight */}
+        <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
         {/* Subtle glow for higher ranks */}
         {rankIndex >= 2 && (
-          <div className={`absolute inset-0 bg-gradient-to-r ${rank.bg} opacity-30 pointer-events-none`} />
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-16 bg-amber-500/[0.04] blur-[30px] rounded-full" />
+          </div>
         )}
 
         <div className="relative z-10 flex items-center gap-4">
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${rank.bg} border ${rank.border} flex items-center justify-center text-2xl cursor-default select-none shrink-0 ${rank.glow}`}
+            whileHover={{ scale: 1.1, rotateY: 15 }}
+            className={`door-icon-3d w-14 h-14 rounded-2xl bg-gradient-to-br ${rank.bg} border ${rank.border} flex items-center justify-center text-2xl cursor-default select-none shrink-0 ${rank.glow}`}
+            style={{ boxShadow: "var(--shadow-3d-md)" }}
           >
             {rank.icon}
           </motion.div>
