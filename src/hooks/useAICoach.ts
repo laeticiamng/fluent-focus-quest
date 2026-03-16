@@ -1,14 +1,13 @@
 import { useState, useCallback } from "react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`;
+let aiCreditsExhausted = false;
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 export type AIStatus = "idle" | "loading" | "success" | "error" | "credits_exhausted" | "rate_limited" | "fallback";
 
-// Basic offline feedback when AI is unavailable
 function generateFallback(userMessage: string, mode: string): string {
-  // Extract the word/phrase from the prompt
   const wordMatch = userMessage.match(/Mot a (?:forger|transmuter)\s*:\s*"?([^"(]+)"?\s*\(([^)]+)\)/i);
   const phraseMatch = userMessage.match(/(?:Phrase forgee|Formule creee)[^:]*:\s*"([^"]+)"/i);
 
@@ -17,34 +16,32 @@ function generateFallback(userMessage: string, mode: string): string {
   const phrase = phraseMatch?.[1]?.trim() || "";
 
   if (mode === "phrase-lab" && word && phrase) {
-    const hasWord = phrase.toLowerCase().includes(word.toLowerCase().replace(/^(der|die|das)\s+/i, ""));
+    const normalizedWord = word.toLowerCase().replace(/^(der|die|das)\s+/i, "");
+    const hasWord = phrase.toLowerCase().includes(normalizedWord);
     const hasCapital = /[A-ZÄÖÜ]/.test(phrase.charAt(0));
-    const hasPeriod = phrase.endsWith(".");
-    const wordCount = phrase.split(/\s+/).length;
+    const hasPeriod = /[.!?]$/.test(phrase);
+    const wordCount = phrase.trim().split(/\s+/).filter(Boolean).length;
 
     const tips: string[] = [];
-    if (hasWord) tips.push(`✅ Tu as bien utilisé "${word}" dans ta phrase.`);
-    else tips.push(`⚠️ Vérifie que "${word}" apparaît dans ta phrase.`);
-    if (!hasCapital) tips.push("💡 En allemand, la phrase commence toujours par une majuscule.");
-    if (!hasPeriod) tips.push("💡 N'oublie pas le point à la fin de ta phrase.");
-    if (wordCount < 4) tips.push("💡 Essaie de construire une phrase plus complète (sujet + verbe + complément).");
-    else if (wordCount >= 6) tips.push("👏 Belle construction ! Phrase bien développée.");
-
-    tips.push(`\n📖 Rappel : "${word}" = ${translation}`);
-    tips.push("\n⏳ Le coach IA est temporairement indisponible. Ces conseils sont générés localement. Tes XP sont bien comptabilisés !");
+    tips.push(hasWord ? `✅ Tu as bien intégré « ${word} » dans ta phrase.` : `⚠️ Vérifie que « ${word} » apparaît bien dans ta phrase.`);
+    if (!hasCapital) tips.push("💡 Commence ta phrase par une majuscule.");
+    if (!hasPeriod) tips.push("💡 Ajoute une ponctuation finale pour la rendre plus naturelle.");
+    if (wordCount < 4) tips.push("💡 Essaie une structure plus complète : sujet + verbe + complément.");
+    else tips.push("👏 Ta base est claire et exploitable.");
+    tips.push(`📖 Rappel vocabulaire : ${word} = ${translation}`);
+    tips.push("✍️ Version enrichie possible : essaie d'ajouter un contexte clinique (localisation, symptôme, examen).\nEx. : Die Arterie im linken Bein ist verengt.");
 
     return tips.join("\n");
   }
 
-  // Generic fallback for other modes
   const genericTips: Record<string, string> = {
-    "phrase-lab": "⏳ Coach IA indisponible. Conseils rapides :\n• Vérifie la majuscule en début de phrase\n• Les noms allemands prennent toujours une majuscule\n• Structure : Sujet + Verbe + Complément\n• Termine par un point\n\nTes XP sont bien comptabilisés !",
-    "script-builder": "⏳ Coach IA indisponible. Conseils rapides :\n• Structure SBAR : Situation → Background → Assessment → Recommendation\n• Utilise le présent pour décrire l'état actuel\n• Sois précis dans les valeurs (Blutdruck, Puls...)\n\nTon script est sauvegardé !",
-    "diagnostic-builder": "⏳ Coach IA indisponible. Conseils rapides :\n• Pense aux diagnostics différentiels\n• Vérifie les Red Flags\n• Structure : Anamnese → Untersuchung → Verdachtsdiagnose\n\nTon raisonnement est sauvegardé !",
-    "case-creator": "⏳ Coach IA indisponible. Conseils rapides :\n• Anamnese complète : Hauptbeschwerde, Vorgeschichte, Medikamente\n• Untersuchung : systématique tête-pieds\n• Diagnose + Differentialdiagnosen\n\nTon cas est sauvegardé !",
+    "phrase-lab": "✅ Vérifie la majuscule initiale et la présence du mot demandé.\n💡 Structure utile : sujet + verbe + complément.\n✍️ Essaie d'ajouter un détail clinique concret.",
+    "script-builder": "✅ Garde une structure claire.\n💡 Pense SBAR : Situation → Background → Assessment → Recommendation.\n✍️ Rends ton texte plus précis avec des données cliniques.",
+    "diagnostic-builder": "✅ Ta réponse est enregistrée.\n💡 Pense au diagnostic principal + diagnostics différentiels.\n✍️ Ajoute la prochaine étape clinique logique.",
+    "case-creator": "✅ Ton cas est sauvegardé.\n💡 Vérifie : anamnèse, examen, diagnostic, conduite à tenir.\n✍️ Ajoute plus de détails médicaux concrets.",
   };
 
-  return genericTips[mode] || "⏳ Coach IA temporairement indisponible. Ta création est sauvegardée et tes XP sont comptabilisés !";
+  return genericTips[mode] || "✅ Ta création est sauvegardée.\n💡 Le coach IA est indisponible, mais tu peux continuer avec un feedback local basique.";
 }
 
 export function useAICoach() {
@@ -58,6 +55,14 @@ export function useAICoach() {
     setResponse("");
     setError(null);
     setStatus("loading");
+
+    if (aiCreditsExhausted) {
+      setResponse(generateFallback(userMessage, mode));
+      setError("Le coach IA est temporairement indisponible (crédits épuisés). Feedback local activé.");
+      setStatus("fallback");
+      setIsLoading(false);
+      return;
+    }
 
     const messages: Msg[] = [{ role: "user", content: userMessage }];
 
@@ -73,17 +78,16 @@ export function useAICoach() {
 
       if (!resp.ok) {
         if (resp.status === 429) {
-          const fallback = generateFallback(userMessage, mode);
-          setResponse(fallback);
-          setError(null);
+          setResponse(generateFallback(userMessage, mode));
+          setError("Le coach IA est momentanément occupé. Feedback local activé.");
           setStatus("fallback");
           setIsLoading(false);
           return;
         }
         if (resp.status === 402) {
-          const fallback = generateFallback(userMessage, mode);
-          setResponse(fallback);
-          setError(null);
+          aiCreditsExhausted = true;
+          setResponse(generateFallback(userMessage, mode));
+          setError("Le coach IA est temporairement indisponible (crédits épuisés). Feedback local activé.");
           setStatus("fallback");
           setIsLoading(false);
           return;
@@ -94,9 +98,29 @@ export function useAICoach() {
         return;
       }
 
+      const contentType = resp.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const payload = await resp.json().catch(() => null) as { fallback?: boolean; reason?: string; error?: string } | null;
+
+        if (payload?.fallback) {
+          if (payload.reason === "credits_exhausted") aiCreditsExhausted = true;
+          setResponse(generateFallback(userMessage, mode));
+          setError(
+            payload.reason === "credits_exhausted"
+              ? "Le coach IA est temporairement indisponible (crédits épuisés). Feedback local activé."
+              : payload.reason === "rate_limited"
+                ? "Le coach IA est momentanément occupé. Feedback local activé."
+                : "Le coach IA est indisponible. Feedback local activé."
+          );
+          setStatus("fallback");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       if (!resp.body) {
-        const fallback = generateFallback(userMessage, mode);
-        setResponse(fallback);
+        setResponse(generateFallback(userMessage, mode));
+        setError("Le coach IA n'a pas pu répondre. Feedback local activé.");
         setStatus("fallback");
         setIsLoading(false);
         return;
@@ -142,7 +166,6 @@ export function useAICoach() {
         }
       }
 
-      // Final flush
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split("\n")) {
           if (!raw) continue;
@@ -158,7 +181,9 @@ export function useAICoach() {
               fullText += content;
               setResponse(fullText);
             }
-          } catch { /* ignore */ }
+          } catch {
+            // ignore leftover partial chunks
+          }
         }
       }
 
@@ -166,8 +191,8 @@ export function useAICoach() {
       setIsLoading(false);
     } catch (e) {
       console.error("AI coach error:", e);
-      const fallback = generateFallback(userMessage, mode);
-      setResponse(fallback);
+      setResponse(generateFallback(userMessage, mode));
+      setError("Connexion au coach interrompue. Feedback local activé.");
       setStatus("fallback");
       setIsLoading(false);
     }

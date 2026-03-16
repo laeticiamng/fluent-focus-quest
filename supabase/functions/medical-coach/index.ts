@@ -108,14 +108,22 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Trop de requêtes, réessaie dans quelques secondes." }), {
-          status: 429,
+        return new Response(JSON.stringify({
+          fallback: true,
+          reason: "rate_limited",
+          error: "Trop de requêtes, réessaie dans quelques secondes.",
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits épuisés." }), {
-          status: 402,
+        return new Response(JSON.stringify({
+          fallback: true,
+          reason: "credits_exhausted",
+          error: "Crédits épuisés.",
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
