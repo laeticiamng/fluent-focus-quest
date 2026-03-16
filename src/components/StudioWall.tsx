@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import type { Artifact, ArtifactType, ZoneId } from "@/hooks/useProgress";
 import { ZONES, CREATION_BADGES } from "@/hooks/useProgress";
+import { getBuilderRank } from "@/data/content";
+import { RankBadge } from "./XPBar";
 
 interface StudioWallProps {
   artifacts: Artifact[];
@@ -37,6 +39,8 @@ const WALL_LEVELS = [
 ];
 
 export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: StudioWallProps) {
+  const { rank, nextRank, progressToNext } = getBuilderRank(xp);
+
   const currentLevel = useMemo(() => {
     let lvl = WALL_LEVELS[0];
     for (const l of WALL_LEVELS) {
@@ -60,11 +64,12 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
 
   return (
     <div className="space-y-5">
+      {/* Header with rank */}
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{currentLevel.icon}</span>
+        <RankBadge xp={xp} size="lg" />
         <div>
-          <h2 className="text-2xl font-black tracking-tight">Mon QG</h2>
-          <p className="text-xs text-muted-foreground">{currentLevel.name} — {currentLevel.desc}</p>
+          <h2 className="text-2xl font-black tracking-tight">Quartier General</h2>
+          <p className={`text-xs ${rank.color} font-bold`}>{rank.name} — {rank.desc}</p>
         </div>
       </div>
 
@@ -74,7 +79,7 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
         animate={{ opacity: 1, scale: 1 }}
         className="relative rounded-3xl bg-gradient-to-b from-amber-500/10 via-card to-background border border-amber-500/15 p-6 overflow-hidden min-h-[200px]"
       >
-        {/* Background stars/particles for high levels */}
+        {/* Background particles for high levels */}
         {artifacts.length >= 25 && (
           <div className="absolute inset-0 pointer-events-none">
             {Array.from({ length: Math.min(artifacts.length / 5, 15) }).map((_, i) => (
@@ -89,35 +94,43 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
           </div>
         )}
 
-        {/* Brick wall */}
         <div className="relative z-10">
-          <div className="flex flex-wrap gap-1 justify-center mb-4">
-            {recentArtifacts.map((a, i) => (
-              <motion.div
-                key={a.id}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: i * 0.04, type: "spring", stiffness: 300 }}
-                className="w-10 h-7 rounded-md bg-amber-500/20 border border-amber-500/15 flex items-center justify-center text-xs cursor-default"
-                title={`${a.content.slice(0, 30)}...`}
-              >
-                {TYPE_ICON[a.type] || "📝"}
-              </motion.div>
-            ))}
-            {artifacts.length > 12 && (
-              <div className="w-10 h-7 rounded-md bg-amber-500/10 border border-amber-500/10 flex items-center justify-center text-[9px] text-amber-400/70 font-bold">
-                +{artifacts.length - 12}
-              </div>
-            )}
-          </div>
+          {/* Brick wall — artifacts visualization */}
+          {recentArtifacts.length > 0 ? (
+            <div className="flex flex-wrap gap-1 justify-center mb-4">
+              {recentArtifacts.map((a, i) => (
+                <motion.div
+                  key={a.id}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.04, type: "spring", stiffness: 300 }}
+                  className="w-10 h-7 rounded-md bg-amber-500/20 border border-amber-500/15 flex items-center justify-center text-xs cursor-default"
+                  title={`${a.content.slice(0, 30)}...`}
+                >
+                  {TYPE_ICON[a.type] || "📝"}
+                </motion.div>
+              ))}
+              {artifacts.length > 12 && (
+                <div className="w-10 h-7 rounded-md bg-amber-500/10 border border-amber-500/10 flex items-center justify-center text-[9px] text-amber-400/70 font-bold">
+                  +{artifacts.length - 12}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <span className="text-4xl mb-3 block">🏗️</span>
+              <p className="text-sm text-muted-foreground">Ton QG est vide pour l'instant.</p>
+              <p className="text-xs text-amber-400/70 mt-1">Chaque artefact cree apparaitra ici — lance ta premiere mission.</p>
+            </div>
+          )}
 
           {/* Stats row */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             {[
-              { v: artifacts.length, l: "creations", icon: "🔨" },
+              { v: artifacts.length, l: "artefacts", icon: "🔨" },
               { v: xp, l: "XP total", icon: "⚡" },
               { v: unlockedZoneCount, l: `/${ZONES.length} zones`, icon: "🗺️" },
-              { v: streak, l: "streak", icon: "🔥" },
+              { v: streak, l: "serie", icon: "🔥" },
             ].map((s, i) => (
               <motion.div
                 key={i}
@@ -190,7 +203,7 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
       </div>
 
       {/* Badges */}
-      {earnedBadges.length > 0 && (
+      {earnedBadges.length > 0 ? (
         <div className="card-elevated rounded-2xl p-4">
           <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Trophees</p>
           <div className="flex flex-wrap gap-2">
@@ -210,6 +223,12 @@ export function StudioWall({ artifacts, zoneStatus, earnedBadges, streak, xp }: 
               );
             })}
           </div>
+        </div>
+      ) : (
+        <div className="card-elevated rounded-2xl p-5 text-center">
+          <span className="text-3xl mb-2 block">🏆</span>
+          <p className="text-xs text-muted-foreground">Tes premiers trophees apparaitront ici</p>
+          <p className="text-[10px] text-amber-400/60 mt-1">Cree des artefacts pour debloquer des badges</p>
         </div>
       )}
     </div>

@@ -256,7 +256,7 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite de sa constructi
                 )}
 
                 {aiError && (
-                  <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs text-destructive mt-2">{aiError}</div>
+                  <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 mt-2">{aiError}</div>
                 )}
 
                 {/* AI feedback */}

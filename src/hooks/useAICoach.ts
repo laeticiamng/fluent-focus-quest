@@ -4,15 +4,19 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coac
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+export type AIStatus = "idle" | "loading" | "success" | "error" | "credits_exhausted" | "rate_limited";
+
 export function useAICoach() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<AIStatus>("idle");
 
   const ask = useCallback(async (userMessage: string, mode: string) => {
     setIsLoading(true);
     setResponse("");
     setError(null);
+    setStatus("loading");
 
     const messages: Msg[] = [{ role: "user", content: userMessage }];
 
@@ -28,22 +32,26 @@ export function useAICoach() {
 
       if (!resp.ok) {
         if (resp.status === 429) {
-          setError("Trop de requêtes, réessaie dans quelques secondes.");
+          setError("Coach momentanement occupe — reessaie dans quelques secondes. Ta creation est quand meme enregistree !");
+          setStatus("rate_limited");
           setIsLoading(false);
           return;
         }
         if (resp.status === 402) {
-          setError("Crédits IA épuisés.");
+          setError("Le coach IA est temporairement indisponible (credits epuises). Ta creation est sauvegardee — tu gagnes quand meme tes XP. Le feedback reviendra bientot.");
+          setStatus("credits_exhausted");
           setIsLoading(false);
           return;
         }
-        setError("Erreur de connexion IA");
+        setError("Connexion au coach interrompue. Ta creation reste enregistree et tes XP sont comptabilises.");
+        setStatus("error");
         setIsLoading(false);
         return;
       }
 
       if (!resp.body) {
-        setError("Pas de réponse");
+        setError("Le coach n'a pas pu repondre cette fois. Ta creation est sauvegardee.");
+        setStatus("error");
         setIsLoading(false);
         return;
       }
@@ -108,10 +116,12 @@ export function useAICoach() {
         }
       }
 
+      setStatus("success");
       setIsLoading(false);
     } catch (e) {
       console.error("AI coach error:", e);
-      setError("Erreur de connexion");
+      setError("Connexion au coach interrompue. Pas de panique — ta creation est sauvegardee et tes XP sont comptabilises.");
+      setStatus("error");
       setIsLoading(false);
     }
   }, []);
@@ -119,7 +129,8 @@ export function useAICoach() {
   const reset = useCallback(() => {
     setResponse("");
     setError(null);
+    setStatus("idle");
   }, []);
 
-  return { response, isLoading, error, ask, reset };
+  return { response, isLoading, error, status, ask, reset };
 }
