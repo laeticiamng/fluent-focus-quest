@@ -356,6 +356,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
       >
         <Suspense fallback={null}>
           <CinematicIntro targetPosition={[0, 3.8, 5]} startOffset={[0, 2, 4]} duration={2.0} />
+          <CinematicCameraBreathing fovBreath={0.5} breathSpeed={0.1} parallaxStrength={0.15} />
 
           <PremiumLighting preset="showcase" accentColor="#d4a017" rimColor="#6366f1" />
 
