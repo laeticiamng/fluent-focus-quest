@@ -308,10 +308,17 @@ function updateChainProgress(artifacts: Artifact[], questState: QuestState): Que
   const today = new Date().toISOString().split("T")[0];
   const todayArtifacts = artifacts.filter(a => a.date.startsWith(today));
 
+  // Compute required artifact count from typed steps (excluding chain-free)
+  const requiredFromOtherSteps = DAILY_CHAIN_STEPS
+    .filter(s => s.artifactTypes.length > 0)
+    .reduce((sum, s) => sum + s.minCount, 0);
+
   const chainProgress: Record<string, number> = {};
   for (const step of DAILY_CHAIN_STEPS) {
     if (step.artifactTypes.length === 0) {
-      chainProgress[step.id] = todayArtifacts.length > 0 ? 1 : 0;
+      // "Creation libre": count only artifacts beyond what other steps require
+      const extraCount = Math.max(0, todayArtifacts.length - requiredFromOtherSteps);
+      chainProgress[step.id] = extraCount;
     } else {
       chainProgress[step.id] = todayArtifacts.filter(a => step.artifactTypes.includes(a.type)).length;
     }
@@ -739,15 +746,19 @@ export function useProgress() {
   // Chain status
   const chainStatus = useMemo(() => {
     const todayArtifacts = state.artifacts.filter(a => a.date.startsWith(today));
+    const requiredFromOtherSteps = DAILY_CHAIN_STEPS
+      .filter(s => s.artifactTypes.length > 0)
+      .reduce((sum, s) => sum + s.minCount, 0);
+
     return DAILY_CHAIN_STEPS.map((step, i) => {
       const count = step.artifactTypes.length === 0
-        ? (todayArtifacts.length > 0 ? 1 : 0)
+        ? Math.max(0, todayArtifacts.length - requiredFromOtherSteps)
         : todayArtifacts.filter(a => step.artifactTypes.includes(a.type)).length;
       const completed = count >= step.minCount;
       const previousCompleted = i === 0 || (() => {
         const prev = DAILY_CHAIN_STEPS[i - 1];
         const prevCount = prev.artifactTypes.length === 0
-          ? (todayArtifacts.length > 0 ? 1 : 0)
+          ? Math.max(0, todayArtifacts.length - requiredFromOtherSteps)
           : todayArtifacts.filter(a => prev.artifactTypes.includes(a.type)).length;
         return prevCount >= prev.minCount;
       })();

@@ -64,7 +64,7 @@ export function EscapeMap({ escapeZoneStatus, artifacts, onNavigate, sigilsColle
               <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1.5"
                 style={{ boxShadow: "0 0 12px -4px hsl(32 95% 55% / 0.2)" }}>
                 <Shield className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-bold text-amber-400">{sigilsCollected.length}/6</span>
+                <span className="text-[10px] font-bold text-amber-400">{sigilsCollected.length}/7</span>
               </div>
             </div>
 

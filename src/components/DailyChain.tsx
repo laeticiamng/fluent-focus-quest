@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Lock, ChevronRight, KeyRound } from "lucide-react";
 import { DAILY_CHAIN_STEPS, ZONES, type ZoneId } from "@/hooks/useProgress";
+import { ZONE_TAB_MAP } from "@/data/escapeGame";
 
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq";
 
@@ -23,15 +24,6 @@ interface DailyChainProps {
   onNavigate: (tab: Tab) => void;
   completedChains: number;
 }
-
-const ZONE_TAB_MAP: Record<ZoneId, Tab> = {
-  forge: "vocab",
-  grammar: "gram",
-  studio: "iv",
-  clinical: "sim",
-  atelier: "atelier",
-  archive: "portfolio",
-};
 
 const CHAIN_COLORS: Record<ZoneId, { text: string; bg: string; border: string }> = {
   forge: { text: "text-amber-400", bg: "from-amber-500/12 to-amber-500/5", border: "border-amber-500/20" },
@@ -112,7 +104,7 @@ export function DailyChain({ chainStatus, zoneStatus, onNavigate, completedChain
                 <button
                   onClick={() => {
                     if (!isLocked && !step.completed) {
-                      onNavigate(ZONE_TAB_MAP[step.zoneId]);
+                      onNavigate(ZONE_TAB_MAP[step.zoneId] as Tab);
                     }
                   }}
                   disabled={isLocked}
@@ -199,7 +191,7 @@ export function DailyChain({ chainStatus, zoneStatus, onNavigate, completedChain
         <motion.button
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onNavigate(ZONE_TAB_MAP[nextStep.zoneId])}
+          onClick={() => onNavigate(ZONE_TAB_MAP[nextStep.zoneId] as Tab)}
           className={`w-full rounded-2xl bg-gradient-to-r ${CHAIN_COLORS[nextStep.zoneId].bg} border ${CHAIN_COLORS[nextStep.zoneId].border} p-3.5 text-center group`}
         >
           <div className="flex items-center justify-center gap-2">

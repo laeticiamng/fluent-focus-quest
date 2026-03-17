@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Lock, ChevronRight, Sparkles, Shield } from "lucide-react";
 import { ZONES, type ZoneId } from "@/hooks/useProgress";
+import { ZONE_TAB_MAP } from "@/data/escapeGame";
 import { getBuilderRank } from "@/data/content";
 
 interface QuestMapProps {
@@ -10,15 +11,6 @@ interface QuestMapProps {
   onNavigate: (tab: string) => void;
   xp?: number;
 }
-
-const ZONE_TAB_MAP: Record<ZoneId, string> = {
-  forge: "vocab",
-  grammar: "gram",
-  studio: "iv",
-  clinical: "sim",
-  atelier: "atelier",
-  archive: "portfolio",
-};
 
 const ZONE_FLAVOR: Record<ZoneId, { tagline: string; atmosphere: string }> = {
   forge: { tagline: "Construis ton arsenal linguistique", atmosphere: "L'enclume attend tes premieres phrases" },

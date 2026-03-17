@@ -506,7 +506,7 @@ const Index = () => {
                 </motion.button>
 
                 {/* CTA 2: NEXT ROOM — continue the escape-game adventure */}
-                {nextRoom && (
+                {nextRoom ? (
                   <motion.button
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -560,11 +560,51 @@ const Index = () => {
                       </div>
                     </div>
                   </motion.button>
+                ) : solvedRoomCount < totalEscapeRooms ? (
+                  /* All accessible rooms solved but locked rooms remain — guide user */
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                    className="rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+                    style={{
+                      background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                      border: "1px solid hsl(var(--border) / 0.4)",
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center shrink-0">
+                        <KeyRound className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[9px] uppercase tracking-[2px] text-amber-400/70 font-bold">Salles en attente</p>
+                        <p className="text-xs font-bold text-foreground/80">Cree plus d'artefacts pour debloquer la prochaine salle</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {nextLockedRoom?.room ? nextLockedRoom.room.unlockRequirement.details : nextLockedRoom?.zone?.unlockRequirement.details || "Continue ta progression"}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  /* All rooms solved — completion state */
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                    className="rounded-2xl p-4 sm:p-5 text-center relative overflow-hidden"
+                    style={{
+                      background: "linear-gradient(145deg, hsl(142 71% 45% / 0.08), hsl(var(--card)))",
+                      border: "1px solid hsl(142 71% 45% / 0.2)",
+                    }}
+                  >
+                    <p className="text-sm font-black text-emerald-400">Complexe entierement explore</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Toutes les salles sont resolues. Continue ton entrainement pour le jour J.</p>
+                  </motion.div>
                 )}
 
                 {/* CTA 3: ESCAPE-GAME MICRO-LOOP — Daily Phrase Gate */}
                 <PhraseGate
-                  solvedGateIds={escapeState.solvedGateIds || escapeState.solvedPuzzles || []}
+                  solvedGateIds={escapeState.solvedGateIds || []}
                   onSolve={(challengeId, xpReward) => progress.solveGate(challengeId, xpReward)}
                 />
 
@@ -778,6 +818,11 @@ const Index = () => {
                           )}
                           {!isLocked && zs && (
                             <p className="text-[8px] text-muted-foreground mt-1">{zs.roomsSolved}/{zs.totalRooms}</p>
+                          )}
+                          {isLocked && (
+                            <p className="text-[7px] text-muted-foreground/50 mt-1 leading-tight">
+                              {zone.unlockRequirement.details.slice(0, 40)}
+                            </p>
                           )}
                         </div>
                       </motion.button>
