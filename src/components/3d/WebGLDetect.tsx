@@ -46,7 +46,7 @@ interface WebGLDiagnostic {
 
 const diagnostics = new Map<string, WebGLDiagnostic>();
 
-function updateDiagnostic(sceneName: string, update: Partial<WebGLDiagnostic>) {
+export function updateDiagnostic(sceneName: string, update: Partial<WebGLDiagnostic>) {
   const prev = diagnostics.get(sceneName) || {
     mode: "DETECTING" as DiagnosticMode,
     sceneName,
@@ -61,6 +61,10 @@ function updateDiagnostic(sceneName: string, update: Partial<WebGLDiagnostic>) {
 
 export function getWebGLDiagnostics(): WebGLDiagnostic[] {
   return Array.from(diagnostics.values());
+}
+
+export function clearDiagnostics() {
+  diagnostics.clear();
 }
 
 // ── Debug check ──

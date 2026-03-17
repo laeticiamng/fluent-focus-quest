@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { reportAIFailure, reportAIRecovery, isAIInFallback } from "./useAIStatus";
 import { supabaseAvailable } from "@/integrations/supabase/client";
 
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+
 const CHAT_URL = import.meta.env.VITE_SUPABASE_URL
   ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`
   : null;
@@ -171,9 +173,18 @@ export function useAICoach() {
       return;
     }
 
-    // Skip AI if Supabase is not configured
-    if (!CHAT_URL || !supabaseAvailable) {
+    // Skip AI if Supabase is not configured or key is missing
+    if (!CHAT_URL || !supabaseAvailable || !SUPABASE_KEY) {
       setResponse(generateFallback(userMessage, mode));
+      setStatus("fallback");
+      setIsLoading(false);
+      return;
+    }
+
+    // Skip AI if browser is offline
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setResponse(generateFallback(userMessage, mode));
+      setError("Mode hors-ligne — feedback local active.");
       setStatus("fallback");
       setIsLoading(false);
       return;
@@ -195,7 +206,7 @@ export function useAICoach() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
         },
         body: JSON.stringify({ messages, mode }),
       });
