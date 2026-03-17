@@ -906,7 +906,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
               className="flex-1 rounded-xl h-11 gap-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white"
             >
               <ArrowRight className="w-4 h-4" />
-              {questionIndex < (simState === "full_sim" ? fullSimQuestions : currentQuestions).length - 1
+              {questionIndex < (fullSimQuestions.length > 0 ? fullSimQuestions : currentQuestions).length - 1
                 ? "Question suivante"
                 : "Terminer"}
             </Button>

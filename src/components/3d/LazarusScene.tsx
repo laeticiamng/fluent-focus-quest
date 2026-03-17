@@ -19,8 +19,8 @@ interface LazarusSceneProps {
 // ── Central Altar — SPECTACULAR TECHNO-SACRED FOCAL POINT ──
 function Altar({ sigilCount, activated }: { sigilCount: number; activated: boolean }) {
   const coreRef = useRef<THREE.Mesh>(null);
-  const innerRingRef = useRef<THREE.Mesh>(null);
-  const outerRingRef = useRef<THREE.Mesh>(null);
+  const innerRingRef = useRef<THREE.Group>(null);
+  const outerRingRef = useRef<THREE.Group>(null);
   const orbitalRef = useRef<THREE.Mesh>(null);
   const shieldRef = useRef<THREE.Group>(null);
   const columnRef = useRef<THREE.Group>(null);

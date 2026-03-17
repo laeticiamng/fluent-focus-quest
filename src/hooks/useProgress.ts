@@ -452,9 +452,9 @@ export function useProgress() {
           const safeEscapeState = loaded.escapeState && typeof loaded.escapeState === "object"
             ? loaded.escapeState
             : {};
-          const safeQuestState = loaded.questState && typeof loaded.questState === "object"
+          const safeQuestState = (loaded.questState && typeof loaded.questState === "object"
             ? loaded.questState
-            : {};
+            : {}) as Record<string, unknown>;
           setState({
             ...defaultState,
             ...loaded,
