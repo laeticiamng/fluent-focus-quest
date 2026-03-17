@@ -718,6 +718,7 @@ export function LazarusScene({
             bloomSmoothing={0.6}
             vignetteOpacity={activated ? 0.45 : 0.4}
             chromaticAberration={0.0005}
+            quality="high"
           />
 
           <OrbitControls

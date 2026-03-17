@@ -430,6 +430,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             bloomSmoothing={0.6}
             vignetteOpacity={0.35}
             chromaticAberration={0.0005}
+            quality="high"
           />
 
           <OrbitControls

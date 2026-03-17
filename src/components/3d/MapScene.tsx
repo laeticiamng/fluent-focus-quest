@@ -583,7 +583,13 @@ export function MapScene({
           {/* Ambient particles */}
           <AmbientParticles count={40} radius={9} height={5} color="#d4a017" secondaryColor="#6366f1" />
 
-          {/* Fireflies — magical atmosphere */}
+          {/* Energy trails */}
+          <EnergyTrails count={4} radius={6} height={3.5} color="#d4a017" secondaryColor="#6366f1" speed={0.15} />
+
+          {/* Animated fog layers */}
+          <AnimatedFogLayers layers={2} baseY={-0.4} radius={14} color="#080818" maxOpacity={0.12} />
+
+          {/* Fireflies */}
           <Fireflies count={18} radius={8} height={4} color="#fbbf24" secondaryColor="#6366f1" />
 
           {/* Suspended energy arcs */}
