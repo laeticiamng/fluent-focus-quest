@@ -198,13 +198,17 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
       <Float speed={activated ? 3.5 : 1.2} floatIntensity={activated ? 0.35 : 0.1}>
         <mesh ref={coreRef} position={[0, 1.0, 0]} castShadow>
           <icosahedronGeometry args={[0.4, 2]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={coreColor}
             emissive={new THREE.Color(coreEmissive)}
             emissiveIntensity={activated ? 5.0 : 0.6 + intensity * 1.0}
             metalness={0.95}
             roughness={0.02}
             envMapIntensity={1.0}
+            clearcoat={1}
+            clearcoatRoughness={0.05}
+            iridescence={activated ? 1.0 : 0.4}
+            iridescenceIOR={1.8}
           />
         </mesh>
         {/* Holographic distortion aura */}
