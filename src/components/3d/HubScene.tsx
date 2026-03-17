@@ -287,9 +287,9 @@ function Floor() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
         <circleGeometry args={[8, 64]} />
         <meshStandardMaterial
-          color="#0a0a1a"
-          metalness={0.4}
-          roughness={0.6}
+          color="#12122a"
+          metalness={0.5}
+          roughness={0.5}
         />
       </mesh>
 
@@ -354,11 +354,11 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
         <Suspense fallback={null}>
           <CameraSetup />
 
-          {/* Lighting */}
-          <ambientLight intensity={0.15} color="#8888cc" />
+          {/* Lighting — brighter for readability while keeping atmosphere */}
+          <ambientLight intensity={0.35} color="#9999dd" />
           <directionalLight
             position={[5, 8, 3]}
-            intensity={0.4}
+            intensity={0.6}
             color="#ffe4b5"
             castShadow
             shadow-mapSize-width={1024}
@@ -366,10 +366,11 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             shadow-camera-far={20}
             shadow-camera-near={0.1}
           />
-          <pointLight position={[0, 4, 0]} intensity={0.3} color="#d4a017" distance={12} decay={2} />
+          <pointLight position={[0, 4, 0]} intensity={0.5} color="#d4a017" distance={12} decay={2} />
+          <pointLight position={[-4, 3, 4]} intensity={0.2} color="#6366f1" distance={10} decay={2} />
 
-          {/* Fog for atmosphere */}
-          <fog attach="fog" args={["#080818", 8, 18]} />
+          {/* Fog for atmosphere — pushed back for visibility */}
+          <fog attach="fog" args={["#0a0a20", 10, 22]} />
 
           {/* Floor */}
           <Floor />

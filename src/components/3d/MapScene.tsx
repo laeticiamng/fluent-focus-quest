@@ -259,18 +259,18 @@ export function MapScene({
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          {/* Lighting */}
-          <ambientLight intensity={0.12} color="#6666aa" />
+          {/* Lighting — improved visibility */}
+          <ambientLight intensity={0.3} color="#8888cc" />
           <directionalLight
             position={[6, 10, 4]}
-            intensity={0.35}
+            intensity={0.55}
             color="#ffe4b5"
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
           />
 
-          <fog attach="fog" args={["#060610", 10, 22]} />
+          <fog attach="fog" args={["#08081a", 12, 26]} />
 
           <MapFloor />
           <Connectors />

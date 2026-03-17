@@ -125,37 +125,10 @@ function generateFallback(userMessage: string, mode: string): string {
       return tips.join("\n");
     },
 
-    "interview-eval": (msg) => {
-      // Return a JSON-structured fallback evaluation for the InterviewSimulator
-      const wordCount = msg.trim().split(/\s+/).length;
-      const hasVerb = /\b(ist|bin|habe|hat|war|wurde|möchte|kann|arbeite|bringe|suche|denke)\b/i.test(msg);
-      const hasCapital = /^[A-ZÄÖÜ]/.test(msg);
-      const hasMedical = /\b(patient|diagnos|therap|untersuch|befund|ultraschall|angiolog|chirurg|klinik|notaufnahme)\b/i.test(msg);
-      const hasPeriod = /[.!?]$/.test(msg.trim());
-
-      const lang = 6 + (hasCapital ? 3 : 0) + (hasPeriod ? 2 : 0) + (hasVerb ? 4 : 0) + (wordCount > 15 ? 3 : 0);
-      const struct = 5 + (wordCount >= 20 ? 5 : 0) + (msg.split(/[.!?]+/).filter((s: string) => s.trim()).length >= 2 ? 5 : 0);
-      const med = 5 + (hasMedical ? 8 : 0) + (wordCount > 25 ? 3 : 0);
-      const conf = 5 + (/\bich\b/i.test(msg) ? 4 : 0) + (/\b(ich bin|ich habe|ich möchte)\b/i.test(msg) ? 5 : 0);
-      const pers = 5 + (hasMedical ? 4 : 0) + (wordCount > 30 ? 4 : 0) + (/\b(erfahrung|konkret|beispiel)\b/i.test(msg) ? 4 : 0);
-
-      const clamp = (n: number) => Math.max(0, Math.min(20, Math.round(n)));
-      const scores = { language: clamp(lang), structure: clamp(struct), medicalReasoning: clamp(med), confidence: clamp(conf), persuasion: clamp(pers) };
-      const global = scores.language + scores.structure + scores.medicalReasoning + scores.confidence + scores.persuasion;
-
-      return JSON.stringify({
-        scores,
-        globalScore: global,
-        strengths: [
-          hasVerb ? "Utilisation correcte des verbes" : "Tu as essayé — continue",
-          hasMedical ? "Vocabulaire médical présent" : "Longueur acceptable",
-        ],
-        improvements: [
-          !hasMedical ? "Ajoute du vocabulaire médical allemand" : "Enrichis tes arguments",
-          wordCount < 20 ? "Développe ta réponse davantage" : "Ajoute un exemple concret",
-        ],
-        betterVersion: "Version améliorée indisponible en mode local — compare avec la réponse de référence."
-      });
+    "interview-eval": () => {
+      // Return a non-JSON marker so InterviewSimulator uses its own evaluateLocally()
+      // which has full access to question context, keywords, and richer scoring
+      return "[LOCAL_EVAL_FALLBACK]";
     },
 
     "clinical": (msg) => {

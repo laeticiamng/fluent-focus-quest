@@ -250,6 +250,15 @@ const defaultQuestState: QuestState = {
   newUnlocks: [],
 };
 
+const LOCAL_STORAGE_KEY = "fluent-focus-progress-backup";
+
+function safeLocalGet(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeLocalSet(key: string, value: string) {
+  try { localStorage.setItem(key, value); } catch { /* quota exceeded */ }
+}
+
 const defaultState: ProgressState = {
   done: {}, xp: 0, rat: {}, cl: {},
   streak: 0, lastActiveDate: "",
@@ -400,17 +409,56 @@ export function useProgress() {
 
         if (data?.progress_data) {
           const loaded = data.progress_data as unknown as Partial<ProgressState>;
+          // Guard against corrupted arrays and objects
+          const safeArtifacts = Array.isArray(loaded.artifacts)
+            ? loaded.artifacts.filter((a: unknown) => a && typeof a === "object" && "id" in (a as Artifact) && "type" in (a as Artifact))
+            : [];
+          const safeEscapeState = loaded.escapeState && typeof loaded.escapeState === "object"
+            ? loaded.escapeState
+            : {};
+          const safeQuestState = loaded.questState && typeof loaded.questState === "object"
+            ? loaded.questState
+            : {};
           setState({
             ...defaultState,
             ...loaded,
-            artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
-            earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
-            questState: { ...defaultQuestState, ...(loaded.questState || {}) },
-            escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+            xp: typeof loaded.xp === "number" && loaded.xp >= 0 ? loaded.xp : 0,
+            streak: typeof loaded.streak === "number" && loaded.streak >= 0 ? loaded.streak : 0,
+            artifacts: safeArtifacts,
+            earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges.filter((b: unknown) => typeof b === "string") : [],
+            questState: {
+              ...defaultQuestState,
+              ...safeQuestState,
+              unlockedZones: Array.isArray(safeQuestState.unlockedZones) ? safeQuestState.unlockedZones : defaultQuestState.unlockedZones,
+              unlockedRooms: Array.isArray(safeQuestState.unlockedRooms) ? safeQuestState.unlockedRooms : defaultQuestState.unlockedRooms,
+            },
+            escapeState: {
+              ...defaultEscapeState,
+              ...safeEscapeState,
+              solvedRooms: Array.isArray(safeEscapeState.solvedRooms) ? safeEscapeState.solvedRooms : [],
+              inventory: Array.isArray(safeEscapeState.inventory) ? safeEscapeState.inventory : [],
+              sigilsCollected: Array.isArray(safeEscapeState.sigilsCollected) ? safeEscapeState.sigilsCollected : [],
+              solvedPuzzles: Array.isArray(safeEscapeState.solvedPuzzles) ? safeEscapeState.solvedPuzzles : [],
+            },
           });
         }
       } catch (err) {
-        console.error("[useProgress] Load failed:", err);
+        console.error("[useProgress] Supabase load failed, trying localStorage:", err);
+        // Fallback: try localStorage backup
+        try {
+          const backup = safeLocalGet(LOCAL_STORAGE_KEY);
+          if (backup) {
+            const loaded = JSON.parse(backup) as Partial<ProgressState>;
+            setState({
+              ...defaultState,
+              ...loaded,
+              artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
+              earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
+              questState: { ...defaultQuestState, ...(loaded.questState || {}) },
+              escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+            });
+          }
+        } catch { /* localStorage also failed */ }
       }
       setLoaded(true);
     };
@@ -423,15 +471,18 @@ export function useProgress() {
 
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
+      const serialized = JSON.stringify(state);
+      // Always save to localStorage as backup
+      safeLocalSet(LOCAL_STORAGE_KEY, serialized);
       try {
         await supabase
           .from("user_progress")
           .upsert([{
             user_id: user.id,
-            progress_data: JSON.parse(JSON.stringify(state)),
+            progress_data: JSON.parse(serialized),
           }], { onConflict: "user_id" });
       } catch (err) {
-        console.error("[useProgress] Save failed:", err);
+        console.error("[useProgress] Supabase save failed (localStorage backup saved):", err);
       }
     }, 1000);
 
