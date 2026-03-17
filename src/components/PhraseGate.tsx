@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KeyRound, CheckCircle2, XCircle, Zap, RotateCcw, ChevronRight } from "lucide-react";
+import { safeClean } from "@/utils/safeClean";
 
 // ── Medical German phrase challenges (escape-game "gate" style) ──
 interface PhraseChallenge {
@@ -303,29 +304,39 @@ function getDailyChallenge(solvedIds: string[]): PhraseChallenge {
 
 /** Normalize German text: collapse whitespace, strip punctuation, handle umlaut equivalences */
 function normalizeGerman(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/[?.!,;:'"„"«»]/g, "")
-    .replace(/\s+/g, " ")
-    // German umlaut equivalence: accept both ä and ae, etc.
-    .replace(/ae/g, "ä")
-    .replace(/oe/g, "ö")
-    .replace(/ue/g, "ü")
-    .replace(/ss/g, "ß");
+  return safeClean(
+    text,
+    (t) =>
+      t
+        .trim()
+        .toLowerCase()
+        .replace(/[?.!,;:'"„"«»]/g, "")
+        .replace(/\s+/g, " ")
+        // German umlaut equivalence: accept both ä and ae, etc.
+        .replace(/ae/g, "ä")
+        .replace(/oe/g, "ö")
+        .replace(/ue/g, "ü")
+        .replace(/ss/g, "ß"),
+    "normalizeGerman",
+  );
 }
 
 /** Also normalize the reference side for fair comparison (same umlaut rules) */
 function normalizeReference(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(/[?.!,;:'"„"«»]/g, "")
-    .replace(/\s+/g, " ")
-    .replace(/ae/g, "ä")
-    .replace(/oe/g, "ö")
-    .replace(/ue/g, "ü")
-    .replace(/ss/g, "ß");
+  return safeClean(
+    text,
+    (t) =>
+      t
+        .trim()
+        .toLowerCase()
+        .replace(/[?.!,;:'"„"«»]/g, "")
+        .replace(/\s+/g, " ")
+        .replace(/ae/g, "ä")
+        .replace(/oe/g, "ö")
+        .replace(/ue/g, "ü")
+        .replace(/ss/g, "ß"),
+    "normalizeReference",
+  );
 }
 
 function evaluateAnswer(userInput: string, challenge: PhraseChallenge): {

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { reportAIFailure, reportAIRecovery, isAIInFallback } from "./useAIStatus";
 import { supabaseAvailable } from "@/integrations/supabase/client";
+import { safeClean } from "@/utils/safeClean";
 
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
@@ -24,7 +25,12 @@ const MAX_CACHE_SIZE = 100;
 
 function getCacheKey(message: string, mode: string): string {
   // Normalize: trim, lowercase, collapse whitespace
-  return `${mode}::${message.trim().toLowerCase().replace(/\s+/g, " ")}`;
+  const normalizedMsg = safeClean(
+    message,
+    (t) => t.trim().toLowerCase().replace(/\s+/g, " "),
+    "getCacheKey",
+  );
+  return `${mode}::${normalizedMsg}`;
 }
 
 function getCachedResponse(message: string, mode: string): string | null {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeClean } from "@/utils/safeClean";
 import { SCENARIOS, DECKS } from "@/data/content";
 import { Check, Languages, Sparkles, FileText, HeartPulse, Stethoscope, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +22,11 @@ DECKS.forEach(dk => {
 });
 
 function lookupTranslation(term: string): string | null {
-  const clean = term.replace(/^(der|die|das)\s+/i, "").toLowerCase();
+  const clean = safeClean(
+    term,
+    (t) => t.replace(/^(der|die|das)\s+/i, "").toLowerCase(),
+    "lookupTranslation",
+  );
   return DE_FR_LOOKUP[term.toLowerCase()] || DE_FR_LOOKUP[clean] || null;
 }
 
