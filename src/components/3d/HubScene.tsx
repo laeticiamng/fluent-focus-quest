@@ -763,6 +763,7 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             bloomSmoothing={0.6}
             vignetteOpacity={0.4}
             chromaticAberration={0.0004}
+            quality="high"
           />
 
           {/* Orbit controls — slightly more heroic starting angle */}
