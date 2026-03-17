@@ -91,20 +91,20 @@ type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools
 
 // Primary tabs: visible in main nav, ordered by interview-prep priority
 const NAV_PRIMARY: { id: Tab; icon: string; label: string }[] = [
-  { id: "dash", icon: "🏥", label: "Mission" },
+  { id: "dash", icon: "🏠", label: "Mission" },
   { id: "simulator", icon: "🎯", label: "Entretien" },
-  { id: "iv", icon: "🎙️", label: "Studio" },
   { id: "vocab", icon: "🔨", label: "Forge" },
   { id: "gram", icon: "🌳", label: "Arbre" },
-  { id: "sim", icon: "🏥", label: "Clinique" },
-  { id: "questmap", icon: "🗺️", label: "Carte" },
+  { id: "iv", icon: "🎙️", label: "Studio" },
+  { id: "sim", icon: "🩺", label: "Clinique" },
 ];
 
 // Secondary tabs: accessible via "Plus" expandable section
 const NAV_SECONDARY: { id: Tab; icon: string; label: string }[] = [
+  { id: "questmap", icon: "🗺️", label: "Carte" },
   { id: "atelier", icon: "⚗️", label: "Labo" },
-  { id: "portfolio", icon: "📚", label: "Archives" },
   { id: "puzzles", icon: "🧩", label: "Enigmes" },
+  { id: "portfolio", icon: "📚", label: "Archives" },
   { id: "lazarus", icon: "🔮", label: "Lazarus" },
   { id: "achievements", icon: "🏆", label: "Succes" },
   { id: "stats", icon: "📊", label: "Stats" },
@@ -256,7 +256,7 @@ const Index = () => {
     setTutorialCompleted(true);
   };
 
-  const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [], solvedPuzzles: [], protocolActivated: false };
+  const escapeState = progress.escapeState || { solvedRooms: [], inventory: [], discoveredRooms: [], currentMissionStep: "ch1", sigilsCollected: [], newEscapeEvents: [], solvedPuzzles: [], solvedGateIds: [], protocolActivated: false };
   const solvedRoomCount = escapeState.solvedRooms.length;
   const totalEscapeRooms = ESCAPE_ZONES.reduce((a, z) => a + z.rooms.length, 0);
   const sigilCount = escapeState.sigilsCollected.length;
@@ -453,7 +453,10 @@ const Index = () => {
           {tab === "dash" && (
             <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
               <div className="space-y-4 stagger-children">
-                {/* PRIORITY 1: SPRINT ENTRETIEN — Objectif 30 mars */}
+
+                {/* ═══ ABOVE THE FOLD: 3 clear actions ═══ */}
+
+                {/* CTA 1: SPRINT ENTRETIEN — the #1 priority */}
                 <motion.button
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -486,18 +489,150 @@ const Index = () => {
                       <p className="text-[8px] text-muted-foreground">pret</p>
                     </div>
                   </div>
+                  {/* Compact readiness bar inside sprint CTA */}
+                  <div className="relative z-10 mt-3 flex items-center gap-3">
+                    <div className="flex-1 h-1.5 bg-violet-500/10 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${readinessPercent}%` }}
+                        transition={{ duration: 1 }}
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500/60 to-violet-400/40"
+                      />
+                    </div>
+                    {lastSimScore !== null && lastSimScore !== undefined && (
+                      <span className="text-[8px] text-muted-foreground/60 shrink-0">Dernier: {lastSimScore}/100</span>
+                    )}
+                  </div>
                 </motion.button>
 
-                {/* PRIORITY 2: COUNTDOWN + readiness */}
-                <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
+                {/* CTA 2: NEXT ROOM — continue the escape-game adventure */}
+                {nextRoom && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleTabChange(ZONE_TAB_MAP[nextRoom.zone.id] as Tab || "dash")}
+                    className="w-full rounded-2xl p-4 sm:p-5 text-left relative overflow-hidden group transition-all room-3d room-in-progress"
+                    style={{
+                      background: "linear-gradient(145deg, hsl(var(--primary) / 0.1), hsl(var(--card)), hsl(var(--primary) / 0.04))",
+                      border: "2px solid hsl(var(--primary) / 0.25)",
+                      boxShadow: "0 0 20px -6px hsl(var(--primary) / 0.2)",
+                    }}
+                  >
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-3">
+                        <motion.div
+                          animate={{ rotateY: [0, 8, -8, 0] }}
+                          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                          className="door-icon-3d w-12 h-12 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center text-xl shrink-0"
+                          style={{ boxShadow: "var(--shadow-3d-sm)" }}
+                        >
+                          {nextRoom.room.icon}
+                        </motion.div>
+                        <div className="flex-1">
+                          <p className="text-[9px] uppercase tracking-[2px] text-primary font-bold">Prochaine salle</p>
+                          <p className="text-sm font-black tracking-tight">{nextRoom.room.name}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{nextRoom.zone.name}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-primary">{nextRoom.progress.current}/{nextRoom.progress.threshold}</p>
+                          <p className="text-[9px] text-muted-foreground">pour debloquer</p>
+                        </div>
+                      </div>
+                      <div className="h-2 bg-secondary/40 rounded-full overflow-hidden relative">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${nextRoom.progress.percentage}%` }}
+                          className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary/40 relative"
+                        >
+                          {nextRoom.progress.percentage > 0 && nextRoom.progress.percentage < 100 && (
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white/20 blur-[3px]" />
+                          )}
+                        </motion.div>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-[10px] text-muted-foreground leading-relaxed flex-1">{nextRoom.room.challenge}</p>
+                        <span className="text-primary text-xs font-bold ml-3 shrink-0 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Entrer
+                        </span>
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
 
-                {/* PRIORITY 2.5: Today's structured learning plan */}
-                <TodayPlan
-                  done={progress.done}
-                  toggleTask={progress.toggleTask}
+                {/* CTA 3: ESCAPE-GAME MICRO-LOOP — Daily Phrase Gate */}
+                <PhraseGate
+                  solvedGateIds={escapeState.solvedGateIds || escapeState.solvedPuzzles || []}
+                  onSolve={(challengeId, xpReward) => progress.solveGate(challengeId, xpReward)}
                 />
 
-                {/* PRIORITY 3: Daily Mission Protocol — what to do today */}
+                {/* ═══ COMPACT STATUS BAR — urgency + progression at a glance ═══ */}
+                <div className="rounded-2xl p-3 flex items-center gap-3"
+                  style={{
+                    background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                    border: "1px solid hsl(var(--border) / 0.3)",
+                  }}
+                >
+                  {/* Countdown compact */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs font-black text-primary">J-{daysUntilInterview}</span>
+                    <span className="text-[8px] text-muted-foreground/50">|</span>
+                  </div>
+                  {/* Sigils compact */}
+                  <div className="flex gap-0.5 shrink-0">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={i} className={`w-3 h-3 rounded-full border flex items-center justify-center text-[6px] ${
+                        i < sigilCount ? "bg-amber-500/20 border-amber-500/40" : "bg-secondary/20 border-border/15"
+                      }`}>
+                        {i < sigilCount ? "🏅" : "·"}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Progress bar */}
+                  <div className="flex-1 h-1.5 bg-secondary/30 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-amber-500/60 to-amber-400/30" style={{ width: `${(solvedRoomCount / totalEscapeRooms) * 100}%` }} />
+                  </div>
+                  <span className="text-[9px] font-bold text-amber-400 shrink-0">{solvedRoomCount}/{totalEscapeRooms}</span>
+                  {/* Streak */}
+                  {progress.streak > 0 && (
+                    <>
+                      <span className="text-[8px] text-muted-foreground/30">|</span>
+                      <span className="text-[9px] font-bold text-accent shrink-0">🔥{progress.streak}j</span>
+                    </>
+                  )}
+                </div>
+
+                {/* ═══ BELOW THE FOLD: progression details ═══ */}
+
+                {/* Locked room teaser — what's next to unlock */}
+                {nextLockedRoom && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="rounded-2xl p-4 relative overflow-hidden room-3d room-locked"
+                  >
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div className="door-icon-3d w-10 h-10 rounded-xl bg-secondary/30 border border-border/20 flex items-center justify-center"
+                        style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+                        <KeyRound className="w-4 h-4 text-muted-foreground/40" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[9px] uppercase tracking-[2px] text-muted-foreground/50">Prochaine porte verrouillee</p>
+                        <p className="text-xs font-bold text-muted-foreground/60">
+                          {nextLockedRoom.room ? nextLockedRoom.room.name : nextLockedRoom.zone.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground/40 mt-0.5">
+                          {nextLockedRoom.room ? nextLockedRoom.room.unlockRequirement.details : nextLockedRoom.zone.unlockRequirement.details}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Daily Mission Protocol */}
                 <div className="rounded-2xl p-5 room-3d"
                   style={{
                     background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
@@ -512,13 +647,16 @@ const Index = () => {
                   />
                 </div>
 
-                {/* ESCAPE-GAME MICRO-LOOP: Daily Phrase Gate */}
-                <PhraseGate
-                  solvedGateIds={escapeState.solvedGateIds || escapeState.solvedPuzzles || []}
-                  onSolve={(challengeId, xpReward) => progress.solveGate(challengeId, xpReward)}
+                {/* Today's structured learning plan */}
+                <TodayPlan
+                  done={progress.done}
+                  toggleTask={progress.toggleTask}
                 />
 
-                {/* Mission Progress — volumetric metric */}
+                {/* Full countdown timer */}
+                <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
+
+                {/* Mission Progress — detailed */}
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -536,24 +674,6 @@ const Index = () => {
                         <div>
                           <p className="text-xs font-black tracking-tight">Progression du Complexe</p>
                           <p className="text-[10px] text-muted-foreground">{currentChapter.name}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-0.5">
-                          {[...Array(7)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              animate={i < sigilCount ? { rotateY: [0, 360] } : undefined}
-                              transition={{ duration: 10, repeat: Infinity, ease: "linear", delay: i * 1.4 }}
-                              className={`w-4 h-4 rounded-full border flex items-center justify-center text-[7px] ${
-                                i < sigilCount
-                                  ? "bg-amber-500/20 border-amber-500/40 sigil-3d"
-                                  : "bg-secondary/20 border-border/15"
-                              }`}
-                            >
-                              {i < sigilCount ? "🏅" : "·"}
-                            </motion.div>
-                          ))}
                         </div>
                       </div>
                     </div>
@@ -575,75 +695,18 @@ const Index = () => {
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-[9px] text-muted-foreground">{sigilCount}/7 Sigils</span>
                       <span className="text-[9px] text-muted-foreground/40">·</span>
-                      <span className="text-[9px] text-muted-foreground">{inventoryCount} fragments collectes</span>
+                      <span className="text-[9px] text-muted-foreground">{inventoryCount} fragments</span>
                       <span className="text-[9px] text-muted-foreground/40">·</span>
                       <span className="text-[9px] text-muted-foreground">{progress.totalCreations} artefacts</span>
                     </div>
                   </div>
                 </motion.div>
 
-                {/* PRIMARY CTA — Next Room */}
-                {nextRoom && (
-                  <motion.button
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    whileHover={{ y: -4, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleTabChange(ZONE_TAB_MAP[nextRoom.zone.id] as Tab || "dash")}
-                    className="w-full rounded-2xl p-5 text-left relative overflow-hidden group transition-all room-3d room-in-progress"
-                    style={{
-                      background: "linear-gradient(145deg, hsl(var(--primary) / 0.1), hsl(var(--card)), hsl(var(--primary) / 0.04))",
-                      border: "2px solid hsl(var(--primary) / 0.25)",
-                      boxShadow: "0 0 20px -6px hsl(var(--primary) / 0.2)",
-                    }}
-                  >
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-3">
-                        <motion.div
-                          animate={{ rotateY: [0, 8, -8, 0] }}
-                          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                          className="door-icon-3d w-12 h-12 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center text-xl shrink-0"
-                          style={{ boxShadow: "var(--shadow-3d-sm)" }}
-                        >
-                          {nextRoom.room.icon}
-                        </motion.div>
-                        <div className="flex-1">
-                          <p className="text-[9px] uppercase tracking-[2px] text-primary font-bold">Continuer l'aventure</p>
-                          <p className="text-sm font-black tracking-tight">{nextRoom.room.name}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{nextRoom.zone.name}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs font-black text-primary">{nextRoom.progress.current}/{nextRoom.progress.threshold}</p>
-                          <p className="text-[9px] text-muted-foreground">pour resoudre</p>
-                        </div>
-                      </div>
-                      <div className="h-2 bg-secondary/40 rounded-full overflow-hidden relative">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${nextRoom.progress.percentage}%` }}
-                          className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary/40 relative"
-                        >
-                          {nextRoom.progress.percentage > 0 && nextRoom.progress.percentage < 100 && (
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white/20 blur-[3px]" />
-                          )}
-                        </motion.div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-[10px] text-muted-foreground leading-relaxed flex-1">{nextRoom.room.challenge}</p>
-                        <span className="text-primary text-xs font-bold ml-3 shrink-0 flex items-center gap-1">
-                          <Zap className="w-3 h-3" /> Lancer
-                        </span>
-                      </div>
-                    </div>
-                  </motion.button>
-                )}
-
-                {/* Inventory preview — Real 3D when available */}
-                <WebGLGate sceneName="Inventory" fallback={
-                  <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
-                }>
-                  {escapeState.inventory.length > 0 ? (
+                {/* Inventory preview */}
+                {escapeState.inventory.length > 0 && (
+                  <WebGLGate sceneName="Inventory" fallback={
+                    <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
+                  }>
                     <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(32 95% 55% / 0.12)" }}>
                       <Suspense fallback={
                         <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
@@ -656,163 +719,13 @@ const Index = () => {
                         />
                       </Suspense>
                     </div>
-                  ) : (
-                    <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
-                  )}
-                </WebGLGate>
-
-                {/* Streak — volumetric */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.15 }}
-                  className={`rounded-2xl p-3 text-center room-3d ${
-                    progress.streak > 0
-                      ? ""
-                      : ""
-                  }`}
-                  style={{
-                    background: progress.streak > 0
-                      ? "linear-gradient(145deg, hsl(var(--accent) / 0.08), hsl(var(--card)))"
-                      : "linear-gradient(145deg, hsl(var(--secondary) / 0.15), hsl(var(--card)))",
-                    border: progress.streak > 0
-                      ? "1px solid hsl(var(--accent) / 0.15)"
-                      : "1px solid hsl(var(--border) / 0.2)",
-                  }}
-                >
-                  {progress.streak > 0 ? (
-                    <div className="flex items-center justify-center gap-2 relative z-10">
-                      <motion.span animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-lg">🔥</motion.span>
-                      <span className="text-xs font-black text-accent">{progress.streak} jour{progress.streak > 1 ? "s" : ""} de suite</span>
-                      {progress.streak >= 3 && <span className="text-[8px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-bold">Momentum</span>}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 relative z-10">
-                      <span className="text-sm">⚡</span>
-                      <span className="text-[10px] text-muted-foreground">Cree ton premier artefact pour lancer ta serie</span>
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Mission Timer — full widget */}
-                <MissionTimer
-                  missionId={currentChapter.id}
-                  durationMinutes={30}
-                  onBonusXp={progress.addXp}
-                />
-
-                {/* Next locked room teaser — 3D locked door */}
-                {nextLockedRoom && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="rounded-2xl p-4 relative overflow-hidden room-3d room-locked"
-                  >
-                    <div className="relative z-10 flex items-center gap-3">
-                      <div className="door-icon-3d w-10 h-10 rounded-xl bg-secondary/30 border border-border/20 flex items-center justify-center"
-                        style={{ boxShadow: "var(--shadow-3d-sm)" }}>
-                        <KeyRound className="w-4 h-4 text-muted-foreground/40" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[9px] uppercase tracking-[2px] text-muted-foreground/50">Porte verrouille</p>
-                        <p className="text-xs font-bold text-muted-foreground/60">
-                          {nextLockedRoom.room ? nextLockedRoom.room.name : nextLockedRoom.zone.name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground/40 mt-0.5">
-                          {nextLockedRoom.room ? nextLockedRoom.room.unlockRequirement.details : nextLockedRoom.zone.unlockRequirement.details}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
+                  </WebGLGate>
                 )}
 
                 {/* Builder Rank */}
                 <XPBar xp={progress.xp} />
 
-                {/* 3D Hub Scene — interactive zone portal map */}
-                <WebGLGate sceneName="Hub" fallback={
-                  <div className="rounded-2xl p-5 space-y-4 relative overflow-hidden" style={{
-                    background: "linear-gradient(145deg, hsl(225 25% 14%), hsl(var(--card)), hsl(32 95% 55% / 0.03))",
-                    border: "1px solid hsl(32 95% 55% / 0.15)",
-                    boxShadow: "0 4px 20px -6px hsl(225 40% 8% / 0.5)",
-                  }}>
-                    {/* Decorative accent */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-                    <div className="flex items-center gap-3 mb-1">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center">
-                        <span className="text-lg">🏛️</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-black tracking-tight">Hub du Complexe Medical</p>
-                        <p className="text-[9px] text-muted-foreground">
-                          {Object.values(progress.escapeZoneStatus).filter(z => z.unlocked).length}/{ESCAPE_ZONES.length} ailes accessibles
-                        </p>
-                      </div>
-                      <span className="text-[8px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/60 font-bold">2D</span>
-                    </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                      {ESCAPE_ZONES.map((zone) => {
-                        const zs = progress.escapeZoneStatus[zone.id];
-                        const isLocked = !zs?.unlocked;
-                        const isCleared = zs && zs.roomsSolved === zs.totalRooms;
-                        return (
-                          <button
-                            key={zone.id}
-                            onClick={() => { if (!isLocked) handleTabChange(ZONE_TAB_MAP[zone.id] as Tab); }}
-                            disabled={isLocked}
-                            className={`rounded-xl p-3 text-center transition-all min-h-[72px] ${isLocked ? "opacity-30 cursor-not-allowed" : "hover:scale-[1.04] active:scale-[0.98] hover:bg-white/5"}`}
-                            style={{
-                              background: isLocked
-                                ? "hsl(225 14% 12%)"
-                                : isCleared
-                                ? "linear-gradient(145deg, hsl(142 71% 45% / 0.08), hsl(var(--card)))"
-                                : "linear-gradient(145deg, hsl(var(--primary) / 0.06), hsl(var(--card)))",
-                              border: isLocked
-                                ? "1px solid hsl(225 14% 15%)"
-                                : isCleared
-                                ? "1px solid hsl(142 71% 45% / 0.2)"
-                                : "1px solid hsl(var(--border) / 0.3)",
-                            }}
-                          >
-                            <div className="text-xl mb-1">{isLocked ? "🔒" : isCleared ? "✅" : zone.icon}</div>
-                            <div className="text-[9px] font-bold leading-tight">{zone.name.replace(/Aile d[eu']?\s*/i, "").slice(0, 12)}</div>
-                            {!isLocked && zs && (
-                              <>
-                                <div className="mt-1.5 h-1 bg-secondary/30 rounded-full overflow-hidden">
-                                  <div className={`h-full rounded-full ${isCleared ? "bg-emerald-500/50" : "bg-amber-500/40"}`} style={{ width: `${zs.progress * 100}%` }} />
-                                </div>
-                                <p className="text-[7px] text-muted-foreground mt-0.5">{zs.roomsSolved}/{zs.totalRooms}</p>
-                              </>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                }>
-                  <Suspense fallback={
-                    <div className="rounded-2xl overflow-hidden h-[320px] flex items-center justify-center" style={{
-                      background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
-                      border: "1px solid hsl(32 95% 55% / 0.12)",
-                    }}>
-                      <div className="text-center">
-                        <div className="text-2xl mb-2 animate-pulse">🏛️</div>
-                        <p className="text-[10px] text-muted-foreground animate-pulse">Chargement du Hub 3D...</p>
-                      </div>
-                    </div>
-                  }>
-                    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(32 95% 55% / 0.12)" }}>
-                      <HubScene
-                        escapeZoneStatus={progress.escapeZoneStatus}
-                        onNavigate={(t) => handleTabChange(t as Tab)}
-                        sigilCount={sigilCount}
-                      />
-                    </div>
-                  </Suspense>
-                </WebGLGate>
-
-                {/* Quick zone access — 3D escape game cards */}
+                {/* Zone cards — quick navigation */}
                 <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {ESCAPE_ZONES.map((zone, i) => {
                     const zs = progress.escapeZoneStatus[zone.id];
@@ -825,17 +738,13 @@ const Index = () => {
                         key={zone.id}
                         initial={{ opacity: 0, y: 12, rotateX: -3 }}
                         animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                        transition={{ delay: 0.3 + i * 0.05 }}
+                        transition={{ delay: 0.1 + i * 0.03 }}
                         whileHover={!isLocked ? { y: -5, rotateX: 2, scale: 1.03 } : undefined}
                         whileTap={!isLocked ? { scale: 0.97 } : undefined}
                         onClick={() => { if (!isLocked) handleTabChange(tabTarget); }}
                         disabled={isLocked}
                         className={`rounded-2xl border p-3 sm:p-4 text-center transition-all relative overflow-hidden iso-building ${
-                          isLocked
-                            ? "opacity-30 cursor-not-allowed"
-                            : isCleared
-                            ? ""
-                            : ""
+                          isLocked ? "opacity-30 cursor-not-allowed" : ""
                         }`}
                         style={{
                           background: isLocked
@@ -876,34 +785,48 @@ const Index = () => {
                   })}
                 </div>
 
-                {/* Explore map CTA — 3D */}
-                <motion.button
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                  whileHover={{ y: -3, scale: 1.005 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange("questmap")}
-                  className="w-full rounded-2xl p-4 text-left group transition-all room-3d"
-                  style={{
-                    background: "linear-gradient(145deg, hsl(32 95% 55% / 0.06), hsl(var(--card)))",
-                    border: "1px solid hsl(32 95% 55% / 0.15)",
-                  }}
-                >
-                  <div className="relative z-10 flex items-center gap-3">
-                    <motion.div
-                      animate={{ rotateY: [0, 8, -8, 0] }}
-                      transition={{ duration: 6, repeat: Infinity }}
-                      className="door-icon-3d w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center text-xl group-hover:scale-110 transition-transform"
-                      style={{ boxShadow: "var(--shadow-3d-sm)" }}
-                    >🗺️</motion.div>
-                    <div className="flex-1">
-                      <p className="text-xs font-black tracking-tight">Explorer la carte du Complexe</p>
-                      <p className="text-[10px] text-muted-foreground">{solvedRoomCount} salles resolues — {totalEscapeRooms - solvedRoomCount} portes encore verrouillees</p>
-                    </div>
-                    <Map className="w-4 h-4 text-amber-400/40 group-hover:text-amber-400 transition-colors" />
+                {/* 3D Hub Scene — interactive zone portal map */}
+                <WebGLGate sceneName="Hub" fallback={
+                  <div className="rounded-2xl p-4 text-center" style={{
+                    background: "linear-gradient(145deg, hsl(225 25% 14%), hsl(var(--card)))",
+                    border: "1px solid hsl(32 95% 55% / 0.12)",
+                  }}>
+                    <button
+                      onClick={() => handleTabChange("questmap")}
+                      className="flex items-center justify-center gap-2 mx-auto text-amber-400 hover:text-amber-300 transition-colors"
+                    >
+                      <Map className="w-4 h-4" />
+                      <span className="text-xs font-bold">Explorer la carte du Complexe</span>
+                    </button>
                   </div>
-                </motion.button>
+                }>
+                  <Suspense fallback={
+                    <div className="rounded-2xl overflow-hidden h-[300px] flex items-center justify-center" style={{
+                      background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                      border: "1px solid hsl(32 95% 55% / 0.12)",
+                    }}>
+                      <div className="text-center">
+                        <div className="text-2xl mb-2 animate-pulse">🏛️</div>
+                        <p className="text-[10px] text-muted-foreground animate-pulse">Chargement du Hub 3D...</p>
+                      </div>
+                    </div>
+                  }>
+                    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(32 95% 55% / 0.12)" }}>
+                      <HubScene
+                        escapeZoneStatus={progress.escapeZoneStatus}
+                        onNavigate={(t) => handleTabChange(t as Tab)}
+                        sigilCount={sigilCount}
+                      />
+                    </div>
+                  </Suspense>
+                </WebGLGate>
+
+                {/* Mission Timer */}
+                <MissionTimer
+                  missionId={currentChapter.id}
+                  durationMinutes={30}
+                  onBonusXp={progress.addXp}
+                />
 
                 <MotivBanner />
               </div>
