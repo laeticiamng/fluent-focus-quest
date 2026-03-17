@@ -732,6 +732,12 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Ambient particles */}
           <AmbientParticles count={55} radius={8} height={6} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Energy trails — circulating light streams */}
+          <EnergyTrails count={6} radius={5} height={4} color="#d4a017" secondaryColor="#6366f1" speed={0.25} />
+
+          {/* Animated fog layers — rolling mist */}
+          <AnimatedFogLayers layers={3} baseY={-0.3} radius={12} color="#0a0a1e" maxOpacity={0.15} />
+
           {/* Fireflies — magical wanderers */}
           <Fireflies count={25} radius={7} height={5} color="#fbbf24" secondaryColor="#6366f1" />
 
