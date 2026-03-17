@@ -223,7 +223,7 @@ export function PremiumLighting({
       showcase: "inventory",
     };
     return getSceneLightingRig(legacyPresets[preset || "default"] || "hub");
-  }, [scene, preset]);
+  }, [scene, preset, accentColor, rimColor]);
 
   const effectiveAccent = accentColor || rig.accentColor;
   const effectiveRim = rimColor || rig.rimColor;

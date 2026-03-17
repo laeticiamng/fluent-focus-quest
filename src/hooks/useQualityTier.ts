@@ -167,7 +167,7 @@ export function getCapabilities(tier?: QualityTier): QualityCapabilities {
 }
 
 export function useQualityTier(): QualityCapabilities {
-  const [tier, setTier] = useState<QualityTier>(() => getOverrideTier() || "high");
+  const [tier, setTier] = useState<QualityTier>(() => getOverrideTier() || getQualityTier());
 
   useEffect(() => {
     setTier(getQualityTier());

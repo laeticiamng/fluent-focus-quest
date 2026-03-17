@@ -78,6 +78,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   const [fullSimScores, setFullSimScores] = useState<EvaluationResult[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const followUpTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Current zone and question
   const currentZone = activeZone ? INTERVIEW_ZONES.find(z => z.id === activeZone) : null;
@@ -211,7 +212,6 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     }
   }, [response]);
 
-  const followUpTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const triggerFollowUp = useCallback(() => {
     if (!currentQuestion) return;
     const pool = [...(currentQuestion.followUps || []), ...PRESSURE_INTERRUPTIONS];
@@ -449,7 +449,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
               </motion.div>
               <div className="flex-1">
                 <p className="text-sm font-black text-amber-400">Simulation complete</p>
-                <p className="text-[10px] text-amber-400/50">6 questions — mode pression — comme le 30 mars</p>
+                <p className="text-[10px] text-amber-400/50">6 questions — mode pression — conditions reelles</p>
               </div>
               <Zap className="w-5 h-5 text-amber-400/50" />
             </div>
