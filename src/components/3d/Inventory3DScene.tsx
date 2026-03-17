@@ -4,7 +4,7 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import type { InventoryItem } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface Inventory3DSceneProps {
@@ -350,6 +350,8 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
         }}
       >
         <Suspense fallback={null}>
+          <CinematicIntro targetPosition={[0, 3.8, 5]} startOffset={[0, 2, 4]} duration={2.0} />
+
           <PremiumLighting preset="showcase" accentColor="#d4a017" rimColor="#6366f1" />
 
           <fog attach="fog" args={["#0a0a1e", 8, 22]} />

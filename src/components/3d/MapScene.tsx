@@ -6,7 +6,7 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import type { RoomStatus } from "@/data/escapeGame";
 import type { Artifact } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, BackgroundStructures, SuspendedArcs } from "./premium/DecorativeElements";
+import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface MapSceneProps {
@@ -549,6 +549,8 @@ export function MapScene({
         }}
       >
         <Suspense fallback={null}>
+          <CinematicIntro targetPosition={[0, 8, 9]} startOffset={[0, 4, 6]} duration={2.5} />
+
           <PremiumLighting preset="default" accentColor="#d4a017" rimColor="#6366f1" />
 
           <fog attach="fog" args={["#080818", 12, 35]} />

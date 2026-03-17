@@ -1,10 +1,11 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
+import { MeshReflectorMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
 /**
  * Premium floor — multi-layered sacred ground with rune circles,
- * energy channels, relief zones, and radial glyphs.
+ * energy channels, relief zones, radial glyphs, and reflective center.
  * "Forge linguistique" / "command center" aesthetic.
  */
 export function PremiumFloor({
@@ -12,11 +13,13 @@ export function PremiumFloor({
   variant = "circular",
   accentColor = "#d4a017",
   secondaryAccent = "#6366f1",
+  reflective = true,
 }: {
   radius?: number;
   variant?: "circular" | "square";
   accentColor?: string;
   secondaryAccent?: string;
+  reflective?: boolean;
 }) {
   const runeRingRef = useRef<THREE.Group>(null);
   const innerRuneRef = useRef<THREE.Group>(null);
@@ -44,19 +47,32 @@ export function PremiumFloor({
         />
       </mesh>
 
-      {/* ── Layer 1: Main platform — raised, brushed dark metal ── */}
+      {/* ── Layer 1: Main platform — raised, reflective dark metal ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
         {variant === "circular" ? (
           <circleGeometry args={[radius, 64]} />
         ) : (
           <planeGeometry args={[radius * 2, radius * 2]} />
         )}
-        <meshStandardMaterial
-          color="#18183a"
-          metalness={0.65}
-          roughness={0.28}
-          envMapIntensity={0.5}
-        />
+        {reflective ? (
+          <MeshReflectorMaterial
+            mirror={0.15}
+            mixBlur={8}
+            mixStrength={0.6}
+            resolution={512}
+            blur={[300, 100]}
+            color="#18183a"
+            metalness={0.7}
+            roughness={0.25}
+          />
+        ) : (
+          <meshStandardMaterial
+            color="#18183a"
+            metalness={0.65}
+            roughness={0.28}
+            envMapIntensity={0.5}
+          />
+        )}
       </mesh>
 
       {/* ── Layer 2: Inner elevated zone — lighter, noble stone ── */}

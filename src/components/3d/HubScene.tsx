@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, Suspense, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
   Environment,
@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
-import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch } from "./premium/DecorativeElements";
+import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 // ── Types ──
@@ -298,6 +298,8 @@ function ZonePortal({
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const glowRef = useRef<THREE.Mesh>(null);
+  const veilTopRef = useRef<THREE.Mesh>(null);
+  const veilBotRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
@@ -312,6 +314,17 @@ function ZonePortal({
         (glowRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
           (hovered ? 3.5 : 1.8) * pulse;
       }
+    }
+    // Portal veil animation — energy curtain parts on hover
+    if (veilTopRef.current && veilBotRef.current && portal.unlocked) {
+      const targetOffset = hovered ? 0.45 : 0;
+      veilTopRef.current.position.y += (0.78 + 0.35 + targetOffset - veilTopRef.current.position.y) * 0.08;
+      veilBotRef.current.position.y += (0.78 - 0.35 - targetOffset - veilBotRef.current.position.y) * 0.08;
+      const veilOpacity = hovered ? 0.5 : 0.15;
+      (veilTopRef.current.material as THREE.MeshStandardMaterial).opacity +=
+        (veilOpacity - (veilTopRef.current.material as THREE.MeshStandardMaterial).opacity) * 0.08;
+      (veilBotRef.current.material as THREE.MeshStandardMaterial).opacity +=
+        (veilOpacity - (veilBotRef.current.material as THREE.MeshStandardMaterial).opacity) * 0.08;
     }
   });
 
@@ -491,6 +504,34 @@ function ZonePortal({
         </>
       )}
 
+      {/* ── Portal energy veil — parts on hover ── */}
+      {portal.unlocked && (
+        <>
+          <mesh ref={veilTopRef} position={[0, 0.78 + 0.35, 0.025]}>
+            <planeGeometry args={[0.75, 0.5]} />
+            <meshStandardMaterial
+              color={portal.emissive}
+              emissive={portal.emissive}
+              emissiveIntensity={1.2}
+              transparent
+              opacity={0.15}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+          <mesh ref={veilBotRef} position={[0, 0.78 - 0.35, 0.025]}>
+            <planeGeometry args={[0.75, 0.5]} />
+            <meshStandardMaterial
+              color={portal.emissive}
+              emissive={portal.emissive}
+              emissiveIntensity={1.2}
+              transparent
+              opacity={0.15}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </>
+      )}
+
       {/* ── Lock icon for locked portals ── */}
       {!portal.unlocked && (
         <mesh position={[0, 0.78, 0.06]}>
@@ -572,13 +613,9 @@ function ZonePortal({
   );
 }
 
-// ── Camera Controller — heroic angle ──
+// ── Camera Controller — heroic angle with cinematic intro ──
 function CameraSetup() {
-  const { camera } = useThree();
-  useFrame(() => {
-    camera.position.y += (6.0 - camera.position.y) * 0.02;
-  });
-  return null;
+  return <CinematicIntro targetPosition={[0, 6, 8]} startOffset={[0, 5, 8]} duration={2.8} />;
 }
 
 // ── Main Hub Scene — PREMIUM IMMERSIVE ──
@@ -627,8 +664,8 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Deep cinematic fog */}
           <fog attach="fog" args={["#0a0a1e", 10, 35]} />
 
-          {/* Premium floor with rich rune patterns */}
-          <PremiumFloor radius={8} variant="circular" accentColor="#d4a017" secondaryAccent="#6366f1" />
+          {/* Premium reflective floor with rich rune patterns */}
+          <PremiumFloor radius={8} variant="circular" accentColor="#d4a017" secondaryAccent="#6366f1" reflective />
 
           {/* Decorative architecture — temple pillars */}
           <DecorativePillars count={8} radius={7.5} height={4} color="#151535" accentColor="#6366f1" />
@@ -653,6 +690,9 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
 
           {/* Background depth structures — distant silhouettes */}
           <BackgroundStructures count={8} minRadius={16} maxRadius={24} height={7} color="#0a0a20" />
+
+          {/* Energy beams — vertical light columns from pillars to core */}
+          <EnergyBeams count={8} radius={7.5} height={4} color="#d4a017" secondaryColor="#6366f1" />
 
           {/* Ambient particles */}
           <AmbientParticles count={55} radius={8} height={6} color="#d4a017" secondaryColor="#6366f1" />

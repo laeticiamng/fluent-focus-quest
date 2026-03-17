@@ -447,6 +447,106 @@ export function SuspendedArcs({
 }
 
 /**
+ * Vertical energy beams — luminous columns connecting sentinel pillars to core.
+ * Animated opacity pulsing for living energy feel.
+ */
+export function EnergyBeams({
+  count = 4,
+  radius = 2.1,
+  height = 3,
+  color = "#d4a017",
+  secondaryColor = "#6366f1",
+  activated = false,
+}: {
+  count?: number;
+  radius?: number;
+  height?: number;
+  color?: string;
+  secondaryColor?: string;
+  activated?: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.children.forEach((child, i) => {
+      const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      if (mat && mat.opacity !== undefined) {
+        mat.opacity = 0.08 + Math.sin(t * 1.5 + i * 1.2) * 0.06;
+        mat.emissiveIntensity = (activated ? 1.5 : 0.6) + Math.sin(t * 2 + i * 0.8) * 0.3;
+      }
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = (i / count) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        const beamColor = i % 2 === 0 ? color : secondaryColor;
+        return (
+          <mesh key={i} position={[x, height / 2 + 0.1, z]}>
+            <cylinderGeometry args={[0.015, 0.015, height, 6]} />
+            <meshStandardMaterial
+              color={beamColor}
+              emissive={beamColor}
+              emissiveIntensity={0.6}
+              transparent
+              opacity={0.1}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+/**
+ * Cinematic camera intro — smooth dolly-zoom on first load.
+ * Animates from far/high to resting position over ~2.5 seconds.
+ */
+export function CinematicIntro({
+  targetPosition = [0, 6, 8] as [number, number, number],
+  startOffset = [0, 4, 6] as [number, number, number],
+  duration = 2.5,
+}: {
+  targetPosition?: [number, number, number];
+  startOffset?: [number, number, number];
+  duration?: number;
+}) {
+  const startedRef = useRef(false);
+  const startTimeRef = useRef(0);
+
+  useFrame(({ camera, clock }) => {
+    if (!startedRef.current) {
+      startedRef.current = true;
+      startTimeRef.current = clock.getElapsedTime();
+      camera.position.set(
+        targetPosition[0] + startOffset[0],
+        targetPosition[1] + startOffset[1],
+        targetPosition[2] + startOffset[2],
+      );
+    }
+
+    const elapsed = clock.getElapsedTime() - startTimeRef.current;
+    if (elapsed < duration) {
+      const progress = elapsed / duration;
+      // Smooth ease-out cubic
+      const t = 1 - Math.pow(1 - progress, 3);
+
+      camera.position.x = (targetPosition[0] + startOffset[0]) + (targetPosition[0] - (targetPosition[0] + startOffset[0])) * t;
+      camera.position.y = (targetPosition[1] + startOffset[1]) + (targetPosition[1] - (targetPosition[1] + startOffset[1])) * t;
+      camera.position.z = (targetPosition[2] + startOffset[2]) + (targetPosition[2] - (targetPosition[2] + startOffset[2])) * t;
+    }
+  });
+
+  return null;
+}
+
+/**
  * Depth fog plane — horizontal fog layer for atmosphere.
  */
 export function DepthFogPlane({

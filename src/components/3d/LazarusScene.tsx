@@ -4,7 +4,7 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface LazarusSceneProps {
@@ -621,8 +621,14 @@ export function LazarusScene({
 
           <fog attach="fog" args={[activated ? "#081408" : "#08081a", 8, 28]} />
 
+          {/* Cinematic camera intro */}
+          <CinematicIntro targetPosition={[0, 5, 6]} startOffset={[0, 3, 5]} duration={2.2} />
+
           {/* Sacred floor */}
           <LazarusFloor activated={activated} />
+
+          {/* Energy beams from sentinel pillars */}
+          <EnergyBeams count={6} radius={2.1} height={2} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} activated={activated} />
 
           {/* The Altar */}
           <Altar sigilCount={sigilsCollected.length} activated={activated} />
