@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase, supabaseAvailable } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  /** true when auth system itself failed (env vars missing, network down, timeout) */
+  /** true when auth session could not be established (network down, timeout) */
   authUnavailable: boolean;
   signOut: () => Promise<void>;
 }
@@ -22,20 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authUnavailable, setAuthUnavailable] = useState(false);
 
   useEffect(() => {
-    // If Supabase env vars are missing, immediately go to offline mode
-    if (!supabaseAvailable) {
-      if (import.meta.env.DEV) {
-        console.warn("[Auth] Supabase unavailable — entering offline mode");
-      }
-      setAuthUnavailable(true);
-      setLoading(false);
-      return;
-    }
-
-    // Timeout guard: if auth takes too long, enter offline mode
+    // Timeout guard: if auth takes too long, stop loading but still allow login
     const loadingTimeout = setTimeout(() => {
       if (import.meta.env.DEV) {
-        console.warn("[Auth] Timeout after 8s — entering offline mode");
+        console.warn("[Auth] Timeout after 8s — session check failed");
       }
       setAuthUnavailable(true);
       setLoading(false);
@@ -70,9 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    if (supabaseAvailable) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
   };
 
   return (
