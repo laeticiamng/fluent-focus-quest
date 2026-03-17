@@ -9,7 +9,8 @@ interface CountdownProps {
 
 export function Countdown({ lastSimScore, readinessPercent }: CountdownProps = {}) {
   const [now, setNow] = useState(new Date());
-  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  // Update every 10 seconds instead of every second to reduce rerenders
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 10000); return () => clearInterval(t); }, []);
 
   const diff = TARGET.getTime() - now.getTime();
   const dd = Math.max(0, Math.floor(diff / 864e5));
@@ -57,7 +58,7 @@ export function Countdown({ lastSimScore, readinessPercent }: CountdownProps = {
           <div key={i} className="flex items-center gap-1.5 sm:gap-2">
             <motion.div
               className="text-center"
-              animate={i === 3 ? { scale: [1, 1.03, 1] } : isUrgent && i === 0 ? { scale: [1, 1.05, 1] } : {}}
+              animate={isUrgent && i === 0 ? { scale: [1, 1.05, 1] } : {}}
               transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
             >
               <div

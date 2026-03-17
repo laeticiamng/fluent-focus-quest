@@ -48,14 +48,18 @@ export function RewardReveal3D({ newEscapeEvents, newUnlocks, onDismiss }: Rewar
     if (allEvents.length > 0) { setVisible(true); setCurrentEventIndex(0); }
   }, [newEscapeEvents.length, newUnlocks.length]);
 
+  // Auto-advance between multiple events, but let the user dismiss the last one manually
   useEffect(() => {
     if (!visible || allEvents.length === 0) return;
-    const timer = setTimeout(() => {
-      if (currentEventIndex < allEvents.length - 1) setCurrentEventIndex(i => i + 1);
-      else { setVisible(false); onDismiss(); }
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, [visible, currentEventIndex, allEvents.length, onDismiss]);
+    // Only auto-advance if there are more events after this one
+    if (currentEventIndex < allEvents.length - 1) {
+      const timer = setTimeout(() => {
+        setCurrentEventIndex(i => i + 1);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+    // For the last event: no auto-dismiss — user must tap
+  }, [visible, currentEventIndex, allEvents.length]);
 
   const currentEvent = allEvents[currentEventIndex];
   if (!visible || !currentEvent) return null;
@@ -244,7 +248,7 @@ export function RewardReveal3D({ newEscapeEvents, newUnlocks, onDismiss }: Rewar
               transition={{ delay: 0.9 }}
               className="text-[10px] text-muted-foreground mt-5 relative z-10"
             >
-              Tape pour continuer
+              {currentEventIndex < allEvents.length - 1 ? "Tape pour continuer" : "Tape pour avancer"}
             </motion.p>
           </div>
         </motion.div>
