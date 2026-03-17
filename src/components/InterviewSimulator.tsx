@@ -34,7 +34,7 @@ interface InterviewSimulatorProps {
   artifacts?: Artifact[];
 }
 
-type SimState = "zone_select" | "question" | "evaluating" | "results" | "full_sim";
+type SimState = "zone_select" | "question" | "evaluating" | "results";
 
 const ZONE_COLORS: Record<InterviewZoneId, string> = {
   vorstellung: "emerald",
@@ -74,6 +74,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   const [currentFollowUp, setCurrentFollowUp] = useState("");
   const [showReference, setShowReference] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [isFullSim, setIsFullSim] = useState(false);
   const [fullSimQuestions, setFullSimQuestions] = useState<InterviewQuestion[]>([]);
   const [fullSimScores, setFullSimScores] = useState<EvaluationResult[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -83,7 +84,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   // Current zone and question
   const currentZone = activeZone ? INTERVIEW_ZONES.find(z => z.id === activeZone) : null;
   const currentQuestions = currentZone?.questions || [];
-  const currentQuestion = simState === "full_sim" ? fullSimQuestions[questionIndex] : currentQuestions[questionIndex];
+  const currentQuestion = isFullSim ? fullSimQuestions[questionIndex] : currentQuestions[questionIndex];
 
   // Stats
   const zoneCompletions = useMemo(() => {
@@ -246,7 +247,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     setFullSimQuestions(questions);
     setFullSimScores([]);
     setQuestionIndex(0);
-    setSimState("full_sim");
+    setIsFullSim(true);
+    setSimState("question");
     setUserAnswer("");
     setEvaluation(null);
     setPressureMode(true);
@@ -307,25 +309,25 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   };
 
   const handleNextQuestion = () => {
-    if (simState === "full_sim" && evaluation) {
+    if (isFullSim && evaluation) {
       setFullSimScores(prev => [...prev, evaluation]);
     }
 
-    const questions = simState === "full_sim" ? fullSimQuestions : currentQuestions;
+    const questions = isFullSim ? fullSimQuestions : currentQuestions;
     if (questionIndex < questions.length - 1) {
       setQuestionIndex(qi => qi + 1);
       setUserAnswer("");
       setEvaluation(null);
-      setSimState(simState === "full_sim" ? "full_sim" : "question");
+      setSimState("question");
       setShowReference(false);
       setShowFollowUp(false);
       reset();
       const nextQ = questions[questionIndex + 1];
       if (nextQ) {
         setTimer(TIMER_DURATIONS[nextQ.difficulty] || 90);
-        if (pressureMode || simState === "full_sim") setTimerRunning(true);
+        if (pressureMode || isFullSim) setTimerRunning(true);
       }
-    } else if (simState === "full_sim" && evaluation) {
+    } else if (isFullSim && evaluation) {
       // Full sim complete
       const allScores = [...fullSimScores, evaluation];
       const avgScore = Math.round(allScores.reduce((sum, e) => sum + e.globalScore, 0) / allScores.length);
@@ -346,12 +348,14 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
       addXp?.(100);
       celebrate("milestone");
       toast("Simulation terminee !", { description: `Score global : ${avgScore}/100` });
+      setIsFullSim(false);
       setSimState("zone_select");
     } else {
       // Zone complete
       addXp?.(50);
       celebrate("creation");
       toast("Zone terminee !", { description: `${currentZone?.name} complete` });
+      setIsFullSim(false);
       setSimState("zone_select");
     }
   };
@@ -362,13 +366,13 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     clearTimeout(fallbackTimerRef.current);
     setUserAnswer("");
     setEvaluation(null);
-    setSimState(simState === "full_sim" ? "full_sim" : "question");
+    setSimState("question");
     setShowReference(false);
     setShowFollowUp(false);
     reset();
     if (currentQuestion) {
       setTimer(TIMER_DURATIONS[currentQuestion.difficulty] || 120);
-      if (pressureMode || simState === "full_sim") setTimerRunning(true);
+      if (pressureMode || isFullSim) setTimerRunning(true);
     }
   };
 
@@ -562,8 +566,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   // ═══════════════════════════════════════════════════════════
   // QUESTION VIEW (also used for full_sim)
   // ═══════════════════════════════════════════════════════════
-  if ((simState === "question" || simState === "full_sim") && currentQuestion) {
-    const questions = simState === "full_sim" ? fullSimQuestions : currentQuestions;
+  if (simState === "question" && currentQuestion) {
+    const questions = isFullSim ? fullSimQuestions : currentQuestions;
     const zone = INTERVIEW_ZONES.find(z => z.id === currentQuestion.zone);
     const isTimerCritical = timer < 20 && timerRunning;
 
@@ -573,11 +577,11 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
           {/* Back + zone header */}
           <div className="flex items-center justify-between">
             <button
-              onClick={() => { setSimState("zone_select"); setTimerRunning(false); }}
+              onClick={() => { setSimState("zone_select"); setTimerRunning(false); setIsFullSim(false); }}
               className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-4 h-4 rotate-180" />
-              {simState === "full_sim" ? "Quitter simulation" : "Zones"}
+              {isFullSim ? "Quitter simulation" : "Zones"}
             </button>
             {(timerRunning || pressureMode) && (
               <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${isTimerCritical ? "bg-rose-500/15 border-rose-500/25" : "bg-violet-500/10 border-violet-500/20"} border`}>
@@ -752,7 +756,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
         <div className="space-y-4">
           {/* Back */}
           <button
-            onClick={() => { setSimState("zone_select"); setTimerRunning(false); }}
+            onClick={() => { setSimState("zone_select"); setTimerRunning(false); setIsFullSim(false); }}
             className="flex items-center gap-1.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
           >
             <ChevronRight className="w-4 h-4 rotate-180" /> Zones
@@ -923,7 +927,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
       <p className="text-sm font-bold">Simulateur d'entretien</p>
       <p className="text-xs text-muted-foreground">Chargement en cours...</p>
       <button
-        onClick={() => setSimState("zone_select")}
+        onClick={() => { setSimState("zone_select"); setIsFullSim(false); }}
         className="px-4 py-2 rounded-xl bg-violet-500/15 text-violet-400 text-xs font-bold hover:bg-violet-500/25 transition-colors"
       >
         Retour aux zones
