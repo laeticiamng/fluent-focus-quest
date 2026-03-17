@@ -400,13 +400,37 @@ export function useProgress() {
 
         if (data?.progress_data) {
           const loaded = data.progress_data as unknown as Partial<ProgressState>;
+          // Guard against corrupted arrays and objects
+          const safeArtifacts = Array.isArray(loaded.artifacts)
+            ? loaded.artifacts.filter((a: unknown) => a && typeof a === "object" && "id" in (a as Artifact) && "type" in (a as Artifact))
+            : [];
+          const safeEscapeState = loaded.escapeState && typeof loaded.escapeState === "object"
+            ? loaded.escapeState
+            : {};
+          const safeQuestState = loaded.questState && typeof loaded.questState === "object"
+            ? loaded.questState
+            : {};
           setState({
             ...defaultState,
             ...loaded,
-            artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
-            earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
-            questState: { ...defaultQuestState, ...(loaded.questState || {}) },
-            escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+            xp: typeof loaded.xp === "number" && loaded.xp >= 0 ? loaded.xp : 0,
+            streak: typeof loaded.streak === "number" && loaded.streak >= 0 ? loaded.streak : 0,
+            artifacts: safeArtifacts,
+            earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges.filter((b: unknown) => typeof b === "string") : [],
+            questState: {
+              ...defaultQuestState,
+              ...safeQuestState,
+              unlockedZones: Array.isArray(safeQuestState.unlockedZones) ? safeQuestState.unlockedZones : defaultQuestState.unlockedZones,
+              unlockedRooms: Array.isArray(safeQuestState.unlockedRooms) ? safeQuestState.unlockedRooms : defaultQuestState.unlockedRooms,
+            },
+            escapeState: {
+              ...defaultEscapeState,
+              ...safeEscapeState,
+              solvedRooms: Array.isArray(safeEscapeState.solvedRooms) ? safeEscapeState.solvedRooms : [],
+              inventory: Array.isArray(safeEscapeState.inventory) ? safeEscapeState.inventory : [],
+              sigilsCollected: Array.isArray(safeEscapeState.sigilsCollected) ? safeEscapeState.sigilsCollected : [],
+              solvedPuzzles: Array.isArray(safeEscapeState.solvedPuzzles) ? safeEscapeState.solvedPuzzles : [],
+            },
           });
         }
       } catch (err) {

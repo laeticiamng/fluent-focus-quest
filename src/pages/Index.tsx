@@ -304,6 +304,9 @@ const Index = () => {
 
   const { rank, rankIndex } = getBuilderRank(progress.xp);
 
+  // Days until interview (March 30, 2026)
+  const daysUntilInterview = Math.max(0, Math.ceil((new Date("2026-03-30").getTime() - Date.now()) / 864e5));
+
   // Interview readiness metrics
   const lastSimScore = (() => {
     const simArtifacts = progress.artifacts.filter(a => a.type === "interview_answer" && a.metadata?.globalScore);
@@ -315,7 +318,7 @@ const Index = () => {
   const readinessPercent = (() => {
     const interviewAnswers = progress.artifacts.filter(a => a.type === "interview_answer");
     const uniqueQuestions = new Set(interviewAnswers.map(a => a.metadata?.simQuestionId)).size;
-    const totalQuestions = 25; // total across 6 zones
+    const totalQuestions = 24; // 3+4+4+4+6+3 across 6 zones
     const questionCoverage = Math.min(1, uniqueQuestions / totalQuestions) * 40;
     const scoreComponent = lastSimScore ? (lastSimScore / 100) * 40 : 0;
     const practiceComponent = Math.min(1, interviewAnswers.length / 30) * 20;
@@ -468,7 +471,7 @@ const Index = () => {
                       <Rocket className="w-6 h-6 text-violet-400" />
                     </motion.div>
                     <div className="flex-1">
-                      <p className="text-sm font-black text-violet-400 tracking-tight">Sprint Entretien — 30 mars</p>
+                      <p className="text-sm font-black text-violet-400 tracking-tight">Sprint Entretien — J-{daysUntilInterview}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
                         Lancer une session d'entrainement maintenant
                       </p>
