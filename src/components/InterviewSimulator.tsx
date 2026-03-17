@@ -108,6 +108,28 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     return last.metadata?.globalScore as number;
   }, [artifacts]);
 
+  // Suggest the next zone to practice: least practiced that still has uncovered questions
+  const suggestedZone = useMemo(() => {
+    const answeredPerZone: Record<string, Set<string>> = {};
+    artifacts.filter(a => a.type === "interview_answer" && a.metadata?.zone && a.metadata?.simQuestionId).forEach(a => {
+      const z = a.metadata!.zone as string;
+      if (!answeredPerZone[z]) answeredPerZone[z] = new Set();
+      answeredPerZone[z].add(a.metadata!.simQuestionId as string);
+    });
+    // Find zone with most unanswered questions
+    let best: InterviewZoneId | null = null;
+    let bestUnanswered = -1;
+    for (const zone of INTERVIEW_ZONES) {
+      const answered = answeredPerZone[zone.id]?.size || 0;
+      const unanswered = zone.questions.length - answered;
+      if (unanswered > bestUnanswered) {
+        bestUnanswered = unanswered;
+        best = zone.id;
+      }
+    }
+    return best;
+  }, [artifacts]);
+
   // Timer effect
   useEffect(() => {
     if (timerRunning && timer > 0) {
@@ -374,6 +396,34 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
               <Zap className="w-5 h-5 text-amber-400/50" />
             </div>
           </motion.button>
+
+          {/* Quick start — suggested zone */}
+          {suggestedZone && totalAnswered > 0 && (() => {
+            const zone = INTERVIEW_ZONES.find(z => z.id === suggestedZone);
+            if (!zone) return null;
+            return (
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => selectZone(suggestedZone)}
+                className="w-full rounded-2xl p-4 text-left transition-all hover:scale-[1.005]"
+                style={{
+                  background: "linear-gradient(145deg, hsl(var(--primary) / 0.08), hsl(var(--card)))",
+                  border: "1px solid hsl(var(--primary) / 0.15)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center text-lg shrink-0">
+                    {zone.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-black text-primary">Continuer : {zone.name}</p>
+                    <p className="text-[10px] text-muted-foreground">Zone recommandee — questions non couvertes</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-primary/50" />
+                </div>
+              </motion.button>
+            );
+          })()}
 
           {/* Pressure mode toggle */}
           <div className="flex items-center justify-between rounded-xl bg-secondary/20 border border-border/20 p-3">
