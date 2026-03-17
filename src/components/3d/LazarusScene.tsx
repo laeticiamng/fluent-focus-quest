@@ -4,8 +4,9 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 
 interface LazarusSceneProps {
   sigilsCollected: string[];
@@ -202,13 +203,16 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
             color={coreColor}
             emissive={new THREE.Color(coreEmissive)}
             emissiveIntensity={activated ? 5.0 : 0.6 + intensity * 1.0}
-            metalness={0.95}
+            metalness={0.3}
             roughness={0.02}
-            envMapIntensity={1.0}
+            envMapIntensity={1.5}
             clearcoat={1}
             clearcoatRoughness={0.05}
             iridescence={activated ? 1.0 : 0.4}
             iridescenceIOR={1.8}
+            transmission={activated ? 0.5 : 0.3}
+            thickness={1.5}
+            ior={1.5}
           />
         </mesh>
         {/* Holographic distortion aura */}
@@ -633,8 +637,8 @@ export function LazarusScene({
 
           <fog attach="fog" args={[activated ? "#081408" : "#08081a", 8, 28]} />
 
-          {/* Cinematic camera intro */}
           <CinematicIntro targetPosition={[0, 5, 6]} startOffset={[0, 3, 5]} duration={2.2} />
+          <CinematicCameraBreathing fovBreath={0.6} breathSpeed={0.1} parallaxStrength={0.15} />
 
           {/* Sacred floor */}
           <LazarusFloor activated={activated} />
@@ -694,7 +698,13 @@ export function LazarusScene({
           {/* Fireflies — erratic luminous wanderers */}
           <Fireflies count={activated ? 30 : 15} radius={5} height={4} color={activated ? "#10b981" : "#fbbf24"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} />
 
-          {/* Thematic embers — rising heat effect */}
+          {/* Energy trails */}
+          <EnergyTrails count={4} radius={3} height={3} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} speed={activated ? 0.5 : 0.2} />
+
+          {/* Animated fog layers */}
+          <AnimatedFogLayers layers={2} baseY={-0.3} radius={8} color={activated ? "#061006" : "#0a0a1e"} maxOpacity={0.15} />
+
+          {/* Thematic embers */}
           <ThematicParticles count={20} radius={4} height={5} color={activated ? "#10b981" : "#f59e0b"} variant="embers" />
 
           {/* Background depth */}
@@ -708,6 +718,7 @@ export function LazarusScene({
             bloomSmoothing={0.6}
             vignetteOpacity={activated ? 0.45 : 0.4}
             chromaticAberration={0.0005}
+            quality="high"
           />
 
           <OrbitControls

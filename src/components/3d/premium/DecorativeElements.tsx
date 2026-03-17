@@ -1014,3 +1014,135 @@ export function DepthFogPlane({
     </mesh>
   );
 }
+
+/**
+ * Energy Trails — luminous lines that flow along curved paths.
+ * Creates circulating energy currents in the scene.
+ */
+export function EnergyTrails({
+  count = 5,
+  radius = 4,
+  height = 3,
+  color = "#d4a017",
+  secondaryColor = "#6366f1",
+  speed = 0.3,
+}: {
+  count?: number;
+  radius?: number;
+  height?: number;
+  color?: string;
+  secondaryColor?: string;
+  speed?: number;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const trailLength = 20;
+  const totalInstances = count * trailLength;
+
+  const trails = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => ({
+      baseAngle: (i / count) * Math.PI * 2,
+      baseY: 0.5 + Math.random() * (height - 1),
+      orbitRadius: radius * (0.5 + Math.random() * 0.5),
+      speed: speed * (0.7 + Math.random() * 0.6),
+      phase: Math.random() * Math.PI * 2,
+      yOscillation: 0.5 + Math.random() * 1.0,
+      isGold: Math.random() > 0.4,
+    }));
+  }, [count, radius, height, speed]);
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime();
+
+    trails.forEach((trail, ti) => {
+      for (let j = 0; j < trailLength; j++) {
+        const delay = j * 0.08;
+        const tOffset = t * trail.speed - delay;
+        const angle = trail.baseAngle + tOffset;
+        
+        const x = Math.cos(angle) * trail.orbitRadius;
+        const z = Math.sin(angle) * trail.orbitRadius;
+        const y = trail.baseY + Math.sin(tOffset * 1.5 + trail.phase) * trail.yOscillation;
+
+        dummy.position.set(x, y, z);
+        // Trail particles fade and shrink toward tail
+        const fade = 1 - j / trailLength;
+        const s = 0.025 * fade * fade;
+        dummy.scale.setScalar(s);
+        dummy.updateMatrix();
+        meshRef.current!.setMatrixAt(ti * trailLength + j, dummy.matrix);
+      }
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, totalInstances]}>
+      <sphereGeometry args={[1, 4, 4]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={4}
+        transparent
+        opacity={0.7}
+      />
+    </instancedMesh>
+  );
+}
+
+/**
+ * Animated Fog Layers — horizontal planes of rolling mist.
+ * Uses animated noise-like opacity for living atmosphere.
+ */
+export function AnimatedFogLayers({
+  layers = 3,
+  baseY = -0.2,
+  radius = 10,
+  color = "#0e0e28",
+  maxOpacity = 0.2,
+}: {
+  layers?: number;
+  baseY?: number;
+  radius?: number;
+  color?: string;
+  maxOpacity?: number;
+}) {
+  const refs = useRef<THREE.Mesh[]>([]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      // Each layer moves slightly and pulses opacity
+      mesh.position.x = Math.sin(t * 0.05 + i * 2) * 0.5;
+      mesh.position.z = Math.cos(t * 0.04 + i * 1.5) * 0.5;
+      mesh.rotation.z = t * 0.008 * (i % 2 === 0 ? 1 : -1);
+      const mat = mesh.material as THREE.MeshBasicMaterial;
+      mat.opacity = maxOpacity * (0.5 + Math.sin(t * 0.2 + i * 1.2) * 0.5);
+    });
+  });
+
+  return (
+    <group>
+      {Array.from({ length: layers }).map((_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { if (el) refs.current[i] = el; }}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, baseY + i * 0.8, 0]}
+        >
+          <circleGeometry args={[radius * (1 - i * 0.15), 32]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={maxOpacity * (1 - i * 0.25)}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}

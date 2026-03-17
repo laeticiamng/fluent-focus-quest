@@ -3,84 +3,149 @@ import { useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 
+// ── GLSL Simplex Noise (inline) ──
+const NOISE_GLSL = `
+vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+}
+`;
+
 /**
- * Procedural gradient skybox — tech-fantasy nebula dome.
- * HD resolution (1024) with stars and animated nebula glow.
+ * Animated GLSL Nebula Skybox — living, breathing cosmic dome.
+ * Replaces static canvas texture with real-time shader.
  */
-function GradientSkybox({ preset = "default" }: { preset?: string }) {
+function NebulaSkybox({ preset = "default" }: { preset?: string }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const matRef = useRef<THREE.ShaderMaterial>(null);
 
-  const texture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const ctx = canvas.getContext("2d")!;
+  const palettes: Record<string, { c1: string; c2: string; c3: string; c4: string }> = {
+    default:  { c1: "#050510", c2: "#0c0c2a", c3: "#6366f1", c4: "#d4a017" },
+    dramatic: { c1: "#030308", c2: "#0a0822", c3: "#7c3aed", c4: "#f59e0b" },
+    sacred:   { c1: "#040410", c2: "#0e0a28", c3: "#8b5cf6", c4: "#10b981" },
+    showcase: { c1: "#060612", c2: "#0e0e2e", c3: "#6366f1", c4: "#d4a017" },
+  };
+  const p = palettes[preset] || palettes.default;
 
-    const palettes: Record<string, { bottom: string; mid1: string; mid2: string; top: string }> = {
-      default:  { bottom: "#050510", mid1: "#0c0c2a", mid2: "#14143a", top: "#0a0a1e" },
-      dramatic: { bottom: "#030308", mid1: "#0a0822", mid2: "#18103a", top: "#080614" },
-      sacred:   { bottom: "#040410", mid1: "#0e0a28", mid2: "#160e35", top: "#0a0818" },
-      showcase: { bottom: "#060612", mid1: "#0e0e2e", mid2: "#161640", top: "#0c0c22" },
-    };
-    const p = palettes[preset] || palettes.default;
+  const shaderData = useMemo(() => ({
+    uniforms: {
+      uTime: { value: 0 },
+      uColor1: { value: new THREE.Color(p.c1) },
+      uColor2: { value: new THREE.Color(p.c2) },
+      uColor3: { value: new THREE.Color(p.c3) },
+      uColor4: { value: new THREE.Color(p.c4) },
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      ${NOISE_GLSL}
+      uniform float uTime;
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
+      uniform vec3 uColor3;
+      uniform vec3 uColor4;
+      varying vec3 vWorldPos;
+      varying vec2 vUv;
 
-    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-    gradient.addColorStop(0, p.bottom);
-    gradient.addColorStop(0.3, p.mid1);
-    gradient.addColorStop(0.6, p.mid2);
-    gradient.addColorStop(1.0, p.top);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+      }
 
-    // Nebula glow spots — richer and more varied
-    const spots = [
-      { x: 400, y: 360, r: 240, color: "rgba(99, 102, 241, 0.05)" },
-      { x: 700, y: 560, r: 180, color: "rgba(212, 160, 23, 0.04)" },
-      { x: 200, y: 700, r: 200, color: "rgba(124, 58, 237, 0.045)" },
-      { x: 850, y: 200, r: 160, color: "rgba(6, 182, 212, 0.03)" },
-      { x: 500, y: 150, r: 280, color: "rgba(245, 158, 11, 0.025)" },
-      { x: 120, y: 400, r: 150, color: "rgba(236, 72, 153, 0.025)" },
-    ];
-    spots.forEach(({ x, y, r, color }) => {
-      const radial = ctx.createRadialGradient(x, y, 0, x, y, r);
-      radial.addColorStop(0, color);
-      radial.addColorStop(1, "transparent");
-      ctx.fillStyle = radial;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    });
+      void main() {
+        vec3 dir = normalize(vWorldPos);
+        float elevation = dir.y * 0.5 + 0.5;
 
-    // Stars — scattered bright points
-    const starCount = 200;
-    for (let i = 0; i < starCount; i++) {
-      const sx = Math.random() * canvas.width;
-      const sy = Math.random() * canvas.height;
-      const sr = 0.3 + Math.random() * 1.2;
-      const brightness = 0.15 + Math.random() * 0.5;
-      ctx.beginPath();
-      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-      ctx.fill();
-    }
+        // Base gradient
+        vec3 base = mix(uColor1, uColor2, smoothstep(0.0, 0.6, elevation));
 
-    // Larger "bright" stars with slight glow
-    for (let i = 0; i < 15; i++) {
-      const sx = Math.random() * canvas.width;
-      const sy = Math.random() * canvas.height;
-      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 4);
-      glow.addColorStop(0, "rgba(255, 255, 255, 0.6)");
-      glow.addColorStop(0.5, "rgba(180, 200, 255, 0.15)");
-      glow.addColorStop(1, "transparent");
-      ctx.fillStyle = glow;
-      ctx.fillRect(sx - 4, sy - 4, 8, 8);
-    }
+        // Nebula layers — flowing noise at different scales and speeds
+        float n1 = snoise(dir * 2.0 + uTime * 0.02) * 0.5 + 0.5;
+        float n2 = snoise(dir * 4.0 - uTime * 0.015 + 10.0) * 0.5 + 0.5;
+        float n3 = snoise(dir * 8.0 + uTime * 0.01 + 20.0) * 0.5 + 0.5;
 
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.mapping = THREE.EquirectangularReflectionMapping;
-    return tex;
-  }, [preset]);
+        // Nebula glow — colored clouds
+        vec3 nebula1 = uColor3 * pow(n1, 3.0) * 0.15;
+        vec3 nebula2 = uColor4 * pow(n2, 4.0) * 0.1;
+        vec3 nebula3 = mix(uColor3, uColor4, 0.5) * pow(n3, 5.0) * 0.08;
 
-  // Slow skybox rotation
+        // Pulsating intensity
+        float pulse = sin(uTime * 0.3) * 0.1 + 0.9;
+
+        vec3 col = base + (nebula1 + nebula2 + nebula3) * pulse;
+
+        // Stars — pseudo-random bright points
+        vec2 starUV = vUv * 200.0;
+        float starHash = hash(floor(starUV));
+        float starBright = step(0.992, starHash);
+        float twinkle = sin(uTime * (2.0 + starHash * 4.0) + starHash * 100.0) * 0.4 + 0.6;
+        col += vec3(starBright * twinkle * 0.7);
+
+        // Bright stars with glow
+        vec2 starUV2 = vUv * 80.0;
+        float starHash2 = hash(floor(starUV2));
+        float bigStar = step(0.997, starHash2);
+        float bigTwinkle = sin(uTime * (1.0 + starHash2 * 3.0) + starHash2 * 50.0) * 0.3 + 0.7;
+        col += vec3(bigStar * bigTwinkle * 1.2);
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  }), [p.c1, p.c2, p.c3, p.c4]);
+
   useFrame(({ clock }) => {
+    if (matRef.current) {
+      matRef.current.uniforms.uTime.value = clock.getElapsedTime();
+    }
     if (meshRef.current) {
       meshRef.current.rotation.y = clock.getElapsedTime() * 0.003;
     }
@@ -89,7 +154,12 @@ function GradientSkybox({ preset = "default" }: { preset?: string }) {
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[50, 64, 32]} />
-      <meshBasicMaterial map={texture} side={THREE.BackSide} depthWrite={false} />
+      <shaderMaterial
+        ref={matRef}
+        args={[shaderData]}
+        side={THREE.BackSide}
+        depthWrite={false}
+      />
     </mesh>
   );
 }
@@ -129,6 +199,7 @@ function BreathingLight({
 /**
  * Cinematic lighting rig — premium immersive 2026.
  * 8-light setup with breathing dynamics for living feel.
+ * Now with animated GLSL nebula skybox.
  */
 export function PremiumLighting({
   preset = "default",
@@ -157,8 +228,8 @@ export function PremiumLighting({
       {/* HDRI for reflections only */}
       <Environment preset="city" environmentIntensity={p.envIntensity} background={false} />
 
-      {/* Custom gradient skybox — tech-fantasy nebula with stars */}
-      <GradientSkybox preset={preset} />
+      {/* Animated GLSL nebula skybox — living cosmic dome */}
+      <NebulaSkybox preset={preset} />
 
       {/* Ambient — desaturated cool blue for depth */}
       <ambientLight intensity={p.ambient * mult} color="#a0b0d0" />

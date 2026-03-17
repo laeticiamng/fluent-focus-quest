@@ -11,8 +11,10 @@ import * as THREE from "three";
 import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
-import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion, Fireflies } from "./premium/DecorativeElements";
+import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion, Fireflies, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
+import { VortexPortal } from "./premium/VortexPortalShader";
 
 // ── Types ──
 interface ZonePortalData {
@@ -192,13 +194,16 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
             color="#fbbf24"
             emissive="#fbbf24"
             emissiveIntensity={1.2 + sigilIntensity * 2.5}
-            metalness={0.95}
+            metalness={0.3}
             roughness={0.03}
-            envMapIntensity={1.0}
+            envMapIntensity={1.5}
             clearcoat={1}
             clearcoatRoughness={0.05}
-            iridescence={0.6}
+            iridescence={0.8}
             iridescenceIOR={1.8}
+            transmission={0.6}
+            thickness={1.5}
+            ior={1.5}
           />
         </mesh>
         {/* Holographic distortion aura */}
@@ -475,30 +480,31 @@ function ZonePortal({
         </mesh>
       </Float>
 
-      {/* ── Portal inner glow — the "energy field" with Fresnel ── */}
-      <mesh ref={glowRef} position={[0, 0.78, 0.03]}>
-        <planeGeometry args={[0.82, 1.4]} />
-        <meshStandardMaterial
-          color={portal.emissive}
-          emissive={portal.emissive}
-          emissiveIntensity={portal.unlocked ? (hovered ? 3.5 : 1.8) : 0.03}
-          transparent
-          opacity={portal.unlocked ? (hovered ? 0.6 : 0.3) : 0.03}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* ── Fresnel energy overlay ── */}
-      {portal.unlocked && (
-        <group position={[0, 0.78, 0.04]}>
-          <FresnelPortalField
-            width={0.78}
-            height={1.35}
+      {/* ── Portal inner — energy vortex shader for unlocked, simple glow for locked ── */}
+      {portal.unlocked ? (
+        <group position={[0, 0.78, 0.03]}>
+          <VortexPortal
+            width={0.82}
+            height={1.4}
             color={portal.emissive.getStyle()}
-            intensity={hovered ? 2.0 : 1.0}
+            secondaryColor={portal.color.getStyle()}
+            intensity={hovered ? 2.5 : 1.2}
+            speed={hovered ? 1.5 : 0.8}
             activated={portal.unlocked}
           />
         </group>
+      ) : (
+        <mesh ref={glowRef} position={[0, 0.78, 0.03]}>
+          <planeGeometry args={[0.82, 1.4]} />
+          <meshStandardMaterial
+            color={portal.emissive}
+            emissive={portal.emissive}
+            emissiveIntensity={0.03}
+            transparent
+            opacity={0.03}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
       )}
 
       {/* ── Portal edge glow strips ── */}
@@ -682,6 +688,7 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
       >
         <Suspense fallback={null}>
           <CameraSetup />
+          <CinematicCameraBreathing fovBreath={0.8} breathSpeed={0.125} parallaxStrength={0.2} />
 
           {/* Premium cinematic lighting */}
           <PremiumLighting preset="dramatic" accentColor="#d4a017" rimColor="#6366f1" />
@@ -725,6 +732,12 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Ambient particles */}
           <AmbientParticles count={55} radius={8} height={6} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Energy trails — circulating light streams */}
+          <EnergyTrails count={6} radius={5} height={4} color="#d4a017" secondaryColor="#6366f1" speed={0.25} />
+
+          {/* Animated fog layers — rolling mist */}
+          <AnimatedFogLayers layers={3} baseY={-0.3} radius={12} color="#0a0a1e" maxOpacity={0.15} />
+
           {/* Fireflies — magical wanderers */}
           <Fireflies count={25} radius={7} height={5} color="#fbbf24" secondaryColor="#6366f1" />
 
@@ -750,6 +763,7 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             bloomSmoothing={0.6}
             vignetteOpacity={0.4}
             chromaticAberration={0.0004}
+            quality="high"
           />
 
           {/* Orbit controls — slightly more heroic starting angle */}

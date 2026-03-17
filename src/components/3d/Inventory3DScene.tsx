@@ -4,8 +4,9 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import type { InventoryItem } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro, Fireflies } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro, Fireflies, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 
 interface Inventory3DSceneProps {
   items: InventoryItem[];
@@ -355,6 +356,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
       >
         <Suspense fallback={null}>
           <CinematicIntro targetPosition={[0, 3.8, 5]} startOffset={[0, 2, 4]} duration={2.0} />
+          <CinematicCameraBreathing fovBreath={0.5} breathSpeed={0.1} parallaxStrength={0.15} />
 
           <PremiumLighting preset="showcase" accentColor="#d4a017" rimColor="#6366f1" />
 
@@ -406,10 +408,15 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             />
           ))}
 
-          {/* Ambient particles */}
           <AmbientParticles count={30} radius={5} height={3.5} color="#d4a017" secondaryColor="#6366f1" />
 
-          {/* Fireflies — adds life to showcase */}
+          {/* Energy trails */}
+          <EnergyTrails count={3} radius={3.5} height={2.5} color="#d4a017" secondaryColor="#6366f1" speed={0.2} />
+
+          {/* Animated fog layers */}
+          <AnimatedFogLayers layers={2} baseY={-0.15} radius={8} color="#0a0a1e" maxOpacity={0.12} />
+
+          {/* Fireflies */}
           <Fireflies count={12} radius={4} height={3} color="#fbbf24" secondaryColor="#6366f1" />
 
           {/* Background depth */}
@@ -423,6 +430,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             bloomSmoothing={0.6}
             vignetteOpacity={0.35}
             chromaticAberration={0.0005}
+            quality="high"
           />
 
           <OrbitControls

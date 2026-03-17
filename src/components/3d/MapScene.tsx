@@ -6,8 +6,9 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import type { RoomStatus } from "@/data/escapeGame";
 import type { Artifact } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro, PulsingFloorVeins, Fireflies } from "./premium/DecorativeElements";
+import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro, PulsingFloorVeins, Fireflies, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 
 interface MapSceneProps {
   escapeZoneStatus: Record<string, {
@@ -550,6 +551,7 @@ export function MapScene({
       >
         <Suspense fallback={null}>
           <CinematicIntro targetPosition={[0, 8, 9]} startOffset={[0, 4, 6]} duration={2.5} />
+          <CinematicCameraBreathing fovBreath={0.5} breathSpeed={0.1} parallaxStrength={0.15} />
 
           <PremiumLighting preset="default" accentColor="#d4a017" rimColor="#6366f1" />
 
@@ -581,7 +583,13 @@ export function MapScene({
           {/* Ambient particles */}
           <AmbientParticles count={40} radius={9} height={5} color="#d4a017" secondaryColor="#6366f1" />
 
-          {/* Fireflies — magical atmosphere */}
+          {/* Energy trails */}
+          <EnergyTrails count={4} radius={6} height={3.5} color="#d4a017" secondaryColor="#6366f1" speed={0.15} />
+
+          {/* Animated fog layers */}
+          <AnimatedFogLayers layers={2} baseY={-0.4} radius={14} color="#080818" maxOpacity={0.12} />
+
+          {/* Fireflies */}
           <Fireflies count={18} radius={8} height={4} color="#fbbf24" secondaryColor="#6366f1" />
 
           {/* Suspended energy arcs */}
