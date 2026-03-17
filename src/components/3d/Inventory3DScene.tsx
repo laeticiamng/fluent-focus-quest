@@ -408,10 +408,15 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             />
           ))}
 
-          {/* Ambient particles */}
           <AmbientParticles count={30} radius={5} height={3.5} color="#d4a017" secondaryColor="#6366f1" />
 
-          {/* Fireflies — adds life to showcase */}
+          {/* Energy trails */}
+          <EnergyTrails count={3} radius={3.5} height={2.5} color="#d4a017" secondaryColor="#6366f1" speed={0.2} />
+
+          {/* Animated fog layers */}
+          <AnimatedFogLayers layers={2} baseY={-0.15} radius={8} color="#0a0a1e" maxOpacity={0.12} />
+
+          {/* Fireflies */}
           <Fireflies count={12} radius={4} height={3} color="#fbbf24" secondaryColor="#6366f1" />
 
           {/* Background depth */}
