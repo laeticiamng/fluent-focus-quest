@@ -2,6 +2,42 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Timer, Zap, Pause, Play, RotateCcw } from "lucide-react";
 
+const TIMER_STORAGE_KEY = "fluent-focus-mission-timer";
+
+interface TimerPersisted {
+  missionId: string;
+  remaining: number;
+  paused: boolean;
+  finished: boolean;
+  savedAt: number; // timestamp
+}
+
+function loadTimerState(missionId: string, totalSeconds: number): { remaining: number; paused: boolean; finished: boolean } | null {
+  try {
+    const raw = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!raw) return null;
+    const data: TimerPersisted = JSON.parse(raw);
+    if (data.missionId !== missionId) return null;
+    // If finished, restore as-is
+    if (data.finished) return { remaining: 0, paused: false, finished: true };
+    // If paused, restore remaining as-is
+    if (data.paused) return { remaining: Math.max(0, data.remaining), paused: true, finished: false };
+    // If was running, subtract elapsed time since save
+    const elapsed = Math.floor((Date.now() - data.savedAt) / 1000);
+    const remaining = Math.max(0, data.remaining - elapsed);
+    return { remaining, paused: false, finished: remaining <= 0 };
+  } catch {
+    return null;
+  }
+}
+
+function saveTimerState(missionId: string, remaining: number, paused: boolean, finished: boolean) {
+  try {
+    const data: TimerPersisted = { missionId, remaining, paused, finished, savedAt: Date.now() };
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(data));
+  } catch { /* quota exceeded */ }
+}
+
 interface MissionTimerProps {
   missionId: string;
   durationMinutes: number;
@@ -35,17 +71,38 @@ export function MissionTimer({
   compact = false,
 }: MissionTimerProps) {
   const totalSeconds = durationMinutes * 60;
-  const [remaining, setRemaining] = useState(totalSeconds);
-  const [paused, setPaused] = useState(false);
-  const [finished, setFinished] = useState(false);
+  const [remaining, setRemaining] = useState(() => {
+    const saved = loadTimerState(missionId, totalSeconds);
+    return saved ? saved.remaining : totalSeconds;
+  });
+  const [paused, setPaused] = useState(() => {
+    const saved = loadTimerState(missionId, totalSeconds);
+    return saved ? saved.paused : false;
+  });
+  const [finished, setFinished] = useState(() => {
+    const saved = loadTimerState(missionId, totalSeconds);
+    return saved ? saved.finished : false;
+  });
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   // Reset when mission changes
   useEffect(() => {
-    setRemaining(durationMinutes * 60);
-    setFinished(false);
-    setPaused(false);
+    const saved = loadTimerState(missionId, durationMinutes * 60);
+    if (saved) {
+      setRemaining(saved.remaining);
+      setPaused(saved.paused);
+      setFinished(saved.finished);
+    } else {
+      setRemaining(durationMinutes * 60);
+      setFinished(false);
+      setPaused(false);
+    }
   }, [missionId, durationMinutes]);
+
+  // Persist state on changes
+  useEffect(() => {
+    saveTimerState(missionId, remaining, paused, finished);
+  }, [missionId, remaining, paused, finished]);
 
   useEffect(() => {
     if (!isActive || paused || finished) {
@@ -81,6 +138,7 @@ export function MissionTimer({
     setRemaining(totalSeconds);
     setFinished(false);
     setPaused(false);
+    saveTimerState(missionId, totalSeconds, false, false);
   };
 
   const percentage = (remaining / totalSeconds) * 100;
