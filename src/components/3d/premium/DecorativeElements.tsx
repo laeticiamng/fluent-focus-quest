@@ -1146,3 +1146,88 @@ export function AnimatedFogLayers({
     </group>
   );
 }
+
+/**
+ * Atmospheric Height Fog — multi-strata volumetric mist.
+ * Creates depth through graduated density layers at different heights.
+ * More credible than flat fog — adds mystery, depth, and air.
+ */
+export function AtmosphericHeightFog({
+  groundColor = "#0a0a1e",
+  midColor = "#0e0e28",
+  baseY = -0.5,
+  radius = 12,
+  groundOpacity = 0.18,
+  midOpacity = 0.08,
+}: {
+  groundColor?: string;
+  midColor?: string;
+  baseY?: number;
+  radius?: number;
+  groundOpacity?: number;
+  midOpacity?: number;
+}) {
+  const groundRef = useRef<THREE.Mesh>(null);
+  const mid1Ref = useRef<THREE.Mesh>(null);
+  const mid2Ref = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (groundRef.current) {
+      groundRef.current.position.x = Math.sin(t * 0.03) * 0.3;
+      groundRef.current.position.z = Math.cos(t * 0.025) * 0.3;
+      const mat = groundRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = groundOpacity * (0.7 + Math.sin(t * 0.15) * 0.3);
+    }
+    if (mid1Ref.current) {
+      mid1Ref.current.position.x = Math.sin(t * 0.02 + 1.5) * 0.6;
+      mid1Ref.current.position.z = Math.cos(t * 0.018 + 2) * 0.5;
+      const mat = mid1Ref.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = midOpacity * (0.5 + Math.sin(t * 0.12 + 1) * 0.5);
+    }
+    if (mid2Ref.current) {
+      mid2Ref.current.position.x = Math.cos(t * 0.025 + 3) * 0.7;
+      mid2Ref.current.position.z = Math.sin(t * 0.02 + 4) * 0.4;
+      const mat = mid2Ref.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = midOpacity * 0.6 * (0.5 + Math.sin(t * 0.1 + 2.5) * 0.5);
+    }
+  });
+
+  return (
+    <group>
+      {/* Ground-hugging dense layer */}
+      <mesh ref={groundRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, baseY + 0.05, 0]}>
+        <circleGeometry args={[radius, 32]} />
+        <meshBasicMaterial
+          color={groundColor}
+          transparent
+          opacity={groundOpacity}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Mid stratum 1 — thinner, wider drift */}
+      <mesh ref={mid1Ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, baseY + 1.2, 0]}>
+        <circleGeometry args={[radius * 0.85, 32]} />
+        <meshBasicMaterial
+          color={midColor}
+          transparent
+          opacity={midOpacity}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Mid stratum 2 — highest, lightest */}
+      <mesh ref={mid2Ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, baseY + 2.5, 0]}>
+        <circleGeometry args={[radius * 0.65, 32]} />
+        <meshBasicMaterial
+          color={midColor}
+          transparent
+          opacity={midOpacity * 0.5}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}

@@ -1,11 +1,13 @@
 import { EffectComposer, Bloom, Vignette, ChromaticAberration, DepthOfField, N8AO } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { Vector2 } from "three";
+import type { QualityTier } from "@/hooks/useQualityTier";
 
 /**
  * Premium post-processing — cinematic bloom + chromatic aberration + SSAO + depth of field + vignette.
- * Tuned for dramatic glow on emissive elements with film-grade polish.
- * quality="high" enables SSAO and DepthOfField for AAA look.
+ * Now tier-aware: automatically scales effects based on device capabilities.
+ *
+ * qualityTier overrides legacy quality prop when provided.
  */
 export function PremiumPostProcessing({
   bloomIntensity = 0.8,
@@ -15,6 +17,9 @@ export function PremiumPostProcessing({
   chromaticAberration = 0.0006,
   depthOfField = false,
   quality = "standard",
+  qualityTier,
+  aoRadius = 0.5,
+  aoIntensity = 1.5,
 }: {
   bloomIntensity?: number;
   bloomThreshold?: number;
@@ -23,28 +28,43 @@ export function PremiumPostProcessing({
   chromaticAberration?: number;
   depthOfField?: boolean;
   quality?: "standard" | "high";
+  qualityTier?: QualityTier;
+  aoRadius?: number;
+  aoIntensity?: number;
 }) {
-  const enableSSAO = quality === "high";
-  const enableDOF = depthOfField || quality === "high";
+  // Resolve effective quality from tier or legacy prop
+  const isHigh = qualityTier ? qualityTier === "high" : quality === "high";
+  const isMobile = qualityTier === "mobile";
+
+  const enableSSAO = isHigh;
+  const enableDOF = isHigh && (depthOfField || quality === "high");
+  const enableChroma = !isMobile && chromaticAberration > 0;
+
+  // Scale bloom for lower tiers
+  const effectiveBloom = isMobile
+    ? bloomIntensity * 0.5
+    : qualityTier === "medium"
+      ? bloomIntensity * 0.75
+      : bloomIntensity;
 
   return (
     <EffectComposer>
       <Bloom
-        intensity={bloomIntensity}
+        intensity={effectiveBloom}
         luminanceThreshold={bloomThreshold}
         luminanceSmoothing={bloomSmoothing}
         mipmapBlur
       />
       {enableSSAO && (
         <N8AO
-          aoRadius={0.5}
-          intensity={1.5}
+          aoRadius={aoRadius}
+          intensity={aoIntensity}
           distanceFalloff={0.8}
           quality="medium"
           halfRes
         />
       )}
-      {chromaticAberration > 0 && (
+      {enableChroma && (
         <ChromaticAberration
           blendFunction={BlendFunction.NORMAL}
           offset={new Vector2(chromaticAberration, chromaticAberration)}
