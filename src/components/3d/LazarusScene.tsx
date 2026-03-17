@@ -4,8 +4,9 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 
 interface LazarusSceneProps {
   sigilsCollected: string[];
