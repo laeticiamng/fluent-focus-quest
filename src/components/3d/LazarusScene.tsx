@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Float, Html, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 
@@ -28,13 +28,13 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
 
   return (
     <group ref={altarRef} position={[0, 0, 0]}>
-      {/* Base */}
+      {/* Base — lighter */}
       <mesh position={[0, -0.2, 0]} receiveShadow>
         <cylinderGeometry args={[1.8, 2, 0.4, 8]} />
         <meshStandardMaterial
-          color={activated ? "#1a2e1a" : "#16213e"}
-          metalness={0.8}
-          roughness={0.2}
+          color={activated ? "#253525" : "#242448"}
+          metalness={0.7}
+          roughness={0.25}
         />
       </mesh>
 
@@ -44,7 +44,7 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
         <meshStandardMaterial
           color={activated ? "#10b981" : "#d4a017"}
           emissive={new THREE.Color(activated ? "#10b981" : "#d4a017")}
-          emissiveIntensity={activated ? 1.5 : 0.3}
+          emissiveIntensity={activated ? 1.8 : 0.5}
           metalness={1}
           roughness={0.1}
         />
@@ -56,24 +56,24 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
         <meshStandardMaterial
           color="#d4a017"
           emissive="#d4a017"
-          emissiveIntensity={0.15}
+          emissiveIntensity={0.25}
           metalness={1}
           roughness={0.1}
           transparent
-          opacity={0.5}
+          opacity={0.6}
         />
       </mesh>
 
-      {/* Central core — the Lazarus mechanism */}
+      {/* Central core */}
       <Float speed={activated ? 3 : 1} floatIntensity={activated ? 0.5 : 0.1}>
         <mesh ref={coreRef} position={[0, 0.8, 0]} castShadow>
           <icosahedronGeometry args={[0.3, 0]} />
           <meshStandardMaterial
-            color={activated ? "#fbbf24" : "#334155"}
+            color={activated ? "#fbbf24" : "#4a506a"}
             emissive={new THREE.Color(activated ? "#fbbf24" : "#6366f1")}
-            emissiveIntensity={activated ? 2 : 0.2}
-            metalness={0.95}
-            roughness={0.05}
+            emissiveIntensity={activated ? 2.5 : 0.4}
+            metalness={0.9}
+            roughness={0.08}
           />
         </mesh>
       </Float>
@@ -81,9 +81,9 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
       {/* Core light */}
       <pointLight
         position={[0, 0.8, 0]}
-        intensity={activated ? 4 : 0.5}
+        intensity={activated ? 5 : 0.8}
         color={activated ? "#fbbf24" : "#6366f1"}
-        distance={6}
+        distance={8}
         decay={2}
       />
     </group>
@@ -141,24 +141,22 @@ function SigilSlot({
     }
   }, [activated, isPlaced, isObtained, onPlace, onRemove]);
 
-  const slotColor = isPlaced ? "#f59e0b" : isObtained ? "#4a4a6a" : "#1a1a2e";
-  const emissive = isPlaced ? "#f59e0b" : isObtained && hovered ? "#6366f1" : "#000";
+  const slotColor = isPlaced ? "#f59e0b" : isObtained ? "#5a5a7a" : "#2a2a40";
+  const emissive = isPlaced ? "#f59e0b" : isObtained && hovered ? "#6366f1" : "#111";
 
   return (
     <group position={[x, 0, z]}>
-      {/* Slot base */}
       <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[0.2, 0.22, 0.1, 6]} />
         <meshStandardMaterial
-          color={isPlaced ? "#2a1a05" : "#0a0a1a"}
-          metalness={0.7}
-          roughness={0.3}
-          emissive={new THREE.Color(isPlaced ? "#f59e0b" : "#000")}
-          emissiveIntensity={isPlaced ? 0.2 : 0}
+          color={isPlaced ? "#3a2a10" : "#1a1a30"}
+          metalness={0.6}
+          roughness={0.35}
+          emissive={new THREE.Color(isPlaced ? "#f59e0b" : "#111")}
+          emissiveIntensity={isPlaced ? 0.3 : 0.01}
         />
       </mesh>
 
-      {/* Sigil object */}
       <mesh
         ref={meshRef}
         position={[0, 0.15, 0]}
@@ -171,24 +169,22 @@ function SigilSlot({
         <meshStandardMaterial
           color={slotColor}
           emissive={new THREE.Color(emissive)}
-          emissiveIntensity={isPlaced ? 1 : hovered ? 0.5 : 0}
-          metalness={0.9}
-          roughness={0.1}
+          emissiveIntensity={isPlaced ? 1.2 : hovered ? 0.6 : 0.05}
+          metalness={0.85}
+          roughness={0.12}
           transparent={!isObtained}
-          opacity={isObtained ? 1 : 0.2}
+          opacity={isObtained ? 1 : 0.3}
         />
       </mesh>
 
-      {/* Glow when placed */}
       {isPlaced && (
-        <pointLight position={[0, 0.2, 0]} intensity={1.5} color="#f59e0b" distance={1.5} decay={2} />
+        <pointLight position={[0, 0.2, 0]} intensity={1.8} color="#f59e0b" distance={1.8} decay={2} />
       )}
 
-      {/* Label */}
       <Html position={[0, -0.25, 0]} center distanceFactor={6}>
-        <div className={`text-center pointer-events-none select-none ${isObtained ? "" : "opacity-20"}`}>
-          <div className="text-xs">{isObtained ? fragment.icon : "❓"}</div>
-          <div className="text-[7px] text-white/50 whitespace-nowrap">
+        <div className={`text-center pointer-events-none select-none ${isObtained ? "" : "opacity-25"}`}>
+          <div className="text-xs">{isObtained ? fragment.icon : "?"}</div>
+          <div className="text-[7px] text-white/60 whitespace-nowrap">
             {isObtained ? fragment.name.split(" ").pop() : "???"}
           </div>
           {isPlaced && (
@@ -222,26 +218,33 @@ export function LazarusScene({
         shadows
         camera={{ position: [0, 4, 5], fov: 45 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.4,
+        }}
+        onCreated={({ scene }) => {
+          scene.background = new THREE.Color(activated ? "#141e14" : "#151530");
+        }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.4} color="#b0b0cc" />
-          <directionalLight position={[4, 10, 4]} intensity={0.9} color="#ffe4b5" castShadow />
-          <directionalLight position={[-3, 5, -2]} intensity={0.3} color="#8899cc" />
-          <pointLight position={[0, 3, 0]} intensity={0.5} color={activated ? "#10b981" : "#6366f1"} distance={10} decay={2} />
+          <Environment preset="city" environmentIntensity={0.2} />
 
-          <fog attach="fog" args={[activated ? "#0c180c" : "#0c0c20", 10, 20]} />
+          <ambientLight intensity={0.6} color="#b8b8d8" />
+          <directionalLight position={[4, 10, 4]} intensity={1.2} color="#ffe8c0" castShadow />
+          <directionalLight position={[-3, 5, -2]} intensity={0.45} color="#99aadd" />
+          <pointLight position={[0, 3, 0]} intensity={0.7} color={activated ? "#10b981" : "#6366f1"} distance={12} decay={2} />
+          <pointLight position={[0, -0.2, 0]} intensity={0.2} color="#334477" distance={8} decay={2} />
 
-          {/* Floor */}
+          <fog attach="fog" args={[activated ? "#152015" : "#181838", 12, 24]} />
+
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.4, 0]} receiveShadow>
             <circleGeometry args={[5, 64]} />
-            <meshStandardMaterial color="#12122a" metalness={0.4} roughness={0.5} />
+            <meshStandardMaterial color="#1e1e3a" metalness={0.35} roughness={0.5} />
           </mesh>
 
-          {/* Altar */}
           <Altar sigilCount={sigilsCollected.length} activated={activated} />
 
-          {/* Sigil slots */}
           {fragments.map((f, i) => (
             <SigilSlot
               key={f.id}
@@ -257,7 +260,7 @@ export function LazarusScene({
             />
           ))}
 
-          <ContactShadows position={[0, -0.39, 0]} opacity={0.3} scale={10} blur={2} />
+          <ContactShadows position={[0, -0.39, 0]} opacity={0.25} scale={10} blur={2} />
 
           <OrbitControls
             enablePan={false}
@@ -274,7 +277,6 @@ export function LazarusScene({
         </Suspense>
       </Canvas>
 
-      {/* Bottom gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </div>
   );

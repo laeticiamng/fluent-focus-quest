@@ -4,6 +4,7 @@ interface Props {
   children: ReactNode;
   fallback: ReactNode;
   sceneName?: string;
+  onError?: (message: string) => void;
 }
 
 interface State {
@@ -30,6 +31,7 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
     if (import.meta.env.DEV) {
       console.debug(`[3D:${label}] Stack:`, error.stack);
     }
+    this.props.onError?.(error.message);
   }
 
   handleRetry = () => {
@@ -40,11 +42,9 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // If we've exhausted retries, show fallback
       if (this.state.retryCount >= MAX_RETRIES) {
         return <>{this.props.fallback}</>;
       }
-      // Offer one retry before giving up
       return (
         <div className="rounded-2xl p-6 text-center space-y-3" style={{
           background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",

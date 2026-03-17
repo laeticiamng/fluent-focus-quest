@@ -72,21 +72,21 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Base platform */}
+      {/* Base platform — lighter for visibility */}
       <mesh position={[0, -0.5, 0]} receiveShadow>
         <cylinderGeometry args={[2.5, 3, 0.3, 32]} />
-        <meshStandardMaterial color="#1a1a2e" metalness={0.8} roughness={0.3} />
+        <meshStandardMaterial color="#2a2a4a" metalness={0.6} roughness={0.4} />
       </mesh>
 
-      {/* Central pillar */}
+      {/* Central pillar — lighter blue */}
       <mesh ref={pillarRef} position={[0, 0.8, 0]} castShadow>
         <cylinderGeometry args={[0.4, 0.5, 2.2, 8]} />
         <meshStandardMaterial
-          color="#16213e"
-          metalness={0.9}
-          roughness={0.2}
+          color="#283860"
+          metalness={0.7}
+          roughness={0.3}
           emissive={new THREE.Color("#d4a017")}
-          emissiveIntensity={0.1 + sigilIntensity * 0.4}
+          emissiveIntensity={0.15 + sigilIntensity * 0.5}
         />
       </mesh>
 
@@ -96,7 +96,7 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
         <meshStandardMaterial
           color="#d4a017"
           emissive="#d4a017"
-          emissiveIntensity={0.3 + sigilIntensity * 0.7}
+          emissiveIntensity={0.5 + sigilIntensity * 0.8}
           metalness={1}
           roughness={0.1}
         />
@@ -112,9 +112,9 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
           <mesh key={i} position={[x, 1.5 + (i % 2) * 0.2, z]}>
             <octahedronGeometry args={[0.08, 0]} />
             <meshStandardMaterial
-              color={obtained ? "#f59e0b" : "#333"}
-              emissive={obtained ? "#f59e0b" : "#000"}
-              emissiveIntensity={obtained ? 0.8 : 0}
+              color={obtained ? "#f59e0b" : "#555"}
+              emissive={obtained ? "#f59e0b" : "#111"}
+              emissiveIntensity={obtained ? 1.0 : 0.05}
               metalness={0.9}
               roughness={0.1}
             />
@@ -125,9 +125,9 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
       {/* Ambient point light */}
       <pointLight
         position={[0, 2, 0]}
-        intensity={0.5 + sigilIntensity * 1.5}
+        intensity={0.8 + sigilIntensity * 1.5}
         color="#d4a017"
-        distance={8}
+        distance={10}
         decay={2}
       />
     </group>
@@ -148,7 +148,6 @@ function ZonePortal({
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
-      // Subtle floating
       groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.8 + portal.position[0]) * 0.05;
     }
     if (glowRef.current) {
@@ -163,9 +162,8 @@ function ZonePortal({
     }
   }, [portal.unlocked, portal.tabTarget, onNavigate]);
 
-  const opacity = portal.unlocked ? 1 : 0.3;
+  const opacity = portal.unlocked ? 1 : 0.4;
 
-  // Direction to face center
   const lookAtCenter = useMemo(() => {
     const dir = new THREE.Vector3(-portal.position[0], 0, -portal.position[2]).normalize();
     return Math.atan2(dir.x, dir.z);
@@ -180,15 +178,14 @@ function ZonePortal({
       onPointerOver={() => { setHovered(true); document.body.style.cursor = portal.unlocked ? "pointer" : "not-allowed"; }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
     >
-      {/* Portal arch - two pillars + top */}
       <group>
         {/* Left pillar */}
         <mesh position={[-0.4, 0.6, 0]} castShadow>
           <boxGeometry args={[0.12, 1.2, 0.12]} />
           <meshStandardMaterial
             color={portal.color}
-            metalness={0.7}
-            roughness={0.3}
+            metalness={0.6}
+            roughness={0.35}
             opacity={opacity}
             transparent={!portal.unlocked}
           />
@@ -198,8 +195,8 @@ function ZonePortal({
           <boxGeometry args={[0.12, 1.2, 0.12]} />
           <meshStandardMaterial
             color={portal.color}
-            metalness={0.7}
-            roughness={0.3}
+            metalness={0.6}
+            roughness={0.35}
             opacity={opacity}
             transparent={!portal.unlocked}
           />
@@ -209,22 +206,22 @@ function ZonePortal({
           <boxGeometry args={[0.92, 0.1, 0.14]} />
           <meshStandardMaterial
             color={portal.color}
-            metalness={0.8}
-            roughness={0.2}
+            metalness={0.7}
+            roughness={0.25}
             opacity={opacity}
             transparent={!portal.unlocked}
           />
         </mesh>
 
-        {/* Portal inner glow */}
+        {/* Portal inner glow — stronger */}
         <mesh ref={glowRef} position={[0, 0.6, 0.02]}>
           <planeGeometry args={[0.68, 1.1]} />
           <meshStandardMaterial
             color={portal.emissive}
             emissive={portal.emissive}
-            emissiveIntensity={portal.unlocked ? (hovered ? 2.0 : 0.8) : 0.08}
+            emissiveIntensity={portal.unlocked ? (hovered ? 2.5 : 1.2) : 0.1}
             transparent
-            opacity={portal.unlocked ? (hovered ? 0.7 : 0.4) : 0.08}
+            opacity={portal.unlocked ? (hovered ? 0.8 : 0.5) : 0.1}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -233,7 +230,7 @@ function ZonePortal({
         {!portal.unlocked && (
           <mesh position={[0, 0.6, 0.05]}>
             <octahedronGeometry args={[0.12, 0]} />
-            <meshStandardMaterial color="#444" metalness={0.8} roughness={0.3} />
+            <meshStandardMaterial color="#555" metalness={0.7} roughness={0.35} />
           </mesh>
         )}
 
@@ -244,7 +241,7 @@ function ZonePortal({
             <meshStandardMaterial
               color={portal.cleared ? "#10b981" : portal.emissive}
               emissive={portal.cleared ? "#10b981" : portal.emissive}
-              emissiveIntensity={0.5}
+              emissiveIntensity={0.7}
               side={THREE.DoubleSide}
             />
           </mesh>
@@ -253,24 +250,24 @@ function ZonePortal({
         {/* Zone label */}
         <Html position={[0, -0.3, 0.2]} center distanceFactor={6}>
           <div
-            className={`text-center pointer-events-none select-none ${portal.unlocked ? "" : "opacity-30"}`}
+            className={`text-center pointer-events-none select-none ${portal.unlocked ? "" : "opacity-40"}`}
             style={{ whiteSpace: "nowrap" }}
           >
             <div className="text-lg">{portal.icon}</div>
-            <div className="text-[9px] font-bold text-white/80 mt-0.5">{portal.shortName}</div>
+            <div className="text-[9px] font-bold text-white/90 mt-0.5">{portal.shortName}</div>
             {portal.unlocked && portal.cleared && (
               <div className="text-[7px] text-emerald-400 font-bold">CLEAR</div>
             )}
           </div>
         </Html>
 
-        {/* Point light for each portal */}
+        {/* Point light for each portal — brighter */}
         {portal.unlocked && (
           <pointLight
             position={[0, 0.6, 0.3]}
-            intensity={hovered ? 2.5 : 0.8}
+            intensity={hovered ? 3.0 : 1.2}
             color={portal.emissive.getStyle()}
-            distance={4}
+            distance={5}
             decay={2}
           />
         )}
@@ -279,30 +276,30 @@ function ZonePortal({
   );
 }
 
-// ── Floor ──
+// ── Floor — lighter for visibility ──
 function Floor() {
   return (
     <group>
-      {/* Main floor */}
+      {/* Main floor — brighter base */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
         <circleGeometry args={[8, 64]} />
         <meshStandardMaterial
-          color="#1a1a30"
-          metalness={0.5}
-          roughness={0.5}
+          color="#252545"
+          metalness={0.4}
+          roughness={0.55}
         />
       </mesh>
 
-      {/* Decorative rings on floor */}
+      {/* Decorative rings on floor — more visible */}
       {[3, 5, 7].map((r, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.48, 0]}>
           <ringGeometry args={[r - 0.02, r, 64]} />
           <meshStandardMaterial
             color="#d4a017"
             emissive="#d4a017"
-            emissiveIntensity={0.3 - i * 0.05}
+            emissiveIntensity={0.5 - i * 0.08}
             transparent
-            opacity={0.35 - i * 0.08}
+            opacity={0.45 - i * 0.08}
           />
         </mesh>
       ))}
@@ -314,7 +311,6 @@ function Floor() {
 function CameraSetup() {
   const { camera } = useThree();
   useFrame(() => {
-    // Slight drift
     camera.position.y += (5.5 - camera.position.y) * 0.02;
   });
   return null;
@@ -348,32 +344,44 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
         shadows
         camera={{ position: [0, 5.5, 7], fov: 50 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.4,
+        }}
+        onCreated={({ scene }) => {
+          scene.background = new THREE.Color("#141428");
+        }}
       >
         <Suspense fallback={null}>
           <CameraSetup />
 
-          {/* Lighting — tuned for legibility + atmosphere */}
-          <ambientLight intensity={0.5} color="#b0b8d0" />
+          {/* Environment IBL — soft studio fill light */}
+          <Environment preset="city" environmentIntensity={0.3} />
+
+          {/* Lighting — tuned for LEGIBILITY + atmosphere */}
+          <ambientLight intensity={0.7} color="#c0c8e0" />
           <directionalLight
             position={[5, 10, 5]}
-            intensity={1.2}
-            color="#ffe4b5"
+            intensity={1.5}
+            color="#ffe8c0"
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
             shadow-camera-far={20}
             shadow-camera-near={0.1}
           />
-          {/* Key light from opposite side for fill */}
-          <directionalLight position={[-4, 6, -3]} intensity={0.4} color="#8899cc" />
-          {/* Rim light from below-behind for depth */}
-          <pointLight position={[0, 1, -6]} intensity={0.4} color="#6366f1" distance={14} decay={2} />
-          <pointLight position={[0, 5, 0]} intensity={0.8} color="#d4a017" distance={14} decay={2} />
+          {/* Fill light from opposite side */}
+          <directionalLight position={[-4, 6, -3]} intensity={0.6} color="#99aadd" />
+          {/* Rim light from behind for depth */}
+          <pointLight position={[0, 1, -6]} intensity={0.6} color="#6366f1" distance={16} decay={2} />
+          {/* Top golden accent */}
+          <pointLight position={[0, 5, 0]} intensity={1.0} color="#d4a017" distance={16} decay={2} />
+          {/* Fill from below to lift shadows */}
+          <pointLight position={[0, -0.3, 0]} intensity={0.3} color="#334477" distance={10} decay={2} />
 
-          {/* Fog for atmosphere — pushed back to avoid obscuring portals */}
-          <fog attach="fog" args={["#0c0c20", 12, 24]} />
+          {/* Fog — pushed further back, lighter color */}
+          <fog attach="fog" args={["#1a1a35", 14, 28]} />
 
           {/* Floor */}
           <Floor />
@@ -390,16 +398,16 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             />
           ))}
 
-          {/* Contact shadows */}
+          {/* Contact shadows — softer */}
           <ContactShadows
             position={[0, -0.49, 0]}
-            opacity={0.4}
+            opacity={0.3}
             scale={16}
-            blur={2}
+            blur={2.5}
             far={4}
           />
 
-          {/* Orbit controls — constrained for guided experience */}
+          {/* Orbit controls */}
           <OrbitControls
             enablePan={false}
             enableZoom={true}

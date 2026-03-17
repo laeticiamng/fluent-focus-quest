@@ -131,6 +131,15 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     return best;
   }, [artifacts]);
 
+  // Cleanup all timers on unmount to prevent race conditions
+  useEffect(() => {
+    return () => {
+      clearTimeout(timerRef.current);
+      clearTimeout(fallbackTimerRef.current);
+      clearTimeout(followUpTimerRef.current);
+    };
+  }, []);
+
   // Timer effect
   useEffect(() => {
     if (timerRunning && timer > 0) {
