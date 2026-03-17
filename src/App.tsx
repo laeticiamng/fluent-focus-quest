@@ -65,16 +65,28 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, loading } = useAuth();
+  const { user, loading, authUnavailable } = useAuth();
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">🏥</div>
-          <p className="text-sm text-muted-foreground">Chargement...</p>
+          <div className="text-4xl mb-3 animate-pulse">🏠</div>
+          <p className="text-sm font-semibold text-foreground">Operation Bienne</p>
+          <p className="text-xs text-muted-foreground mt-1">Chargement...</p>
         </div>
       </div>
+    );
+  }
+
+  // If auth system is down (env vars missing, network failure, timeout),
+  // show the dashboard in offline mode rather than a useless login page
+  if (authUnavailable) {
+    return (
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     );
   }
 

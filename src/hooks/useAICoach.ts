@@ -1,7 +1,10 @@
 import { useState, useCallback } from "react";
 import { reportAIFailure, reportAIRecovery, isAIInFallback } from "./useAIStatus";
+import { supabaseAvailable } from "@/integrations/supabase/client";
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`;
+const CHAT_URL = import.meta.env.VITE_SUPABASE_URL
+  ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`
+  : null;
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -168,6 +171,14 @@ export function useAICoach() {
       return;
     }
 
+    // Skip AI if Supabase is not configured
+    if (!CHAT_URL || !supabaseAvailable) {
+      setResponse(generateFallback(userMessage, mode));
+      setStatus("fallback");
+      setIsLoading(false);
+      return;
+    }
+
     // Only skip AI if currently in fallback — but always try if status recovered
     if (isAIInFallback()) {
       setResponse(generateFallback(userMessage, mode));
@@ -180,7 +191,7 @@ export function useAICoach() {
     const messages: Msg[] = [{ role: "user", content: userMessage }];
 
     try {
-      const resp = await fetch(CHAT_URL, {
+      const resp = await fetch(CHAT_URL!, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

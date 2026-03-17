@@ -240,7 +240,7 @@ function LazarusWithScene({ sigilsCollected, onActivateProtocol }: { sigilsColle
 }
 
 const Index = () => {
-  const { signOut } = useAuth();
+  const { signOut, authUnavailable } = useAuth();
   const [tab, setTab] = useState<Tab>("dash");
   const prevTabRef = useRef<Tab>("dash");
   const progress = useProgress();
@@ -365,6 +365,15 @@ const Index = () => {
       {/* AI Status Banner — global fallback notification */}
       <AIStatusBanner />
 
+      {/* Offline mode banner */}
+      {authUnavailable && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center">
+          <p className="text-[11px] text-amber-400 font-medium">
+            Mode hors-ligne — Progression sauvegardee localement. Connecte-toi pour synchroniser.
+          </p>
+        </div>
+      )}
+
       {/* WebGL Diagnostic Badge — visible in dev or with ?debug=1 */}
       <WebGLDiagnosticBadge />
 
@@ -420,7 +429,7 @@ const Index = () => {
             <span className="text-sm sm:text-base relative z-10">...</span>
             <span className="relative z-10">Plus</span>
           </button>
-          <button onClick={signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
+          <button onClick={authUnavailable ? () => window.location.reload() : signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
             <LogOut className="w-3.5 h-3.5 relative z-10" />
             <span className="relative z-10">Sortir</span>
           </button>

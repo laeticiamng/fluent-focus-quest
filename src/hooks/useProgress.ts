@@ -399,13 +399,40 @@ function checkEscapeRoomSolves(artifacts: Artifact[], escapeState: EscapeGameSta
 }
 
 export function useProgress() {
-  const { user } = useAuth();
+  const { user, authUnavailable } = useAuth();
   const [state, setState] = useState<ProgressState>(defaultState);
   const [loaded, setLoaded] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Load from database
+  // Helper: load state from localStorage backup
+  const loadFromLocalStorage = (): boolean => {
+    try {
+      const backup = safeLocalGet(LOCAL_STORAGE_KEY);
+      if (backup) {
+        const parsed = JSON.parse(backup) as Partial<ProgressState>;
+        setState({
+          ...defaultState,
+          ...parsed,
+          artifacts: Array.isArray(parsed.artifacts) ? parsed.artifacts : [],
+          earnedBadges: Array.isArray(parsed.earnedBadges) ? parsed.earnedBadges : [],
+          questState: { ...defaultQuestState, ...(parsed.questState || {}) },
+          escapeState: { ...defaultEscapeState, ...(parsed.escapeState || {}) },
+        });
+        return true;
+      }
+    } catch { /* localStorage unavailable or corrupted */ }
+    return false;
+  };
+
+  // Load from database (or localStorage in offline mode)
   useEffect(() => {
+    // Offline mode: load from localStorage only
+    if (!user && authUnavailable) {
+      loadFromLocalStorage();
+      setLoaded(true);
+      return;
+    }
+
     if (!user) { setState(defaultState); setLoaded(false); return; }
 
     const load = async () => {
@@ -453,46 +480,39 @@ export function useProgress() {
           });
         }
       } catch (err) {
-        console.error("[useProgress] Supabase load failed, trying localStorage:", err);
-        // Fallback: try localStorage backup
-        try {
-          const backup = safeLocalGet(LOCAL_STORAGE_KEY);
-          if (backup) {
-            const loaded = JSON.parse(backup) as Partial<ProgressState>;
-            setState({
-              ...defaultState,
-              ...loaded,
-              artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
-              earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
-              questState: { ...defaultQuestState, ...(loaded.questState || {}) },
-              escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
-            });
-          }
-        } catch { /* localStorage also failed */ }
+        if (import.meta.env.DEV) {
+          console.error("[useProgress] Supabase load failed, trying localStorage:", err);
+        }
+        loadFromLocalStorage();
       }
       setLoaded(true);
     };
     load();
-  }, [user]);
+  }, [user, authUnavailable]);
 
   // Debounced save to database
   useEffect(() => {
-    if (!user || !loaded) return;
+    if (!loaded) return;
 
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       const serialized = JSON.stringify(state);
       // Always save to localStorage as backup
       safeLocalSet(LOCAL_STORAGE_KEY, serialized);
-      try {
-        await supabase
-          .from("user_progress")
-          .upsert([{
-            user_id: user.id,
-            progress_data: JSON.parse(serialized),
-          }], { onConflict: "user_id" });
-      } catch (err) {
-        console.error("[useProgress] Supabase save failed (localStorage backup saved):", err);
+      // Only save to Supabase if authenticated
+      if (user) {
+        try {
+          await supabase
+            .from("user_progress")
+            .upsert([{
+              user_id: user.id,
+              progress_data: JSON.parse(serialized),
+            }], { onConflict: "user_id" });
+        } catch (err) {
+          if (import.meta.env.DEV) {
+            console.error("[useProgress] Supabase save failed (localStorage backup saved):", err);
+          }
+        }
       }
     }, 1000);
 
