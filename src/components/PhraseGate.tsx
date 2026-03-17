@@ -315,13 +315,17 @@ function normalizeGerman(text: string): string {
     .replace(/ss/g, "ß");
 }
 
-/** Also normalize the reference side for fair comparison */
+/** Also normalize the reference side for fair comparison (same umlaut rules) */
 function normalizeReference(text: string): string {
   return text
     .trim()
     .toLowerCase()
     .replace(/[?.!,;:'"„"«»]/g, "")
-    .replace(/\s+/g, " ");
+    .replace(/\s+/g, " ")
+    .replace(/ae/g, "ä")
+    .replace(/oe/g, "ö")
+    .replace(/ue/g, "ü")
+    .replace(/ss/g, "ß");
 }
 
 function evaluateAnswer(userInput: string, challenge: PhraseChallenge): {
