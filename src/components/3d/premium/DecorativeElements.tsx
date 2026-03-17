@@ -547,6 +547,307 @@ export function CinematicIntro({
 }
 
 /**
+ * Fresnel portal energy field — view-angle-dependent glow effect.
+ * Brighter at grazing angles for an ethereal energy curtain look.
+ */
+export function FresnelPortalField({
+  width = 0.82,
+  height = 1.4,
+  color = "#6366f1",
+  intensity = 1.5,
+  activated = true,
+}: {
+  width?: number;
+  height?: number;
+  color?: string;
+  intensity?: number;
+  activated?: boolean;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const matRef = useRef<THREE.ShaderMaterial>(null);
+
+  const shaderData = useMemo(() => ({
+    uniforms: {
+      uTime: { value: 0 },
+      uColor: { value: new THREE.Color(color) },
+      uIntensity: { value: intensity },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewDir = normalize(-mvPosition.xyz);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform vec3 uColor;
+      uniform float uIntensity;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      varying vec2 vUv;
+      void main() {
+        float fresnel = pow(1.0 - abs(dot(vNormal, vViewDir)), 2.5);
+        float scanline = sin(vUv.y * 40.0 + uTime * 2.0) * 0.05 + 0.95;
+        float shimmer = sin(uTime * 3.0 + vUv.y * 8.0) * 0.1 + 0.9;
+        float alpha = fresnel * 0.6 * scanline * shimmer * uIntensity;
+        vec3 finalColor = uColor * (1.0 + fresnel * 0.5);
+        gl_FragColor = vec4(finalColor, alpha);
+      }
+    `,
+  }), [color, intensity]);
+
+  useFrame(({ clock }) => {
+    if (matRef.current && activated) {
+      matRef.current.uniforms.uTime.value = clock.getElapsedTime();
+    }
+  });
+
+  if (!activated) return null;
+
+  return (
+    <mesh ref={meshRef}>
+      <planeGeometry args={[width, height]} />
+      <shaderMaterial
+        ref={matRef}
+        args={[shaderData]}
+        transparent
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+/**
+ * Holographic label panel — 3D billboard text display.
+ * Floating translucent panel with subtle animated shimmer border.
+ */
+export function HolographicLabel({
+  text,
+  subtext,
+  position = [0, 0, 0] as [number, number, number],
+  color = "#ffffff",
+  accentColor = "#6366f1",
+  visible = true,
+  scale = 1,
+}: {
+  text: string;
+  subtext?: string;
+  position?: [number, number, number];
+  color?: string;
+  accentColor?: string;
+  visible?: boolean;
+  scale?: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ camera }) => {
+    if (groupRef.current && visible) {
+      groupRef.current.quaternion.copy(camera.quaternion);
+    }
+  });
+
+  if (!visible) return null;
+
+  const panelWidth = 0.8 * scale;
+  const panelHeight = (subtext ? 0.35 : 0.22) * scale;
+
+  return (
+    <group ref={groupRef} position={position}>
+      {/* Background panel — dark translucent */}
+      <mesh position={[0, 0, -0.001]}>
+        <planeGeometry args={[panelWidth, panelHeight]} />
+        <meshBasicMaterial
+          color="#060618"
+          transparent
+          opacity={0.65}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Top border accent line */}
+      <mesh position={[0, panelHeight / 2 - 0.005 * scale, 0]}>
+        <planeGeometry args={[panelWidth * 0.85, 0.008 * scale]} />
+        <meshBasicMaterial
+          color={accentColor}
+          transparent
+          opacity={0.7}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Bottom border accent line */}
+      <mesh position={[0, -panelHeight / 2 + 0.005 * scale, 0]}>
+        <planeGeometry args={[panelWidth * 0.85, 0.005 * scale]} />
+        <meshBasicMaterial
+          color={accentColor}
+          transparent
+          opacity={0.4}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Corner dots */}
+      {[[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sy], i) => (
+        <mesh key={i} position={[sx * panelWidth * 0.42, sy * panelHeight * 0.42, 0.001]}>
+          <circleGeometry args={[0.008 * scale, 6]} />
+          <meshBasicMaterial color={accentColor} transparent opacity={0.5} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * Pulsing energy veins on floor — animated radial lines that glow and fade.
+ * Creates living "circuitry" effect on the ground.
+ */
+export function PulsingFloorVeins({
+  count = 12,
+  innerRadius = 2,
+  outerRadius = 7,
+  y = -0.46,
+  color = "#d4a017",
+  secondaryColor = "#6366f1",
+}: {
+  count?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  y?: number;
+  color?: string;
+  secondaryColor?: string;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.children.forEach((child, i) => {
+      const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      if (mat && mat.opacity !== undefined) {
+        const wave = Math.sin(t * 1.2 + i * (Math.PI * 2 / count)) * 0.5 + 0.5;
+        mat.opacity = 0.05 + wave * 0.25;
+        mat.emissiveIntensity = 0.2 + wave * 0.8;
+      }
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = (i / count) * Math.PI * 2;
+        const length = outerRadius - innerRadius;
+        const midR = (innerRadius + outerRadius) / 2;
+        const cx = Math.cos(angle) * midR;
+        const cz = Math.sin(angle) * midR;
+        const veinColor = i % 3 === 0 ? secondaryColor : color;
+
+        return (
+          <mesh
+            key={i}
+            position={[cx, y, cz]}
+            rotation={[0, -angle + Math.PI / 2, 0]}
+          >
+            <boxGeometry args={[0.02, 0.002, length]} />
+            <meshStandardMaterial
+              color={veinColor}
+              emissive={veinColor}
+              emissiveIntensity={0.4}
+              transparent
+              opacity={0.15}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+/**
+ * Holographic distortion shell — animated outer aura around a core gem.
+ * Creates a pulsating, slightly offset double-shell for depth and glow.
+ */
+export function HolographicDistortion({
+  position = [0, 0, 0] as [number, number, number],
+  radius = 0.45,
+  color = "#fbbf24",
+  secondaryColor = "#6366f1",
+  activated = false,
+}: {
+  position?: [number, number, number];
+  radius?: number;
+  color?: string;
+  secondaryColor?: string;
+  activated?: boolean;
+}) {
+  const shell1Ref = useRef<THREE.Mesh>(null);
+  const shell2Ref = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
+    if (shell1Ref.current) {
+      const s1 = 1 + Math.sin(t * 1.8) * 0.08;
+      shell1Ref.current.scale.setScalar(s1);
+      shell1Ref.current.rotation.y = t * 0.3;
+      shell1Ref.current.rotation.x = Math.sin(t * 0.4) * 0.1;
+      const mat = shell1Ref.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = (activated ? 0.18 : 0.08) + Math.sin(t * 2.5) * 0.06;
+    }
+
+    if (shell2Ref.current) {
+      const s2 = 1 + Math.sin(t * 1.2 + 1) * 0.12;
+      shell2Ref.current.scale.setScalar(s2);
+      shell2Ref.current.rotation.y = -t * 0.2;
+      shell2Ref.current.rotation.z = Math.cos(t * 0.3) * 0.08;
+      const mat = shell2Ref.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = (activated ? 0.12 : 0.05) + Math.sin(t * 1.8 + 2) * 0.04;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Inner distortion shell */}
+      <mesh ref={shell1Ref}>
+        <icosahedronGeometry args={[radius * 1.15, 1]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={activated ? 1.5 : 0.4}
+          transparent
+          opacity={0.1}
+          side={THREE.BackSide}
+          depthWrite={false}
+          wireframe
+        />
+      </mesh>
+
+      {/* Outer aura shell */}
+      <mesh ref={shell2Ref}>
+        <icosahedronGeometry args={[radius * 1.4, 1]} />
+        <meshStandardMaterial
+          color={secondaryColor}
+          emissive={secondaryColor}
+          emissiveIntensity={activated ? 0.8 : 0.2}
+          transparent
+          opacity={0.06}
+          side={THREE.BackSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+/**
  * Depth fog plane — horizontal fog layer for atmosphere.
  */
 export function DepthFogPlane({

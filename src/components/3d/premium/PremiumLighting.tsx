@@ -1,7 +1,62 @@
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useMemo } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
+
+/**
+ * Procedural gradient skybox — tech-fantasy nebula dome.
+ * Large inverted sphere with canvas-generated gradient texture.
+ * Preset-aware color scheme: indigo/violet/amber nebula tones.
+ */
+function GradientSkybox({ preset = "default" }: { preset?: string }) {
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d")!;
+
+    const palettes: Record<string, { bottom: string; mid1: string; mid2: string; top: string }> = {
+      default:  { bottom: "#050510", mid1: "#0c0c2a", mid2: "#14143a", top: "#0a0a1e" },
+      dramatic: { bottom: "#030308", mid1: "#0a0822", mid2: "#18103a", top: "#080614" },
+      sacred:   { bottom: "#040410", mid1: "#0e0a28", mid2: "#160e35", top: "#0a0818" },
+      showcase: { bottom: "#060612", mid1: "#0e0e2e", mid2: "#161640", top: "#0c0c22" },
+    };
+    const p = palettes[preset] || palettes.default;
+
+    const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+    gradient.addColorStop(0, p.bottom);
+    gradient.addColorStop(0.3, p.mid1);
+    gradient.addColorStop(0.6, p.mid2);
+    gradient.addColorStop(1.0, p.top);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Subtle nebula glow spots
+    const spots = [
+      { x: 200, y: 180, r: 120, color: "rgba(99, 102, 241, 0.04)" },
+      { x: 350, y: 280, r: 90, color: "rgba(212, 160, 23, 0.03)" },
+      { x: 100, y: 350, r: 100, color: "rgba(124, 58, 237, 0.035)" },
+    ];
+    spots.forEach(({ x, y, r, color }) => {
+      const radial = ctx.createRadialGradient(x, y, 0, x, y, r);
+      radial.addColorStop(0, color);
+      radial.addColorStop(1, "transparent");
+      ctx.fillStyle = radial;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    return tex;
+  }, [preset]);
+
+  return (
+    <mesh>
+      <sphereGeometry args={[50, 32, 16]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} depthWrite={false} />
+    </mesh>
+  );
+}
 
 /**
  * Cinematic lighting rig — premium immersive 2026.
@@ -32,7 +87,11 @@ export function PremiumLighting({
 
   return (
     <>
-      <Environment preset="city" environmentIntensity={p.envIntensity} />
+      {/* HDRI for reflections only — not visible as background */}
+      <Environment preset="city" environmentIntensity={p.envIntensity} background={false} />
+
+      {/* Custom gradient skybox — tech-fantasy nebula */}
+      <GradientSkybox preset={preset} />
 
       {/* Ambient — desaturated cool blue for depth */}
       <ambientLight intensity={p.ambient * mult} color="#a0b0d0" />

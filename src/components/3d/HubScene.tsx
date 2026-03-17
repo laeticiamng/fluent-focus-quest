@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
-import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro } from "./premium/DecorativeElements";
+import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 // ── Types ──
@@ -197,6 +197,14 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
             envMapIntensity={1.0}
           />
         </mesh>
+        {/* Holographic distortion aura */}
+        <HolographicDistortion
+          position={[0, 3.0, 0]}
+          radius={0.35}
+          color="#fbbf24"
+          secondaryColor="#6366f1"
+          activated={sigilIntensity > 0.3}
+        />
       </Float>
 
       {/* ── Primary floating ring — wide gold orbit ── */}
@@ -463,7 +471,7 @@ function ZonePortal({
         </mesh>
       </Float>
 
-      {/* ── Portal inner glow — the "energy field" ── */}
+      {/* ── Portal inner glow — the "energy field" with Fresnel ── */}
       <mesh ref={glowRef} position={[0, 0.78, 0.03]}>
         <planeGeometry args={[0.82, 1.4]} />
         <meshStandardMaterial
@@ -475,6 +483,19 @@ function ZonePortal({
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      {/* ── Fresnel energy overlay ── */}
+      {portal.unlocked && (
+        <group position={[0, 0.78, 0.04]}>
+          <FresnelPortalField
+            width={0.78}
+            height={1.35}
+            color={portal.emissive.getStyle()}
+            intensity={hovered ? 2.0 : 1.0}
+            activated={portal.unlocked}
+          />
+        </group>
+      )}
 
       {/* ── Portal edge glow strips ── */}
       {portal.unlocked && (
@@ -690,6 +711,9 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
 
           {/* Background depth structures — distant silhouettes */}
           <BackgroundStructures count={8} minRadius={16} maxRadius={24} height={7} color="#0a0a20" />
+
+          {/* Pulsing floor energy veins */}
+          <PulsingFloorVeins count={16} innerRadius={2.5} outerRadius={7} y={-0.46} color="#d4a017" secondaryColor="#6366f1" />
 
           {/* Energy beams — vertical light columns from pillars to core */}
           <EnergyBeams count={8} radius={7.5} height={4} color="#d4a017" secondaryColor="#6366f1" />

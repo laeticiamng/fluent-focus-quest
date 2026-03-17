@@ -4,7 +4,7 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface LazarusSceneProps {
@@ -207,6 +207,14 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
             envMapIntensity={1.0}
           />
         </mesh>
+        {/* Holographic distortion aura */}
+        <HolographicDistortion
+          position={[0, 1.0, 0]}
+          radius={0.4}
+          color={activated ? "#10b981" : "#fbbf24"}
+          secondaryColor={activated ? "#fbbf24" : "#6366f1"}
+          activated={activated || intensity > 0.3}
+        />
       </Float>
 
       {/* ── Sentinel pillars around altar ── */}
@@ -626,6 +634,16 @@ export function LazarusScene({
 
           {/* Sacred floor */}
           <LazarusFloor activated={activated} />
+
+          {/* Pulsing floor energy veins */}
+          <PulsingFloorVeins
+            count={14}
+            innerRadius={1.5}
+            outerRadius={5.5}
+            y={-0.42}
+            color={activated ? "#10b981" : "#d4a017"}
+            secondaryColor={activated ? "#fbbf24" : "#6366f1"}
+          />
 
           {/* Energy beams from sentinel pillars */}
           <EnergyBeams count={6} radius={2.1} height={2} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} activated={activated} />

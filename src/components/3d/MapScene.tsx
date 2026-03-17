@@ -6,7 +6,7 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import type { RoomStatus } from "@/data/escapeGame";
 import type { Artifact } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro } from "./premium/DecorativeElements";
+import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro, PulsingFloorVeins } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface MapSceneProps {
@@ -556,6 +556,10 @@ export function MapScene({
           <fog attach="fog" args={["#080818", 12, 35]} />
 
           <MapFloor />
+
+          {/* Pulsing floor energy veins */}
+          <PulsingFloorVeins count={12} innerRadius={2} outerRadius={8} y={-0.55} color="#d4a017" secondaryColor="#6366f1" />
+
           <Connectors escapeZoneStatus={escapeZoneStatus} />
 
           {ESCAPE_ZONES.map((zone) => {
