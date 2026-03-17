@@ -100,28 +100,3 @@ export function GermanText({ de, fr, className = "", bilingual = false, block = 
   );
 }
 
-/**
- * Bouton global de traduction — à placer en haut d'une section
- * pour activer/désactiver toutes les traductions à la fois.
- */
-interface TranslationToggleProps {
-  enabled: boolean;
-  onChange: (v: boolean) => void;
-  label?: string;
-}
-
-export function TranslationToggle({ enabled, onChange, label = "Traductions FR" }: TranslationToggleProps) {
-  return (
-    <button
-      onClick={() => onChange(!enabled)}
-      className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
-        enabled
-          ? "bg-primary/12 border-primary/25 text-primary"
-          : "bg-secondary border-border/40 text-muted-foreground hover:text-foreground"
-      }`}
-    >
-      <Languages className="w-3.5 h-3.5" />
-      {label}
-    </button>
-  );
-}

@@ -4,9 +4,10 @@ import { useAICoach } from "@/hooks/useAICoach";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCelebration } from "@/components/CelebrationProvider";
-import { Send, RotateCcw, Sparkles, Brain, Copy, Check, Languages } from "lucide-react";
+import { Send, RotateCcw, Sparkles, Brain, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
-import { TranslationToggle } from "@/components/GermanText";
+import { TranslationToggle } from "@/components/translation";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
 
 const CASES = [
   {
@@ -75,7 +76,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
   const [diagnosis, setDiagnosis] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showTr, setShowTr] = useState(false); // show French translations for symptoms
+  const { showFr: showTr, toggleFr } = useTranslationPreference();
 
   const handleCopy = () => {
     if (!response) return;
@@ -165,7 +166,7 @@ export function DiagnosticBuilder({ addXp }: { addXp: (n: number) => void }) {
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-[10px] uppercase tracking-[3px] text-clinical/70">Symptômes du patient</p>
-              <TranslationToggle enabled={showTr} onChange={setShowTr} label="🇫🇷 FR" />
+              <TranslationToggle active={showTr} onToggle={toggleFr} />
             </div>
             <div className="space-y-2">
               {currentCase.symptoms.map((s, i) => (

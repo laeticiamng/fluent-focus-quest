@@ -50,15 +50,15 @@ export function normalizeFallbackReason(raw: string): FallbackReason {
 }
 
 const REASON_LABELS: Record<FallbackReason, string> = {
-  webgl_unavailable: "WebGL not available",
-  context_lost: "WebGL context lost",
-  shader_compile_failure: "Shader compilation failed",
-  low_gpu_tier: "GPU too weak for 3D",
-  low_memory: "Insufficient memory",
-  postprocessing_disabled: "Post-processing disabled",
-  reduced_motion: "Reduced motion preferred",
-  runtime_error: "Runtime error occurred",
-  unknown_fallback: "Unknown fallback",
+  webgl_unavailable: "WebGL non disponible",
+  context_lost: "Contexte WebGL perdu",
+  shader_compile_failure: "Echec de compilation des shaders",
+  low_gpu_tier: "GPU insuffisant pour la 3D",
+  low_memory: "Memoire insuffisante",
+  postprocessing_disabled: "Post-traitement desactive",
+  reduced_motion: "Mouvement reduit prefere",
+  runtime_error: "Erreur d'execution survenue",
+  unknown_fallback: "Mode de secours inconnu",
   "": "",
 };
 

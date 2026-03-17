@@ -312,15 +312,15 @@ describe("normalizeFallbackReason", () => {
 
 describe("getFallbackLabel", () => {
   it("returns human-readable labels for each reason", () => {
-    expect(getFallbackLabel("webgl_unavailable")).toBe("WebGL not available");
-    expect(getFallbackLabel("context_lost")).toBe("WebGL context lost");
-    expect(getFallbackLabel("shader_compile_failure")).toBe("Shader compilation failed");
-    expect(getFallbackLabel("low_gpu_tier")).toBe("GPU too weak for 3D");
-    expect(getFallbackLabel("low_memory")).toBe("Insufficient memory");
-    expect(getFallbackLabel("postprocessing_disabled")).toBe("Post-processing disabled");
-    expect(getFallbackLabel("reduced_motion")).toBe("Reduced motion preferred");
-    expect(getFallbackLabel("runtime_error")).toBe("Runtime error occurred");
-    expect(getFallbackLabel("unknown_fallback")).toBe("Unknown fallback");
+    expect(getFallbackLabel("webgl_unavailable")).toBe("WebGL non disponible");
+    expect(getFallbackLabel("context_lost")).toBe("Contexte WebGL perdu");
+    expect(getFallbackLabel("shader_compile_failure")).toBe("Echec de compilation des shaders");
+    expect(getFallbackLabel("low_gpu_tier")).toBe("GPU insuffisant pour la 3D");
+    expect(getFallbackLabel("low_memory")).toBe("Memoire insuffisante");
+    expect(getFallbackLabel("postprocessing_disabled")).toBe("Post-traitement desactive");
+    expect(getFallbackLabel("reduced_motion")).toBe("Mouvement reduit prefere");
+    expect(getFallbackLabel("runtime_error")).toBe("Erreur d'execution survenue");
+    expect(getFallbackLabel("unknown_fallback")).toBe("Mode de secours inconnu");
   });
 
   it("returns empty string for empty reason", () => {
