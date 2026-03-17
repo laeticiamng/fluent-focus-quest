@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { GRAM } from "@/data/content";
 import { Check, X, Languages, Sparkles, TreePine, Leaf, GitBranch } from "lucide-react";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
+import { TranslationToggle } from "@/components/translation";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +43,7 @@ interface GrammarProps {
 export function Grammar({ grammarDone, toggleGrammarExercise, addArtifact, artifacts = [], addXp }: GrammarProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showTr, setShowTr] = useState<Record<string, boolean>>({});
-  const [globalTr, setGlobalTr] = useState(false);
+  const { showFr: globalTr, toggleFr: toggleGlobalTr } = useTranslationPreference();
   const { celebrate } = useCelebration();
   const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
 
@@ -148,17 +150,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setGlobalTr(v => !v)}
-                className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
-                  globalTr
-                    ? "bg-primary/12 border-primary/25 text-primary"
-                    : "bg-secondary/60 border-border/40 text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Languages className="w-3.5 h-3.5" />
-                Traduire
-              </button>
+              <TranslationToggle active={globalTr} onToggle={toggleGlobalTr} label={globalTr ? "FR ON" : "Traduire"} />
             </div>
           </div>
         </motion.div>

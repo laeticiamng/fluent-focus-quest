@@ -1,3 +1,5 @@
+import { safeClean } from "@/utils/safeClean";
+
 // ===== PUZZLE ENGINE =====
 // Transforms the platform from a "gamified workshop" into a true escape game
 // with deduction, association, ordering, and clinical reasoning puzzles.
@@ -416,11 +418,16 @@ export const META_PUZZLE = {
 
 // ===== PUZZLE VALIDATION HELPERS =====
 export function normalizePuzzleAnswer(answer: string): string {
-  return answer
-    .trim()
-    .toLowerCase()
-    .replace(/[.,;:!?'"()]/g, "")
-    .replace(/\s+/g, " ");
+  return safeClean(
+    answer,
+    (t) =>
+      t
+        .trim()
+        .toLowerCase()
+        .replace(/[.,;:!?'"()]/g, "")
+        .replace(/\s+/g, " "),
+    "normalizePuzzleAnswer",
+  );
 }
 
 export function checkPuzzleAnswer(puzzle: Puzzle, answer: string): boolean {

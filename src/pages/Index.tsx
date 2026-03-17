@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, Component, type ReactNode, lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Map, Package, KeyRound, Shield, Rocket, Zap } from "lucide-react";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
+import { TranslationToggle } from "@/components/translation";
 import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
 import { WebGLGate, WebGLDiagnosticBadge } from "@/components/3d/WebGLDetect";
@@ -242,6 +244,7 @@ function LazarusWithScene({ sigilsCollected, onActivateProtocol }: { sigilsColle
 
 const Index = () => {
   const { signOut, authUnavailable } = useAuth();
+  const { showFr, toggleFr } = useTranslationPreference();
   const [tab, setTab] = useState<Tab>("dash");
   const prevTabRef = useRef<Tab>("dash");
   const progress = useProgress();
@@ -430,6 +433,9 @@ const Index = () => {
             <span className="text-sm sm:text-base relative z-10">...</span>
             <span className="relative z-10">Plus</span>
           </button>
+          <div className="shrink-0 ml-1">
+            <TranslationToggle active={showFr} onToggle={toggleFr} />
+          </div>
           <button onClick={authUnavailable ? () => window.location.reload() : signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
             <LogOut className="w-3.5 h-3.5 relative z-10" />
             <span className="relative z-10">Sortir</span>

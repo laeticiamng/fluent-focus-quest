@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAICoach } from "@/hooks/useAICoach";
 import { useCelebration } from "@/components/CelebrationProvider";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
+import { RevealTranslation, TranslationToggle } from "@/components/translation";
 import {
   Timer, ChevronRight, ChevronDown, Sparkles, Zap, Target,
   RotateCcw, ArrowRight, Trophy, AlertTriangle, BookOpen,
@@ -60,6 +62,7 @@ const TIMER_DURATIONS: Record<number, number> = { 1: 120, 2: 90, 3: 60 };
 export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts = [] }: InterviewSimulatorProps) {
   const { response, isLoading, error: aiError, ask, reset } = useAICoach();
   const { celebrate } = useCelebration();
+  const { showFr, toggleFr } = useTranslationPreference();
 
   // State
   const [simState, setSimState] = useState<SimState>("zone_select");
@@ -405,7 +408,10 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <Target className="w-7 h-7 text-violet-400" />
                 </motion.div>
                 <div>
-                  <h2 className="text-2xl font-black tracking-tight">Simulateur d'entretien</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-black tracking-tight">Simulateur d'entretien</h2>
+                    <TranslationToggle active={showFr} onToggle={toggleFr} />
+                  </div>
                   <p className="text-[10px] text-violet-400/50 font-medium">Protocole Lazarus — Preparation Biel</p>
                 </div>
               </div>
@@ -540,6 +546,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                         )}
                       </div>
                       <p className="text-[10px] text-muted-foreground truncate">{zone.description}</p>
+                      <RevealTranslation fr={zone.descriptionFr} globalShow={showFr} size="xs" />
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[9px] text-muted-foreground">{totalQs} questions</p>
@@ -641,7 +648,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
               </div>
             </div>
 
-            <p className="text-lg font-bold leading-snug tracking-tight mb-3">{currentQuestion.q}</p>
+            <p className="text-lg font-bold leading-snug tracking-tight mb-1">{currentQuestion.q}</p>
+            <RevealTranslation fr={currentQuestion.qFr} globalShow={showFr} size="sm" className="mb-3" />
 
             <div className="rounded-xl bg-violet-500/6 border border-violet-500/12 px-3 py-2">
               <p className="text-[10px] text-violet-400/70">Indice : {currentQuestion.h}</p>
@@ -662,6 +670,11 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <span className="text-[9px] uppercase tracking-[2px] text-rose-400 font-bold">Relance du jury</span>
                 </div>
                 <p className="text-sm font-bold text-rose-300">{currentFollowUp}</p>
+                {showFr && currentQuestion?.followUpsFr && (() => {
+                  const idx = [...(currentQuestion.followUps || []), ...PRESSURE_INTERRUPTIONS].indexOf(currentFollowUp);
+                  const fr = currentQuestion.followUpsFr?.[idx];
+                  return fr ? <p className="text-[10px] text-blue-300/70 italic mt-0.5">{fr}</p> : null;
+                })()}
                 <p className="text-[9px] text-rose-400/50 mt-1">Integre cette relance dans ta reponse</p>
               </motion.div>
             )}
@@ -803,6 +816,14 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                globalScore >= 40 ? "Grundlage vorhanden — Weiter uben" :
                "Mehr Ubung nötig — Nicht aufgeben"}
             </p>
+            {showFr && (
+              <p className="text-[9px] mt-1 text-blue-300/60 italic">
+                {globalScore >= 80 ? "Excellent — Tu es prête" :
+                 globalScore >= 60 ? "Bien — Encore un peu de peaufinage" :
+                 globalScore >= 40 ? "Base présente — Continue de t'entraîner" :
+                 "Plus d'entraînement nécessaire — N'abandonne pas"}
+              </p>
+            )}
           </motion.div>
 
           {/* 5-dimension radar */}
@@ -822,7 +843,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <span className="text-sm w-5 text-center">{label.icon}</span>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-[10px] font-bold">{label.de}</span>
+                      <span className="text-[10px] font-bold">{label.de}{showFr && <span className="text-blue-300/60 font-normal ml-1">({label.fr})</span>}</span>
                       <span className="text-[10px] font-black text-primary">{score}/20</span>
                     </div>
                     <div className="h-1.5 bg-secondary/30 rounded-full overflow-hidden">
@@ -889,8 +910,9 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl bg-emerald-500/6 border border-emerald-500/12 p-4">
+                <div className="rounded-xl bg-emerald-500/6 border border-emerald-500/12 p-4 space-y-2">
                   <p className="text-sm text-foreground/85 leading-relaxed">{currentQuestion.r}</p>
+                  <RevealTranslation fr={currentQuestion.rFr} globalShow={showFr} size="sm" />
                 </div>
               </motion.div>
             )}

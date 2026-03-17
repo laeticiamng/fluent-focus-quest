@@ -414,20 +414,34 @@ export const GRAM = [
 
 export const SCENARIOS = [
   {title:"TVP",icon:"🦵",sit:"Frau Müller, 58J. Schwellung linkes Bein seit 3 Tagen.",
+    sitFr:"Mme Müller, 58 ans. Gonflement de la jambe gauche depuis 3 jours.",
     vocab:["die Schwellung","die Thrombose","der Kompressionstest","die Antikoagulation"],
-    steps:["Anamnese: Seit wann? Risikofaktoren?","Duplexsonographie: Kompressionstest","Befund: Thrombose V. femoralis","Therapie: Antikoagulation + Kompression"]},
+    vocabFr:["le gonflement","la thrombose","le test de compression","l'anticoagulation"],
+    steps:["Anamnese: Seit wann? Risikofaktoren?","Duplexsonographie: Kompressionstest","Befund: Thrombose V. femoralis","Therapie: Antikoagulation + Kompression"],
+    stepsFr:["Anamnèse : depuis quand ? Facteurs de risque ?","Échographie duplex : test de compression","Résultat : thrombose V. fémorale","Traitement : anticoagulation + compression"]},
   {title:"Sténose carotide",icon:"🧠",sit:"Herr Schmidt, 72J. TIA vor 2 Wochen. Raucher.",
+    sitFr:"M. Schmidt, 72 ans. AIT il y a 2 semaines. Fumeur.",
     vocab:["die TIA","die Stenose","die Karotis-TEA","der Stenosegrad"],
-    steps:["Anamnese: TIA-Symptome?","Duplexsonographie A. carotis","Stenosegrad 80% ACI rechts","Empfehlung: Karotis-TEA besprechen"]},
+    vocabFr:["l'AIT","la sténose","l'endartériectomie carotidienne","le degré de sténose"],
+    steps:["Anamnese: TIA-Symptome?","Duplexsonographie A. carotis","Stenosegrad 80% ACI rechts","Empfehlung: Karotis-TEA besprechen"],
+    stepsFr:["Anamnèse : symptômes de l'AIT ?","Échographie duplex A. carotide","Sténose 80% ACI droite","Recommandation : discuter endartériectomie carotidienne"]},
   {title:"Insuff. veineuse",icon:"🦵",sit:"Frau Weber, 45J. Krampfadern, Schweregefühl.",
+    sitFr:"Mme Weber, 45 ans. Varices, sensation de lourdeur.",
     vocab:["die Krampfader","der Refluxtest","die Sklerotherapie","die V. saphena magna"],
-    steps:["Anamnese: Familie? Stehberuf?","Duplex: Refluxtest","Insuffizienz V. saphena magna","Therapie: Kompression, Sklerotherapie"]},
+    vocabFr:["la varice","le test de reflux","la sclérothérapie","la V. saphène interne"],
+    steps:["Anamnese: Familie? Stehberuf?","Duplex: Refluxtest","Insuffizienz V. saphena magna","Therapie: Kompression, Sklerotherapie"],
+    stepsFr:["Anamnèse : famille ? Travail debout ?","Duplex : test de reflux","Insuffisance V. saphène interne","Traitement : compression, sclérothérapie"]},
   {title:"AOMI",icon:"🚶",sit:"Herr Bauer, 65J, Raucher. Wadenschmerzen nach 200m.",
+    sitFr:"M. Bauer, 65 ans, fumeur. Douleurs au mollet après 200m.",
     vocab:["der ABI","die Claudicatio","das Fontaine-Stadium","die PTA"],
-    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"]},
+    vocabFr:["l'IPS","la claudication","le stade de Fontaine","l'ATP"],
+    steps:["ABI-Messung: 0.6 rechts","Duplex: Stenose A. femoralis","Fontaine-Stadium IIb","Gehtraining, ggf. PTA"],
+    stepsFr:["Mesure IPS : 0,6 à droite","Duplex : sténose A. fémorale","Stade Fontaine IIb","Réentraînement à la marche, éventuellement ATP"]},
   // === 3 CAS CLINIQUES ANGIOLOGIE DÉTAILLÉS ===
   {title:"Anévrisme aorte abd.",icon:"🫀",sit:"Herr Keller, 74J. Zufallsbefund: Bauchaortenaneurysma 5,8 cm bei Routine-Ultraschall. Raucher seit 40 Jahren, Hypertonie, Hyperlipidämie. Asymptomatisch.",
+    sitFr:"M. Keller, 74 ans. Découverte fortuite : anévrisme de l'aorte abdominale 5,8 cm à l'échographie de routine. Fumeur depuis 40 ans, hypertension, hyperlipidémie. Asymptomatique.",
     vocab:["das Bauchaortenaneurysma (BAA)","der Durchmesser","die Ruptur","die endovaskuläre Aneurysma-Reparatur (EVAR)","die offene Operation","der Stentgraft","die CT-Angiographie","die Operationsindikation"],
+    vocabFr:["l'anévrisme de l'aorte abdominale (AAA)","le diamètre","la rupture","la réparation endovasculaire (EVAR)","la chirurgie ouverte","l'endoprothèse","l'angio-CT","l'indication opératoire"],
     steps:[
       "Anamnese: Risikofaktoren? Bauch- oder Rückenschmerzen? Familienanamnese?",
       "Klinische Untersuchung: Pulsierender Tumor im Abdomen tastbar",
@@ -436,9 +450,20 @@ export const SCENARIOS = [
       "Interdisziplinäre Besprechung: Gefäßchirurgie + Angiologie — OP-Indikation bei >5,5 cm",
       "Therapieplanung: EVAR (endovaskulär) vs. offene OP — Patientenaufklärung",
       "Nachsorge: CT-Kontrolle nach 1, 6, 12 Monaten — Endoleak-Screening"
+    ],
+    stepsFr:[
+      "Anamnèse : facteurs de risque ? Douleurs abdominales ou dorsales ? Antécédents familiaux ?",
+      "Examen clinique : masse pulsatile palpable dans l'abdomen",
+      "Échographie duplex : AAA infrarénal, diamètre maximal 5,8 cm, pas de fuite",
+      "Angio-CT : confirmation du résultat, évaluation de l'anatomie pour EVAR",
+      "Réunion interdisciplinaire : chirurgie vasculaire + angiologie — indication opératoire > 5,5 cm",
+      "Planification thérapeutique : EVAR (endovasculaire) vs chirurgie ouverte — information du patient",
+      "Suivi : contrôle CT à 1, 6, 12 mois — dépistage d'endofuite"
     ]},
   {title:"Ischémie aiguë MI",icon:"🚨",sit:"Frau Hoffmann, 68J. Plötzlicher Schmerz und Blässe rechtes Bein seit 2 Stunden. Vorhofflimmern bekannt, keine Antikoagulation. Kein Fußpuls rechts tastbar.",
+    sitFr:"Mme Hoffmann, 68 ans. Douleur soudaine et pâleur de la jambe droite depuis 2 heures. Fibrillation auriculaire connue, pas d'anticoagulation. Pas de pouls pédieux à droite.",
     vocab:["der akute Verschluss","die Embolie","die 6 P (Pain, Pallor, Pulselessness, Paresthesia, Paralysis, Poikilothermia)","die Embolektomie","die Lyse","die Heparinisierung","die Revaskularisation","das Kompartmentsyndrom"],
+    vocabFr:["l'occlusion aiguë","l'embolie","les 6 P (Pain, Pallor, Pulselessness, Paresthesia, Paralysis, Poikilothermia)","l'embolectomie","la lyse","l'héparinisation","la revascularisation","le syndrome des loges"],
     steps:[
       "Anamnese: Plötzlicher Beginn? Schmerz, Gefühlsstörung, Bewegungseinschränkung?",
       "Klinische Untersuchung: 6 P prüfen — Bein blass, kühl, kein Puls ab A. poplitea",
@@ -448,9 +473,21 @@ export const SCENARIOS = [
       "Notfall-OP: Embolektomie mit Fogarty-Katheter — Reperfusion erfolgreich",
       "Postoperativ: Heparinperfusor, Kompartment-Überwachung, orale Antikoagulation einleiten",
       "Kardiologie-Konsil: Vorhofflimmern — dauerhafte Antikoagulation indiziert"
+    ],
+    stepsFr:[
+      "Anamnèse : début soudain ? Douleur, troubles sensitifs, limitation de mobilité ?",
+      "Examen clinique : vérifier les 6 P — jambe pâle, froide, pas de pouls à partir de l'A. poplitée",
+      "Mesures immédiates : héparine IV 5000 UI bolus, position déclive, antalgiques",
+      "Écho-duplex d'urgence : pas de flux dans l'A. poplitée et en distal",
+      "Angio-CT : occlusion embolique A. poplitée droite",
+      "Chirurgie d'urgence : embolectomie par sonde de Fogarty — reperfusion réussie",
+      "Postopératoire : perfusion d'héparine, surveillance des loges, initier anticoagulation orale",
+      "Avis cardiologique : fibrillation auriculaire — anticoagulation au long cours indiquée"
     ]},
   {title:"Ulcère artériel",icon:"🦶",sit:"Herr Fischer, 78J, Diabetiker. Nicht heilendes Ulkus lateraler Malleolus rechts seit 8 Wochen. Ruheschmerz nachts. Raucher. ABI 0,4.",
+    sitFr:"M. Fischer, 78 ans, diabétique. Ulcère non cicatrisant malléole latérale droite depuis 8 semaines. Douleur de repos nocturne. Fumeur. IPS 0,4.",
     vocab:["das arterielle Ulkus","die kritische Extremitätenischämie (CLI)","der ABI","die pAVK Fontaine IV","die PTA","der Wundabstrich","die Revaskularisation","die Major-Amputation"],
+    vocabFr:["l'ulcère artériel","l'ischémie critique des membres (CLI)","l'IPS","l'AOMI Fontaine IV","l'ATP","le prélèvement de plaie","la revascularisation","l'amputation majeure"],
     steps:[
       "Anamnese: Schmerzcharakter? Gehstrecke? Ruheschmerz? Wunddauer? Diabetes-Einstellung?",
       "Klinische Untersuchung: Ulkus 3x2 cm, nekrotischer Rand, fehlende Fußpulse beidseits",
@@ -460,6 +497,16 @@ export const SCENARIOS = [
       "Interdisziplinäre Entscheidung: PTA + Stenting A. femoralis, Angiosom-gerechte Revaskularisation",
       "Wundmanagement: Debridement, feuchte Wundbehandlung, Antibiotika nach Abstrich",
       "Langzeit: Gehtraining, Rauchstopp, HbA1c-Optimierung, regelmäßige Kontrolle"
+    ],
+    stepsFr:[
+      "Anamnèse : caractère de la douleur ? Périmètre de marche ? Douleur de repos ? Durée de la plaie ? Équilibre du diabète ?",
+      "Examen clinique : ulcère 3x2 cm, bords nécrotiques, pouls pédieux absents bilatéralement",
+      "Mesure IPS : 0,4 à droite — ischémie critique (stade Fontaine IV)",
+      "Échographie duplex : sténoses étendues A. fémorale superficielle + A. tibiale antérieure",
+      "Angio-CT : occlusions multi-étagées — évaluer possibilité d'ATP",
+      "Décision interdisciplinaire : ATP + stenting A. fémorale, revascularisation adaptée à l'angiosome",
+      "Soins de plaie : débridement, traitement humide, antibiotiques après prélèvement",
+      "Long terme : réentraînement, arrêt du tabac, optimisation HbA1c, contrôle régulier"
     ]}
 ];
 
