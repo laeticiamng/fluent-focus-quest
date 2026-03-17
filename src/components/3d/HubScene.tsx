@@ -725,6 +725,9 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Ambient particles */}
           <AmbientParticles count={55} radius={8} height={6} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Fireflies — magical wanderers */}
+          <Fireflies count={25} radius={7} height={5} color="#fbbf24" secondaryColor="#6366f1" />
+
           {/* Central Lazarus pillar — spectacular focal point */}
           <CentralPillar sigilCount={sigilCount} />
 
@@ -740,12 +743,13 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Premium shadows */}
           <PremiumShadows y={-0.49} opacity={0.4} scale={20} />
 
-          {/* Post-processing — bloom + vignette */}
+          {/* Post-processing — bloom + chromatic aberration + vignette */}
           <PremiumPostProcessing
             bloomIntensity={0.85}
             bloomThreshold={0.3}
             bloomSmoothing={0.6}
             vignetteOpacity={0.4}
+            chromaticAberration={0.0004}
           />
 
           {/* Orbit controls — slightly more heroic starting angle */}

@@ -581,6 +581,9 @@ export function MapScene({
           {/* Ambient particles */}
           <AmbientParticles count={40} radius={9} height={5} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Fireflies — magical atmosphere */}
+          <Fireflies count={18} radius={8} height={4} color="#fbbf24" secondaryColor="#6366f1" />
+
           {/* Suspended energy arcs */}
           <SuspendedArcs count={3} baseY={4.5} radius={7} color="#6366f1" />
 
@@ -594,6 +597,7 @@ export function MapScene({
             bloomThreshold={0.3}
             bloomSmoothing={0.6}
             vignetteOpacity={0.35}
+            chromaticAberration={0.0004}
           />
 
           <OrbitControls

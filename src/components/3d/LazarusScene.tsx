@@ -691,6 +691,12 @@ export function LazarusScene({
             secondaryColor={activated ? "#fbbf24" : "#6366f1"}
           />
 
+          {/* Fireflies — erratic luminous wanderers */}
+          <Fireflies count={activated ? 30 : 15} radius={5} height={4} color={activated ? "#10b981" : "#fbbf24"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} />
+
+          {/* Thematic embers — rising heat effect */}
+          <ThematicParticles count={20} radius={4} height={5} color={activated ? "#10b981" : "#f59e0b"} variant="embers" />
+
           {/* Background depth */}
           <BackgroundStructures count={5} minRadius={12} maxRadius={18} height={5} color={activated ? "#040e04" : "#050514"} />
 
@@ -701,6 +707,7 @@ export function LazarusScene({
             bloomThreshold={activated ? 0.22 : 0.3}
             bloomSmoothing={0.6}
             vignetteOpacity={activated ? 0.45 : 0.4}
+            chromaticAberration={0.0005}
           />
 
           <OrbitControls
