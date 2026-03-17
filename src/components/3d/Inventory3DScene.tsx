@@ -120,13 +120,17 @@ function ArtifactObject({
           onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
         >
           {geometry}
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={config.color}
             emissive={new THREE.Color(config.emissive)}
             emissiveIntensity={isSelected ? 2.5 : hovered ? 1.2 : 0.6}
             metalness={0.9}
             roughness={0.08}
             envMapIntensity={0.9}
+            clearcoat={1}
+            clearcoatRoughness={0.1}
+            iridescence={isSelected ? 0.8 : 0.3}
+            iridescenceIOR={1.6}
           />
         </mesh>
       </Float>
