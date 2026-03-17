@@ -301,18 +301,52 @@ function getDailyChallenge(solvedIds: string[]): PhraseChallenge {
   return unsolved[0];
 }
 
+/** Normalize German text: collapse whitespace, strip punctuation, handle umlaut equivalences */
+function normalizeGerman(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[?.!,;:'"„"«»]/g, "")
+    .replace(/\s+/g, " ")
+    // German umlaut equivalence: accept both ä and ae, etc.
+    .replace(/ae/g, "ä")
+    .replace(/oe/g, "ö")
+    .replace(/ue/g, "ü")
+    .replace(/ss/g, "ß");
+}
+
+/** Also normalize the reference side for fair comparison */
+function normalizeReference(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[?.!,;:'"„"«»]/g, "")
+    .replace(/\s+/g, " ");
+}
+
 function evaluateAnswer(userInput: string, challenge: PhraseChallenge): {
   score: number; // 0-100
   matchedKeywords: string[];
   missedKeywords: string[];
   passed: boolean;
 } {
-  const normalized = userInput.trim().toLowerCase().replace(/[?.!,;:'"]/g, "").replace(/\s+/g, " ");
-  const matchedKeywords = challenge.keywords.filter(kw => normalized.includes(kw.toLowerCase()));
-  const missedKeywords = challenge.keywords.filter(kw => !normalized.includes(kw.toLowerCase()));
+  const normalized = normalizeGerman(userInput);
+  const normalizedRef = normalizeReference(challenge.answer);
+  // Also normalize with umlaut expansion for matching
+  const normalizedAlt = normalizeReference(userInput);
 
-  // Exact match bonus
-  const exactMatch = normalized === challenge.answer.toLowerCase().replace(/[?.!,;:'"]/g, "").replace(/\s+/g, " ");
+  const matchedKeywords = challenge.keywords.filter(kw => {
+    const kwLower = kw.toLowerCase();
+    return normalized.includes(kwLower) || normalizedAlt.includes(kwLower);
+  });
+  const missedKeywords = challenge.keywords.filter(kw => {
+    const kwLower = kw.toLowerCase();
+    return !normalized.includes(kwLower) && !normalizedAlt.includes(kwLower);
+  });
+
+  // Exact match bonus (check both normalized forms)
+  const exactMatch = normalized === normalizedRef
+    || normalizedAlt === normalizedRef;
 
   const keywordScore = challenge.keywords.length > 0
     ? (matchedKeywords.length / challenge.keywords.length) * 80
@@ -351,8 +385,9 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
     missedKeywords: string[];
     passed: boolean;
   } | null>(null);
-  const [submitted, setSubmitted] = useState(alreadySolved);
+  const [submitted, setSubmitted] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const allGatesSolved = solvedCount >= TOTAL_GATES;
 
   const handleSubmit = useCallback(() => {
     if (!userInput.trim()) return;
@@ -405,6 +440,16 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
           : "0 0 20px -8px hsl(270 50% 55% / 0.1)",
       }}
     >
+      {/* All gates completed banner */}
+      {allGatesSolved && !submitted && (
+        <div className="px-4 pt-3">
+          <div className="rounded-xl p-2.5 bg-emerald-500/8 border border-emerald-500/15 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <p className="text-[10px] text-emerald-400 font-bold">{TOTAL_GATES}/{TOTAL_GATES} portes ouvertes — Revision en cours</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-4 pt-4 pb-2 flex items-center gap-3">
         <motion.div
@@ -477,7 +522,31 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
       </div>
 
       {/* Input & Submit */}
-      {!submitted ? (
+      {alreadySolved && !submitted ? (
+        /* Already solved — show reference and allow moving on */
+        <div className="px-4 pb-4 space-y-2">
+          <div className="rounded-xl p-3 bg-emerald-500/8 border border-emerald-500/15">
+            <div className="flex items-center gap-2 mb-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-black text-emerald-400">Deja reussi</span>
+            </div>
+          </div>
+          <div className="rounded-xl p-3 bg-secondary/20 border border-border/20">
+            <p className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold mb-1">Reponse de reference</p>
+            <p className="text-xs text-foreground/80 font-medium leading-relaxed">
+              {challenge.answer.charAt(0).toUpperCase() + challenge.answer.slice(1)}
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={handleNextChallenge}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 active:bg-violet-700 text-white text-[10px] font-bold transition-all min-h-[44px]"
+            >
+              Defi suivant <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      ) : !submitted ? (
         <div className="px-4 pb-4 space-y-2.5">
           <div className="relative">
             <input
@@ -580,11 +649,17 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex justify-end"
+              className="flex items-center justify-between"
             >
               <button
+                onClick={handleRetry}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground transition-colors min-h-[44px]"
+              >
+                <RotateCcw className="w-3 h-3" /> Reessayer
+              </button>
+              <button
                 onClick={handleNextChallenge}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[9px] text-muted-foreground/60 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground/70 transition-colors min-h-[44px]"
               >
                 Passer <ChevronRight className="w-3 h-3" />
               </button>
