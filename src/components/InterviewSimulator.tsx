@@ -546,6 +546,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                         )}
                       </div>
                       <p className="text-[10px] text-muted-foreground truncate">{zone.description}</p>
+                      <RevealTranslation fr={zone.descriptionFr} globalShow={showFr} size="xs" />
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[9px] text-muted-foreground">{totalQs} questions</p>
@@ -647,7 +648,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
               </div>
             </div>
 
-            <p className="text-lg font-bold leading-snug tracking-tight mb-3">{currentQuestion.q}</p>
+            <p className="text-lg font-bold leading-snug tracking-tight mb-1">{currentQuestion.q}</p>
+            <RevealTranslation fr={currentQuestion.qFr} globalShow={showFr} size="sm" className="mb-3" />
 
             <div className="rounded-xl bg-violet-500/6 border border-violet-500/12 px-3 py-2">
               <p className="text-[10px] text-violet-400/70">Indice : {currentQuestion.h}</p>
