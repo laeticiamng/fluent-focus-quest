@@ -31,7 +31,15 @@ interface DailyJourneyProps {
 
 export function DailyJourney({ onNavigate, done }: DailyJourneyProps) {
   const today = new Date().toISOString().split("T")[0];
-  const todayProg = PROG.find(d => d.date === today) || PROG[0];
+  const todayProg = PROG.find(d => d.date === today) ?? PROG[0];
+
+  if (!todayProg) {
+    return (
+      <div className="rounded-2xl room-3d p-5 text-center" style={{ boxShadow: "var(--shadow-3d-md)" }}>
+        <p className="text-sm text-muted-foreground">Aucun programme disponible pour aujourd'hui.</p>
+      </div>
+    );
+  }
 
   // Build steps from today's tasks
   const steps: (JourneyStep & { key: string; taskDesc: string; isDone: boolean })[] = todayProg.tasks.map((task, i) => {

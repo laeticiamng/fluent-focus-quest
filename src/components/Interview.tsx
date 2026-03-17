@@ -127,8 +127,10 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
   const startSim = () => { setSimMode(true); goToQuestion(0); setSimRunning(true); };
   const stopSim = () => { setSimMode(false); setSimRunning(false); setSimTimer(120); };
 
+  const currentQ = IVW[ii] ?? IVW[0];
+
   const handleSubmitAnswer = () => {
-    if (userAnswer.trim().length < 10) return;
+    if (!currentQ || userAnswer.trim().length < 10) return;
     const versionNum = currentVersions.length + 1;
     const isImproved = versionNum > 1;
     if (addArtifact) {
@@ -138,7 +140,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
         content: userAnswer,
         xpEarned: isImproved ? XP_VALUES.INTERVIEW_IMPROVED : XP_VALUES.INTERVIEW_ANSWER,
         version: versionNum,
-        metadata: { questionIdx: ii, question: IVW[ii].q },
+        metadata: { questionIdx: ii, question: currentQ.q },
       });
     }
     setAnswerSubmitted(true);
@@ -151,8 +153,8 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
   };
 
   const handleAnalyse = () => {
-    if (!transcript.trim()) return;
-    const prompt = buildAnalysisPrompt(IVW[ii].q, IVW[ii].r, transcript);
+    if (!transcript.trim() || !currentQ) return;
+    const prompt = buildAnalysisPrompt(currentQ.q, currentQ.r, transcript);
     ask(prompt, "interview-analysis");
     setAnalysisSubmitted(true);
     addXp?.(XP_VALUES.ANALYSIS);
@@ -216,7 +218,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] text-muted-foreground">
-                      Scene {(a.metadata?.questionIdx as number) + 1} · {new Date(a.date).toLocaleDateString("fr-FR")}
+                      Scene {typeof a.metadata?.questionIdx === "number" ? a.metadata.questionIdx + 1 : "?"} · {new Date(a.date).toLocaleDateString("fr-FR")}
                     </span>
                     {a.version && (
                       <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400">
@@ -224,7 +226,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-violet-400/70 font-medium mb-1">{(a.metadata?.question as string) || ""}</p>
+                  <p className="text-[10px] text-violet-400/70 font-medium mb-1">{String(a.metadata?.question ?? "")}</p>
                   <p className="text-xs text-foreground/85 leading-relaxed">{a.content}</p>
                 </motion.div>
               ))}
@@ -422,9 +424,9 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
               </span>
             )}
           </div>
-          <p className="text-lg font-bold leading-snug tracking-tight mb-4 relative z-10">{IVW[ii].q}</p>
+          <p className="text-lg font-bold leading-snug tracking-tight mb-4 relative z-10">{currentQ.q}</p>
           <div className="rounded-xl bg-violet-500/6 border border-violet-500/12 px-4 py-2.5 relative z-10">
-            <p className="text-[11px] text-violet-400/70 font-medium">💡 {IVW[ii].h}</p>
+            <p className="text-[11px] text-violet-400/70 font-medium">💡 {currentQ.h}</p>
           </div>
         </motion.div>
 
@@ -538,7 +540,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
                 <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground/50 mb-3 flex items-center gap-1.5">
                   <Mic className="w-3 h-3" /> Enregistrement vocal
                 </p>
-                <VoiceRecorder label={`Scene ${ii + 1}`} context={`Scene ${ii + 1}: ${IVW[ii].q.slice(0, 40)}`} />
+                <VoiceRecorder label={`Scene ${ii + 1}`} context={`Scene ${ii + 1}: ${currentQ.q.slice(0, 40)}`} />
               </div>
 
               <div className="room-3d rounded-2xl p-4 space-y-3" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
@@ -644,7 +646,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
               }}
             >
               <p className="text-[10px] text-emerald-400 font-black uppercase tracking-[2px] mb-2">Script de reference</p>
-              <p className="text-sm leading-relaxed text-foreground/85">{IVW[ii].r}</p>
+              <p className="text-sm leading-relaxed text-foreground/85">{currentQ.r}</p>
             </div>
 
             {/* Self-validation — jury score */}
