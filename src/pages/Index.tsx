@@ -78,6 +78,8 @@ import { AchievementsPanel, ACHIEVEMENTS, type AchievementStats } from "@/compon
 import { Leaderboard } from "@/components/Leaderboard";
 import { AIStatusBanner } from "@/components/AIStatusBanner";
 import { InterviewSimulator } from "@/components/InterviewSimulator";
+import { PhraseGate } from "@/components/PhraseGate";
+import { TodayPlan } from "@/components/TodayPlan";
 
 // Lazy-loaded 3D scenes (only loaded when WebGL available)
 const HubScene = lazy(() => import("@/components/3d/HubScene").then(m => ({ default: m.HubScene })));
@@ -486,6 +488,12 @@ const Index = () => {
                 {/* PRIORITY 2: COUNTDOWN + readiness */}
                 <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
 
+                {/* PRIORITY 2.5: Today's structured learning plan */}
+                <TodayPlan
+                  done={progress.done}
+                  toggleTask={progress.toggleTask}
+                />
+
                 {/* PRIORITY 3: Daily Mission Protocol — what to do today */}
                 <div className="rounded-2xl p-5 room-3d"
                   style={{
@@ -500,6 +508,12 @@ const Index = () => {
                     completedChains={progress.questState.completedChains}
                   />
                 </div>
+
+                {/* ESCAPE-GAME MICRO-LOOP: Daily Phrase Gate */}
+                <PhraseGate
+                  solvedGateIds={escapeState.solvedGateIds || escapeState.solvedPuzzles || []}
+                  onSolve={(challengeId, xpReward) => progress.solveGate(challengeId, xpReward)}
+                />
 
                 {/* Mission Progress — volumetric metric */}
                 <motion.div
@@ -623,7 +637,7 @@ const Index = () => {
                 )}
 
                 {/* Inventory preview — Real 3D when available */}
-                <WebGLGate fallback={
+                <WebGLGate sceneName="Inventory" fallback={
                   <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
                 }>
                   {escapeState.inventory.length > 0 ? (
@@ -713,9 +727,56 @@ const Index = () => {
                 {/* Builder Rank */}
                 <XPBar xp={progress.xp} />
 
-                {/* 3D Hub Scene — secondary visualization */}
-                <WebGLGate fallback={null}>
-                  <Suspense fallback={null}>
+                {/* 3D Hub Scene — interactive zone portal map */}
+                <WebGLGate sceneName="Hub" fallback={
+                  <div className="rounded-2xl p-4 space-y-3" style={{
+                    background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                    border: "1px solid hsl(32 95% 55% / 0.12)",
+                  }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-base">🏛️</span>
+                      <p className="text-xs font-black tracking-tight">Hub du Complexe Medical</p>
+                      <span className="text-[8px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/70 font-bold ml-auto">Mode 2D</span>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {ESCAPE_ZONES.map((zone) => {
+                        const zs = progress.escapeZoneStatus[zone.id];
+                        const isLocked = !zs?.unlocked;
+                        return (
+                          <button
+                            key={zone.id}
+                            onClick={() => { if (!isLocked) handleTabChange(ZONE_TAB_MAP[zone.id] as Tab); }}
+                            disabled={isLocked}
+                            className={`rounded-xl p-3 text-center transition-all ${isLocked ? "opacity-30 cursor-not-allowed" : "hover:scale-[1.04] hover:bg-white/5"}`}
+                            style={{
+                              background: isLocked ? "hsl(225 14% 10%)" : "linear-gradient(145deg, hsl(var(--primary) / 0.06), hsl(var(--card)))",
+                              border: isLocked ? "1px solid hsl(225 14% 12%)" : "1px solid hsl(var(--border) / 0.3)",
+                            }}
+                          >
+                            <div className="text-xl mb-1">{isLocked ? "🔒" : zone.icon}</div>
+                            <div className="text-[9px] font-bold">{zone.name.replace(/Aile d[eu']?\s*/i, "").slice(0, 12)}</div>
+                            {!isLocked && zs && (
+                              <div className="mt-1 h-1 bg-secondary/30 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full bg-amber-500/40" style={{ width: `${zs.progress * 100}%` }} />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                }>
+                  <Suspense fallback={
+                    <div className="rounded-2xl overflow-hidden h-[320px] flex items-center justify-center" style={{
+                      background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                      border: "1px solid hsl(32 95% 55% / 0.12)",
+                    }}>
+                      <div className="text-center">
+                        <div className="text-2xl mb-2 animate-pulse">🏛️</div>
+                        <p className="text-[10px] text-muted-foreground animate-pulse">Chargement du Hub 3D...</p>
+                      </div>
+                    </div>
+                  }>
                     <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(32 95% 55% / 0.12)" }}>
                       <HubScene
                         escapeZoneStatus={progress.escapeZoneStatus}
@@ -827,7 +888,7 @@ const Index = () => {
           {tab === "questmap" && (
             <div className="space-y-4">
               {/* 3D Map Scene */}
-              <WebGLGate fallback={
+              <WebGLGate sceneName="Map" fallback={
                 <EscapeMap
                   escapeZoneStatus={progress.escapeZoneStatus}
                   artifacts={progress.artifacts}
@@ -1012,7 +1073,7 @@ const Index = () => {
           )}
           {tab === "lazarus" && (
             <AtmosphericSceneWrapper atmosphere="neutral" intensity="medium">
-              <WebGLGate fallback={
+              <WebGLGate sceneName="Lazarus" fallback={
                 <MetaPuzzle
                   sigilsCollected={escapeState.sigilsCollected}
                   onActivateProtocol={progress.activateProtocol}

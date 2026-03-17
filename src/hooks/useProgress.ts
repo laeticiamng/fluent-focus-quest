@@ -198,6 +198,7 @@ export interface EscapeGameState {
   sigilsCollected: string[]; // master_sigil fragment names
   newEscapeEvents: string[]; // for reveal animations
   solvedPuzzles: string[]; // puzzle IDs that have been solved
+  solvedGateIds: string[]; // PhraseGate challenge IDs that have been solved
   protocolActivated: boolean; // whether Protocole Lazarus meta-puzzle is complete
 }
 
@@ -237,6 +238,7 @@ const defaultEscapeState: EscapeGameState = {
   sigilsCollected: [],
   newEscapeEvents: [],
   solvedPuzzles: [],
+  solvedGateIds: [],
   protocolActivated: false,
 };
 
@@ -633,6 +635,27 @@ export function useProgress() {
     });
   }, []);
 
+  const solveGate = useCallback((gateId: string, xpEarned: number) => {
+    setState(s => {
+      const escapeState = s.escapeState || defaultEscapeState;
+      const solvedGateIds = escapeState.solvedGateIds || [];
+      if (solvedGateIds.includes(gateId)) return s;
+
+      const { streak, lastActiveDate } = calcStreak(s.lastActiveDate, s.streak);
+      return {
+        ...s,
+        xp: s.xp + xpEarned,
+        streak,
+        lastActiveDate,
+        escapeState: {
+          ...escapeState,
+          solvedGateIds: [...solvedGateIds, gateId],
+          newEscapeEvents: [...escapeState.newEscapeEvents, `gate_solved:${gateId}`],
+        },
+      };
+    });
+  }, []);
+
   const activateProtocol = useCallback(() => {
     setState(s => {
       const escapeState = s.escapeState || defaultEscapeState;
@@ -767,7 +790,7 @@ export function useProgress() {
   return {
     ...state, toggleTask, addXp, setRating, toggleChecklist,
     addQuizScore, toggleHardCard, setNotes, addPomodoro, toggleGrammarExercise,
-    addArtifact, creationsToday, totalCreations,
+    addArtifact, creationsToday, totalCreations, solveGate,
     clearNewUnlocks, setCurrentZone, zoneStatus, chainStatus,
     escapeZoneStatus, solvePuzzle, activateProtocol,
   };

@@ -194,16 +194,17 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.15} color="#8888aa" />
-          <directionalLight position={[3, 5, 3]} intensity={0.3} color="#ffe4b5" castShadow />
-          <pointLight position={[0, 2, 0]} intensity={0.4} color="#d4a017" distance={8} />
+          <ambientLight intensity={0.45} color="#b0b8d0" />
+          <directionalLight position={[4, 8, 4]} intensity={0.9} color="#ffe4b5" castShadow />
+          <directionalLight position={[-3, 4, -2]} intensity={0.3} color="#8899cc" />
+          <pointLight position={[0, 2, 0]} intensity={0.6} color="#d4a017" distance={10} />
 
-          <fog attach="fog" args={["#080818", 6, 14]} />
+          <fog attach="fog" args={["#0c0c20", 10, 18]} />
 
           {/* Floor */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} receiveShadow>
             <planeGeometry args={[10, 10]} />
-            <meshStandardMaterial color="#0a0a1a" metalness={0.4} roughness={0.6} />
+            <meshStandardMaterial color="#14142c" metalness={0.4} roughness={0.5} />
           </mesh>
 
           {/* Sigil stand */}

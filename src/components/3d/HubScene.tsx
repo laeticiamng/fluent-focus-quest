@@ -222,9 +222,9 @@ function ZonePortal({
           <meshStandardMaterial
             color={portal.emissive}
             emissive={portal.emissive}
-            emissiveIntensity={portal.unlocked ? (hovered ? 1.2 : 0.4) : 0.05}
+            emissiveIntensity={portal.unlocked ? (hovered ? 2.0 : 0.8) : 0.08}
             transparent
-            opacity={portal.unlocked ? (hovered ? 0.6 : 0.25) : 0.05}
+            opacity={portal.unlocked ? (hovered ? 0.7 : 0.4) : 0.08}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -268,9 +268,9 @@ function ZonePortal({
         {portal.unlocked && (
           <pointLight
             position={[0, 0.6, 0.3]}
-            intensity={hovered ? 1.5 : 0.3}
+            intensity={hovered ? 2.5 : 0.8}
             color={portal.emissive.getStyle()}
-            distance={3}
+            distance={4}
             decay={2}
           />
         )}
@@ -287,7 +287,7 @@ function Floor() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
         <circleGeometry args={[8, 64]} />
         <meshStandardMaterial
-          color="#12122a"
+          color="#1a1a30"
           metalness={0.5}
           roughness={0.5}
         />
@@ -300,9 +300,9 @@ function Floor() {
           <meshStandardMaterial
             color="#d4a017"
             emissive="#d4a017"
-            emissiveIntensity={0.15 - i * 0.03}
+            emissiveIntensity={0.3 - i * 0.05}
             transparent
-            opacity={0.2 - i * 0.05}
+            opacity={0.35 - i * 0.08}
           />
         </mesh>
       ))}
@@ -354,11 +354,11 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
         <Suspense fallback={null}>
           <CameraSetup />
 
-          {/* Lighting — brighter for readability while keeping atmosphere */}
-          <ambientLight intensity={0.35} color="#9999dd" />
+          {/* Lighting — tuned for legibility + atmosphere */}
+          <ambientLight intensity={0.5} color="#b0b8d0" />
           <directionalLight
-            position={[5, 8, 3]}
-            intensity={0.6}
+            position={[5, 10, 5]}
+            intensity={1.2}
             color="#ffe4b5"
             castShadow
             shadow-mapSize-width={1024}
@@ -366,11 +366,14 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             shadow-camera-far={20}
             shadow-camera-near={0.1}
           />
-          <pointLight position={[0, 4, 0]} intensity={0.5} color="#d4a017" distance={12} decay={2} />
-          <pointLight position={[-4, 3, 4]} intensity={0.2} color="#6366f1" distance={10} decay={2} />
+          {/* Key light from opposite side for fill */}
+          <directionalLight position={[-4, 6, -3]} intensity={0.4} color="#8899cc" />
+          {/* Rim light from below-behind for depth */}
+          <pointLight position={[0, 1, -6]} intensity={0.4} color="#6366f1" distance={14} decay={2} />
+          <pointLight position={[0, 5, 0]} intensity={0.8} color="#d4a017" distance={14} decay={2} />
 
-          {/* Fog for atmosphere — pushed back for visibility */}
-          <fog attach="fog" args={["#0a0a20", 10, 22]} />
+          {/* Fog for atmosphere — pushed back to avoid obscuring portals */}
+          <fog attach="fog" args={["#0c0c20", 12, 24]} />
 
           {/* Floor */}
           <Floor />

@@ -225,15 +225,17 @@ export function LazarusScene({
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.1} color="#6666aa" />
-          <directionalLight position={[4, 8, 3]} intensity={0.3} color="#ffe4b5" castShadow />
+          <ambientLight intensity={0.4} color="#b0b0cc" />
+          <directionalLight position={[4, 10, 4]} intensity={0.9} color="#ffe4b5" castShadow />
+          <directionalLight position={[-3, 5, -2]} intensity={0.3} color="#8899cc" />
+          <pointLight position={[0, 3, 0]} intensity={0.5} color={activated ? "#10b981" : "#6366f1"} distance={10} decay={2} />
 
-          <fog attach="fog" args={[activated ? "#081808" : "#080818", 6, 16]} />
+          <fog attach="fog" args={[activated ? "#0c180c" : "#0c0c20", 10, 20]} />
 
           {/* Floor */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.4, 0]} receiveShadow>
             <circleGeometry args={[5, 64]} />
-            <meshStandardMaterial color="#06060f" metalness={0.4} roughness={0.6} />
+            <meshStandardMaterial color="#12122a" metalness={0.4} roughness={0.5} />
           </mesh>
 
           {/* Altar */}

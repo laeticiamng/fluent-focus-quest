@@ -2,20 +2,27 @@ import { useState, useEffect, ReactNode } from "react";
 import { Scene3DErrorBoundary } from "./Scene3DErrorBoundary";
 
 let cachedSupport: boolean | null = null;
+let cachedReason: string = "";
 
-function detectWebGL(): boolean {
-  if (cachedSupport !== null) return cachedSupport;
+function detectWebGL(): { supported: boolean; reason: string } {
+  if (cachedSupport !== null) return { supported: cachedSupport, reason: cachedReason };
   try {
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
-    cachedSupport = !!gl;
-  } catch {
+    if (!gl) {
+      cachedSupport = false;
+      cachedReason = "WebGL not available in this browser";
+      return { supported: false, reason: cachedReason };
+    }
+    cachedSupport = true;
+    cachedReason = "";
+  } catch (e) {
     cachedSupport = false;
+    cachedReason = `WebGL detection failed: ${e instanceof Error ? e.message : "unknown"}`;
   }
-  return cachedSupport ?? false;
+  return { supported: cachedSupport ?? false, reason: cachedReason };
 }
 
-// Check for reduced motion preference
 function prefersReducedMotion(): boolean {
   try {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -27,22 +34,43 @@ function prefersReducedMotion(): boolean {
 interface WebGLGateProps {
   children: ReactNode;
   fallback: ReactNode;
+  sceneName?: string;
 }
 
-export function WebGLGate({ children, fallback }: WebGLGateProps) {
+export function WebGLGate({ children, fallback, sceneName }: WebGLGateProps) {
   const [supported, setSupported] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Skip 3D if user prefers reduced motion or WebGL not available
-    setSupported(detectWebGL() && !prefersReducedMotion());
-  }, []);
+    const { supported: webglOk, reason } = detectWebGL();
+    const reducedMotion = prefersReducedMotion();
 
-  if (supported === null) return null;
+    if (!webglOk) {
+      if (import.meta.env.DEV) console.info(`[WebGLGate:${sceneName || "?"}] Falling back to 2D: ${reason}`);
+      setSupported(false);
+    } else if (reducedMotion) {
+      if (import.meta.env.DEV) console.info(`[WebGLGate:${sceneName || "?"}] Falling back to 2D: prefers-reduced-motion`);
+      setSupported(false);
+    } else {
+      setSupported(true);
+    }
+  }, [sceneName]);
+
+  // Show a minimal placeholder during detection (prevents layout jump)
+  if (supported === null) {
+    return (
+      <div className="rounded-2xl h-16 flex items-center justify-center" style={{
+        background: "hsl(var(--card))",
+        border: "1px solid hsl(var(--border) / 0.2)",
+      }}>
+        <p className="text-[10px] text-muted-foreground/50 animate-pulse">Initialisation...</p>
+      </div>
+    );
+  }
+
   if (!supported) return <>{fallback}</>;
 
-  // Wrap in error boundary so a 3D crash falls back to 2D gracefully
   return (
-    <Scene3DErrorBoundary fallback={fallback}>
+    <Scene3DErrorBoundary fallback={fallback} sceneName={sceneName}>
       {children}
     </Scene3DErrorBoundary>
   );
@@ -50,6 +78,6 @@ export function WebGLGate({ children, fallback }: WebGLGateProps) {
 
 export function useWebGLSupported(): boolean {
   const [supported, setSupported] = useState(true);
-  useEffect(() => { setSupported(detectWebGL()); }, []);
+  useEffect(() => { setSupported(detectWebGL().supported); }, []);
   return supported;
 }

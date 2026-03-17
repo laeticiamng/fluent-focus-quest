@@ -147,11 +147,11 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   // Parse AI evaluation response with validation
   useEffect(() => {
     if (!response || simState !== "evaluating") return;
+    clearTimeout(fallbackTimerRef.current); // AI responded — cancel fallback
 
     // If response is a local fallback marker, immediately use evaluateLocally
     if (response.includes("[LOCAL_EVAL_FALLBACK]")) {
       if (currentQuestion) {
-        clearTimeout(fallbackTimerRef.current);
         setEvaluation(evaluateLocally(userAnswer, currentQuestion));
         setSimState("results");
       }
@@ -202,6 +202,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     }
   }, [response]);
 
+  const followUpTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const triggerFollowUp = useCallback(() => {
     if (!currentQuestion) return;
     const pool = [...(currentQuestion.followUps || []), ...PRESSURE_INTERRUPTIONS];
@@ -209,6 +210,9 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     const randomQ = pool[Math.floor(Math.random() * pool.length)];
     setCurrentFollowUp(randomQ);
     setShowFollowUp(true);
+    // Auto-dismiss after 4 seconds to avoid clutter
+    clearTimeout(followUpTimerRef.current);
+    followUpTimerRef.current = setTimeout(() => setShowFollowUp(false), 4000);
   }, [currentQuestion]);
 
   const selectZone = (zoneId: InterviewZoneId) => {
@@ -281,11 +285,12 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     // Fallback: if AI doesn't respond within 8 seconds, use local
     clearTimeout(fallbackTimerRef.current);
     fallbackTimerRef.current = setTimeout(() => {
-      setEvaluation(prev => {
-        if (prev) return prev; // AI already responded
+      // Only apply fallback if still evaluating (AI hasn't responded yet)
+      setSimState(prev => {
+        if (prev !== "evaluating") return prev;
         const local = evaluateLocally(userAnswer, currentQuestion);
-        setSimState("results");
-        return local;
+        setEvaluation(local);
+        return "results";
       });
     }, 8000);
 

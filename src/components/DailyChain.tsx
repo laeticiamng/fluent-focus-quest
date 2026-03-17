@@ -177,7 +177,7 @@ export function DailyChain({ chainStatus, zoneStatus, onNavigate, completedChain
                         )}
                       </div>
                       <p className="text-[9px] text-muted-foreground mt-0.5">
-                        {isLocked && !zoneUnlocked ? `Aile ${zone?.name || ""} verrouillee` :
+                        {isLocked && !zoneUnlocked ? (zone?.unlockHint || `Aile ${zone?.name || ""} verrouillee`) :
                          isLocked ? "Complete l'etape precedente d'abord" :
                          step.completed ? "Mecanisme active" :
                          `Aile: ${zone?.name || ""}`}

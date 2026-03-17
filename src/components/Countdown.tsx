@@ -16,7 +16,7 @@ export function Countdown({ lastSimScore, readinessPercent }: CountdownProps = {
   const hh = Math.max(0, Math.floor((diff % 864e5) / 36e5));
   const mn = Math.max(0, Math.floor((diff % 36e5) / 6e4));
   const sc = Math.max(0, Math.floor((diff % 6e4) / 1e3));
-  const totalDays = Math.ceil((TARGET.getTime() - new Date("2025-01-01").getTime()) / 864e5);
+  const totalDays = Math.ceil((TARGET.getTime() - new Date("2026-01-01").getTime()) / 864e5);
   const elapsed = totalDays - dd;
   const progress = Math.min(100, Math.max(0, (elapsed / totalDays) * 100));
   const isUrgent = dd <= 3;
