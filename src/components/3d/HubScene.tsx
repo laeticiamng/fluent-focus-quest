@@ -11,8 +11,10 @@ import * as THREE from "three";
 import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
-import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion, Fireflies } from "./premium/DecorativeElements";
+import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion, Fireflies, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
+import { VortexPortal } from "./premium/VortexPortalShader";
 
 // ── Types ──
 interface ZonePortalData {
