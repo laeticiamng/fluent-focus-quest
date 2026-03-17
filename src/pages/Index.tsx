@@ -79,6 +79,7 @@ import { Leaderboard } from "@/components/Leaderboard";
 import { AIStatusBanner } from "@/components/AIStatusBanner";
 import { InterviewSimulator } from "@/components/InterviewSimulator";
 import { PhraseGate } from "@/components/PhraseGate";
+import { TodayPlan } from "@/components/TodayPlan";
 
 // Lazy-loaded 3D scenes (only loaded when WebGL available)
 const HubScene = lazy(() => import("@/components/3d/HubScene").then(m => ({ default: m.HubScene })));
@@ -483,6 +484,12 @@ const Index = () => {
 
                 {/* PRIORITY 2: COUNTDOWN + readiness */}
                 <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
+
+                {/* PRIORITY 2.5: Today's structured learning plan */}
+                <TodayPlan
+                  done={progress.done}
+                  toggleTask={progress.toggleTask}
+                />
 
                 {/* PRIORITY 3: Daily Mission Protocol — what to do today */}
                 <div className="rounded-2xl p-5 room-3d"
