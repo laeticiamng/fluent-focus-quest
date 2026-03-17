@@ -194,13 +194,16 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
             color="#fbbf24"
             emissive="#fbbf24"
             emissiveIntensity={1.2 + sigilIntensity * 2.5}
-            metalness={0.95}
+            metalness={0.3}
             roughness={0.03}
-            envMapIntensity={1.0}
+            envMapIntensity={1.5}
             clearcoat={1}
             clearcoatRoughness={0.05}
-            iridescence={0.6}
+            iridescence={0.8}
             iridescenceIOR={1.8}
+            transmission={0.6}
+            thickness={1.5}
+            ior={1.5}
           />
         </mesh>
         {/* Holographic distortion aura */}
