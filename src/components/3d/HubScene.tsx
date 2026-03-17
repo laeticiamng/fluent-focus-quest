@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
-import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion } from "./premium/DecorativeElements";
+import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, FresnelPortalField, PulsingFloorVeins, HolographicDistortion, Fireflies } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 // ── Types ──
@@ -188,13 +188,17 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
       <Float speed={1.2} floatIntensity={0.25} rotationIntensity={0.15}>
         <mesh ref={coreRef} position={[0, 3.0, 0]} castShadow>
           <icosahedronGeometry args={[0.35, 2]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color="#fbbf24"
             emissive="#fbbf24"
             emissiveIntensity={1.2 + sigilIntensity * 2.5}
             metalness={0.95}
             roughness={0.03}
             envMapIntensity={1.0}
+            clearcoat={1}
+            clearcoatRoughness={0.05}
+            iridescence={0.6}
+            iridescenceIOR={1.8}
           />
         </mesh>
         {/* Holographic distortion aura */}
@@ -721,6 +725,9 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Ambient particles */}
           <AmbientParticles count={55} radius={8} height={6} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Fireflies — magical wanderers */}
+          <Fireflies count={25} radius={7} height={5} color="#fbbf24" secondaryColor="#6366f1" />
+
           {/* Central Lazarus pillar — spectacular focal point */}
           <CentralPillar sigilCount={sigilCount} />
 
@@ -736,12 +743,13 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
           {/* Premium shadows */}
           <PremiumShadows y={-0.49} opacity={0.4} scale={20} />
 
-          {/* Post-processing — bloom + vignette */}
+          {/* Post-processing — bloom + chromatic aberration + vignette */}
           <PremiumPostProcessing
             bloomIntensity={0.85}
             bloomThreshold={0.3}
             bloomSmoothing={0.6}
             vignetteOpacity={0.4}
+            chromaticAberration={0.0004}
           />
 
           {/* Orbit controls — slightly more heroic starting angle */}

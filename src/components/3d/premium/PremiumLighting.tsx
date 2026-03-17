@@ -1,18 +1,19 @@
 import { useRef, useMemo } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 
 /**
  * Procedural gradient skybox — tech-fantasy nebula dome.
- * Large inverted sphere with canvas-generated gradient texture.
- * Preset-aware color scheme: indigo/violet/amber nebula tones.
+ * HD resolution (1024) with stars and animated nebula glow.
  */
 function GradientSkybox({ preset = "default" }: { preset?: string }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 1024;
+    canvas.height = 1024;
     const ctx = canvas.getContext("2d")!;
 
     const palettes: Record<string, { bottom: string; mid1: string; mid2: string; top: string }> = {
@@ -31,11 +32,14 @@ function GradientSkybox({ preset = "default" }: { preset?: string }) {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle nebula glow spots
+    // Nebula glow spots — richer and more varied
     const spots = [
-      { x: 200, y: 180, r: 120, color: "rgba(99, 102, 241, 0.04)" },
-      { x: 350, y: 280, r: 90, color: "rgba(212, 160, 23, 0.03)" },
-      { x: 100, y: 350, r: 100, color: "rgba(124, 58, 237, 0.035)" },
+      { x: 400, y: 360, r: 240, color: "rgba(99, 102, 241, 0.05)" },
+      { x: 700, y: 560, r: 180, color: "rgba(212, 160, 23, 0.04)" },
+      { x: 200, y: 700, r: 200, color: "rgba(124, 58, 237, 0.045)" },
+      { x: 850, y: 200, r: 160, color: "rgba(6, 182, 212, 0.03)" },
+      { x: 500, y: 150, r: 280, color: "rgba(245, 158, 11, 0.025)" },
+      { x: 120, y: 400, r: 150, color: "rgba(236, 72, 153, 0.025)" },
     ];
     spots.forEach(({ x, y, r, color }) => {
       const radial = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -45,23 +49,86 @@ function GradientSkybox({ preset = "default" }: { preset?: string }) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
+    // Stars — scattered bright points
+    const starCount = 200;
+    for (let i = 0; i < starCount; i++) {
+      const sx = Math.random() * canvas.width;
+      const sy = Math.random() * canvas.height;
+      const sr = 0.3 + Math.random() * 1.2;
+      const brightness = 0.15 + Math.random() * 0.5;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+      ctx.fill();
+    }
+
+    // Larger "bright" stars with slight glow
+    for (let i = 0; i < 15; i++) {
+      const sx = Math.random() * canvas.width;
+      const sy = Math.random() * canvas.height;
+      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 4);
+      glow.addColorStop(0, "rgba(255, 255, 255, 0.6)");
+      glow.addColorStop(0.5, "rgba(180, 200, 255, 0.15)");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(sx - 4, sy - 4, 8, 8);
+    }
+
     const tex = new THREE.CanvasTexture(canvas);
     tex.mapping = THREE.EquirectangularReflectionMapping;
     return tex;
   }, [preset]);
 
+  // Slow skybox rotation
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = clock.getElapsedTime() * 0.003;
+    }
+  });
+
   return (
-    <mesh>
-      <sphereGeometry args={[50, 32, 16]} />
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[50, 64, 32]} />
       <meshBasicMaterial map={texture} side={THREE.BackSide} depthWrite={false} />
     </mesh>
   );
 }
 
 /**
+ * Breathing light — a point light that pulses subtly over time.
+ */
+function BreathingLight({
+  position,
+  baseIntensity,
+  color,
+  distance,
+  breathSpeed = 0.8,
+  breathAmount = 0.3,
+}: {
+  position: [number, number, number];
+  baseIntensity: number;
+  color: string;
+  distance: number;
+  breathSpeed?: number;
+  breathAmount?: number;
+}) {
+  const lightRef = useRef<THREE.PointLight>(null);
+
+  useFrame(({ clock }) => {
+    if (lightRef.current) {
+      const t = clock.getElapsedTime();
+      lightRef.current.intensity = baseIntensity + Math.sin(t * breathSpeed) * breathAmount * baseIntensity;
+    }
+  });
+
+  return (
+    <pointLight ref={lightRef} position={position} intensity={baseIntensity} color={color} distance={distance} decay={2} />
+  );
+}
+
+/**
  * Cinematic lighting rig — premium immersive 2026.
- * 8-light setup: key + fill + rim pair + accent + under-fill + side accents.
- * Designed for dramatic depth separation, warm/cool contrast, and eye-guiding highlights.
+ * 8-light setup with breathing dynamics for living feel.
  */
 export function PremiumLighting({
   preset = "default",
@@ -87,16 +154,16 @@ export function PremiumLighting({
 
   return (
     <>
-      {/* HDRI for reflections only — not visible as background */}
+      {/* HDRI for reflections only */}
       <Environment preset="city" environmentIntensity={p.envIntensity} background={false} />
 
-      {/* Custom gradient skybox — tech-fantasy nebula */}
+      {/* Custom gradient skybox — tech-fantasy nebula with stars */}
       <GradientSkybox preset={preset} />
 
       {/* Ambient — desaturated cool blue for depth */}
       <ambientLight intensity={p.ambient * mult} color="#a0b0d0" />
 
-      {/* Key light — warm cinematic from upper-right-front, large shadow map */}
+      {/* Key light — warm cinematic from upper-right-front */}
       <directionalLight
         position={[6, 14, 7]}
         intensity={p.key * mult}
@@ -113,25 +180,23 @@ export function PremiumLighting({
         shadow-bias={-0.001}
       />
 
-      {/* Fill light — cool steel blue from opposite side, no shadow */}
+      {/* Fill light — cool steel blue */}
       <directionalLight position={[-6, 8, -5]} intensity={p.fill * mult} color="#7090bb" />
 
-      {/* Rim light pair — strong backlight for silhouette separation */}
-      <pointLight position={[0, 3, -10]} intensity={p.rim * mult} color={rimColor} distance={25} decay={2} />
-      <pointLight position={[-8, 2, -5]} intensity={p.rim * 0.5 * mult} color="#7c3aed" distance={18} decay={2} />
-      <pointLight position={[8, 2, -5]} intensity={p.rim * 0.35 * mult} color="#4f46e5" distance={14} decay={2} />
+      {/* Rim lights — breathing for living feel */}
+      <BreathingLight position={[0, 3, -10]} baseIntensity={p.rim * mult} color={rimColor} distance={25} breathSpeed={0.6} breathAmount={0.15} />
+      <BreathingLight position={[-8, 2, -5]} baseIntensity={p.rim * 0.5 * mult} color="#7c3aed" distance={18} breathSpeed={0.45} breathAmount={0.2} />
+      <BreathingLight position={[8, 2, -5]} baseIntensity={p.rim * 0.35 * mult} color="#4f46e5" distance={14} breathSpeed={0.55} breathAmount={0.18} />
 
-      {/* Top accent — warm gold spotlight from directly above */}
-      <pointLight position={[0, 10, 0]} intensity={p.accent * mult} color={accentColor} distance={25} decay={2} />
+      {/* Top accent — breathing gold spotlight */}
+      <BreathingLight position={[0, 10, 0]} baseIntensity={p.accent * mult} color={accentColor} distance={25} breathSpeed={0.4} breathAmount={0.12} />
 
-      {/* Under-fill — prevents crushed blacks on floor and undersides */}
+      {/* Under-fill */}
       <pointLight position={[0, -2, 0]} intensity={p.backFill * mult} color="#1e2a4a" distance={15} decay={2} />
 
-      {/* Side accent — cool cyan from right for color separation */}
-      <pointLight position={[7, 1.5, 3]} intensity={0.35 * mult} color="#22d3ee" distance={12} decay={2} />
-
-      {/* Warm side accent — orange from left for three-point depth */}
-      <pointLight position={[-7, 1.5, 3]} intensity={0.2 * mult} color="#f59e0b" distance={10} decay={2} />
+      {/* Side accents with breathing */}
+      <BreathingLight position={[7, 1.5, 3]} baseIntensity={0.35 * mult} color="#22d3ee" distance={12} breathSpeed={0.7} breathAmount={0.25} />
+      <BreathingLight position={[-7, 1.5, 3]} baseIntensity={0.2 * mult} color="#f59e0b" distance={10} breathSpeed={0.5} breathAmount={0.2} />
     </>
   );
 }

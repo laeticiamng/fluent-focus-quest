@@ -449,12 +449,12 @@ export function useProgress() {
           const safeArtifacts = Array.isArray(loaded.artifacts)
             ? loaded.artifacts.filter((a: unknown) => a && typeof a === "object" && "id" in (a as Artifact) && "type" in (a as Artifact))
             : [];
-          const safeEscapeState = loaded.escapeState && typeof loaded.escapeState === "object"
+          const safeEscapeState = (loaded.escapeState && typeof loaded.escapeState === "object"
             ? loaded.escapeState
-            : {};
-          const safeQuestState = loaded.questState && typeof loaded.questState === "object"
+            : {}) as Record<string, unknown>;
+          const safeQuestState = (loaded.questState && typeof loaded.questState === "object"
             ? loaded.questState
-            : {};
+            : {}) as Record<string, unknown>;
           setState({
             ...defaultState,
             ...loaded,

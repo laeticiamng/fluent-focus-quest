@@ -445,7 +445,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
                                 className="overflow-hidden mb-2.5"
                               >
                                 <div className="text-[11px] text-primary/80 bg-primary/8 border border-primary/15 rounded-lg px-3 py-2">
-                                  {(ex as Record<string, unknown>).fr}
+                                  {String((ex as Record<string, unknown>).fr)}
                                 </div>
                               </motion.div>
                             )}

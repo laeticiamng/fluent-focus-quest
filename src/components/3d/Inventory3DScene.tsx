@@ -4,7 +4,7 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import type { InventoryItem } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro, Fireflies } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface Inventory3DSceneProps {
@@ -120,13 +120,17 @@ function ArtifactObject({
           onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
         >
           {geometry}
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color={config.color}
             emissive={new THREE.Color(config.emissive)}
             emissiveIntensity={isSelected ? 2.5 : hovered ? 1.2 : 0.6}
             metalness={0.9}
             roughness={0.08}
             envMapIntensity={0.9}
+            clearcoat={1}
+            clearcoatRoughness={0.1}
+            iridescence={isSelected ? 0.8 : 0.3}
+            iridescenceIOR={1.6}
           />
         </mesh>
       </Float>
@@ -405,6 +409,9 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
           {/* Ambient particles */}
           <AmbientParticles count={30} radius={5} height={3.5} color="#d4a017" secondaryColor="#6366f1" />
 
+          {/* Fireflies — adds life to showcase */}
+          <Fireflies count={12} radius={4} height={3} color="#fbbf24" secondaryColor="#6366f1" />
+
           {/* Background depth */}
           <BackgroundStructures count={4} minRadius={10} maxRadius={16} height={4} color="#080818" />
 
@@ -415,6 +422,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             bloomThreshold={0.3}
             bloomSmoothing={0.6}
             vignetteOpacity={0.35}
+            chromaticAberration={0.0005}
           />
 
           <OrbitControls
