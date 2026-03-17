@@ -480,30 +480,31 @@ function ZonePortal({
         </mesh>
       </Float>
 
-      {/* ── Portal inner glow — the "energy field" with Fresnel ── */}
-      <mesh ref={glowRef} position={[0, 0.78, 0.03]}>
-        <planeGeometry args={[0.82, 1.4]} />
-        <meshStandardMaterial
-          color={portal.emissive}
-          emissive={portal.emissive}
-          emissiveIntensity={portal.unlocked ? (hovered ? 3.5 : 1.8) : 0.03}
-          transparent
-          opacity={portal.unlocked ? (hovered ? 0.6 : 0.3) : 0.03}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* ── Fresnel energy overlay ── */}
-      {portal.unlocked && (
-        <group position={[0, 0.78, 0.04]}>
-          <FresnelPortalField
-            width={0.78}
-            height={1.35}
+      {/* ── Portal inner — energy vortex shader for unlocked, simple glow for locked ── */}
+      {portal.unlocked ? (
+        <group position={[0, 0.78, 0.03]}>
+          <VortexPortal
+            width={0.82}
+            height={1.4}
             color={portal.emissive.getStyle()}
-            intensity={hovered ? 2.0 : 1.0}
+            secondaryColor={portal.color.getStyle()}
+            intensity={hovered ? 2.5 : 1.2}
+            speed={hovered ? 1.5 : 0.8}
             activated={portal.unlocked}
           />
         </group>
+      ) : (
+        <mesh ref={glowRef} position={[0, 0.78, 0.03]}>
+          <planeGeometry args={[0.82, 1.4]} />
+          <meshStandardMaterial
+            color={portal.emissive}
+            emissive={portal.emissive}
+            emissiveIntensity={0.03}
+            transparent
+            opacity={0.03}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
       )}
 
       {/* ── Portal edge glow strips ── */}
