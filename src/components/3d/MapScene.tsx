@@ -520,10 +520,10 @@ export function MapScene({
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4,
+          toneMappingExposure: 1.7,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color("#040410");
+          scene.background = new THREE.Color("#060610");
         }}
       >
         <Suspense fallback={null}>
@@ -566,14 +566,14 @@ export function MapScene({
 
           {quality.enableFogLayers && (
             <>
-              <AnimatedFogLayers layers={2} baseY={-0.4} radius={14} color={rig.fogColor} maxOpacity={0.1} />
+              <AnimatedFogLayers layers={rig.animFogLayers} baseY={rig.animFogBaseY} radius={rig.animFogRadius} color={rig.fogColor} maxOpacity={rig.animFogMaxOpacity} />
               <AtmosphericHeightFog
-                groundColor={rig.fogColor}
-                midColor="#080818"
-                baseY={-0.58}
-                radius={14}
-                groundOpacity={0.12}
-                midOpacity={0.05}
+                groundColor={rig.heightFogGroundColor}
+                midColor={rig.heightFogMidColor}
+                baseY={rig.heightFogBaseY}
+                radius={rig.heightFogRadius}
+                groundOpacity={rig.heightFogGroundOpacity}
+                midOpacity={rig.heightFogMidOpacity}
               />
             </>
           )}
@@ -593,14 +593,14 @@ export function MapScene({
           )}
 
           <PremiumPostProcessing
-            bloomIntensity={0.6}
-            bloomThreshold={0.32}
-            bloomSmoothing={0.6}
-            vignetteOpacity={0.32}
-            chromaticAberration={0.0003}
+            bloomIntensity={0.55}
+            bloomThreshold={0.38}
+            bloomSmoothing={0.65}
+            vignetteOpacity={0.25}
+            chromaticAberration={0.0002}
             qualityTier={quality.tier}
             aoRadius={0.4}
-            aoIntensity={1.2}
+            aoIntensity={1.0}
           />
 
           <OrbitControls

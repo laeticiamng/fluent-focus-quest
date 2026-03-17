@@ -5,21 +5,28 @@ import type { QualityTier } from "@/hooks/useQualityTier";
 
 /**
  * Premium post-processing — cinematic bloom + chromatic aberration + SSAO + depth of field + vignette.
- * Now tier-aware: automatically scales effects based on device capabilities.
+ * Tier-aware: automatically scales effects based on device capabilities.
+ *
+ * Calibrated for readability and platform-grade polish:
+ * - Bloom supports emissive accents without veiling the image
+ * - AO reinforces contact/depth without muddying dark regions
+ * - DOF enhances composition, never obscures interactables
+ * - Chromatic aberration is near-imperceptible
+ * - Vignette frames the scene without crushing edges
  *
  * qualityTier overrides legacy quality prop when provided.
  */
 export function PremiumPostProcessing({
-  bloomIntensity = 0.8,
-  bloomThreshold = 0.35,
-  bloomSmoothing = 0.6,
-  vignetteOpacity = 0.4,
-  chromaticAberration = 0.0006,
+  bloomIntensity = 0.7,
+  bloomThreshold = 0.38,
+  bloomSmoothing = 0.65,
+  vignetteOpacity = 0.3,
+  chromaticAberration = 0.0004,
   depthOfField = false,
   quality = "standard",
   qualityTier,
-  aoRadius = 0.5,
-  aoIntensity = 1.5,
+  aoRadius = 0.45,
+  aoIntensity = 1.2,
 }: {
   bloomIntensity?: number;
   bloomThreshold?: number;
@@ -37,15 +44,29 @@ export function PremiumPostProcessing({
   const isMobile = qualityTier === "mobile";
 
   const enableSSAO = isHigh;
-  const enableDOF = isHigh && (depthOfField || quality === "high");
+  const enableDOF = isHigh && depthOfField;
   const enableChroma = !isMobile && chromaticAberration > 0;
 
-  // Scale bloom for lower tiers
+  // Scale bloom for lower tiers — avoid bloom veiling on weaker devices
   const effectiveBloom = isMobile
     ? bloomIntensity * 0.5
     : qualityTier === "medium"
       ? bloomIntensity * 0.75
       : bloomIntensity;
+
+  // Scale vignette — lighter on mobile to preserve edge readability
+  const effectiveVignette = isMobile
+    ? vignetteOpacity * 0.6
+    : qualityTier === "medium"
+      ? vignetteOpacity * 0.85
+      : vignetteOpacity;
+
+  // Clamp chromatic aberration to near-imperceptible levels
+  const effectiveChroma = Math.min(chromaticAberration, 0.0006);
+
+  // AO calibration — lower intensity to avoid dirtying dark regions
+  const effectiveAOIntensity = aoIntensity * 0.85;
+  const effectiveAORadius = aoRadius;
 
   return (
     <EffectComposer>
@@ -57,9 +78,9 @@ export function PremiumPostProcessing({
       />
       {enableSSAO && (
         <N8AO
-          aoRadius={aoRadius}
-          intensity={aoIntensity}
-          distanceFalloff={0.8}
+          aoRadius={effectiveAORadius}
+          intensity={effectiveAOIntensity}
+          distanceFalloff={0.9}
           quality="medium"
           halfRes
         />
@@ -67,22 +88,22 @@ export function PremiumPostProcessing({
       {enableChroma && (
         <ChromaticAberration
           blendFunction={BlendFunction.NORMAL}
-          offset={new Vector2(chromaticAberration, chromaticAberration)}
+          offset={new Vector2(effectiveChroma, effectiveChroma)}
           radialModulation={true}
           modulationOffset={0.5}
         />
       )}
       {enableDOF && (
         <DepthOfField
-          focusDistance={0.02}
-          focalLength={0.06}
-          bokehScale={3}
+          focusDistance={0.025}
+          focalLength={0.08}
+          bokehScale={2.5}
         />
       )}
       <Vignette
         eskil={false}
-        offset={0.12}
-        darkness={vignetteOpacity}
+        offset={0.15}
+        darkness={effectiveVignette}
       />
     </EffectComposer>
   );
