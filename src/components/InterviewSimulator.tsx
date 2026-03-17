@@ -77,6 +77,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   const [fullSimQuestions, setFullSimQuestions] = useState<InterviewQuestion[]>([]);
   const [fullSimScores, setFullSimScores] = useState<EvaluationResult[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Current zone and question
   const currentZone = activeZone ? INTERVIEW_ZONES.find(z => z.id === activeZone) : null;
@@ -146,6 +147,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   // Parse AI evaluation response
   useEffect(() => {
     if (!response || simState !== "evaluating") return;
+    clearTimeout(fallbackTimerRef.current); // AI responded — cancel fallback
     try {
       // Try to extract JSON from the response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -165,6 +167,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     }
   }, [response]);
 
+  const followUpTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const triggerFollowUp = useCallback(() => {
     if (!currentQuestion) return;
     const followUps = currentQuestion.followUps;
@@ -173,6 +176,9 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     const randomQ = pool[Math.floor(Math.random() * pool.length)];
     setCurrentFollowUp(randomQ);
     setShowFollowUp(true);
+    // Auto-dismiss after 4 seconds to avoid clutter
+    clearTimeout(followUpTimerRef.current);
+    followUpTimerRef.current = setTimeout(() => setShowFollowUp(false), 4000);
   }, [currentQuestion]);
 
   const selectZone = (zoneId: InterviewZoneId) => {
@@ -239,12 +245,14 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     ask(prompt, "interview-eval");
 
     // Fallback: if AI doesn't respond within 8 seconds, use local
-    setTimeout(() => {
-      setEvaluation(prev => {
-        if (prev) return prev; // AI already responded
+    clearTimeout(fallbackTimerRef.current);
+    fallbackTimerRef.current = setTimeout(() => {
+      // Only apply fallback if still evaluating (AI hasn't responded yet)
+      setSimState(prev => {
+        if (prev !== "evaluating") return prev;
         const local = evaluateLocally(userAnswer, currentQuestion);
-        setSimState("results");
-        return local;
+        setEvaluation(local);
+        return "results";
       });
     }, 8000);
 
