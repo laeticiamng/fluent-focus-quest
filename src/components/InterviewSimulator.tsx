@@ -670,6 +670,11 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <span className="text-[9px] uppercase tracking-[2px] text-rose-400 font-bold">Relance du jury</span>
                 </div>
                 <p className="text-sm font-bold text-rose-300">{currentFollowUp}</p>
+                {showFr && currentQuestion?.followUpsFr && (() => {
+                  const idx = [...(currentQuestion.followUps || []), ...PRESSURE_INTERRUPTIONS].indexOf(currentFollowUp);
+                  const fr = currentQuestion.followUpsFr?.[idx];
+                  return fr ? <p className="text-[10px] text-blue-300/70 italic mt-0.5">{fr}</p> : null;
+                })()}
                 <p className="text-[9px] text-rose-400/50 mt-1">Integre cette relance dans ta reponse</p>
               </motion.div>
             )}
@@ -811,6 +816,14 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                globalScore >= 40 ? "Grundlage vorhanden — Weiter uben" :
                "Mehr Ubung nötig — Nicht aufgeben"}
             </p>
+            {showFr && (
+              <p className="text-[9px] mt-1 text-blue-300/60 italic">
+                {globalScore >= 80 ? "Excellent — Tu es prête" :
+                 globalScore >= 60 ? "Bien — Encore un peu de peaufinage" :
+                 globalScore >= 40 ? "Base présente — Continue de t'entraîner" :
+                 "Plus d'entraînement nécessaire — N'abandonne pas"}
+              </p>
+            )}
           </motion.div>
 
           {/* 5-dimension radar */}
@@ -830,7 +843,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <span className="text-sm w-5 text-center">{label.icon}</span>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-[10px] font-bold">{label.de}</span>
+                      <span className="text-[10px] font-bold">{label.de}{showFr && <span className="text-blue-300/60 font-normal ml-1">({label.fr})</span>}</span>
                       <span className="text-[10px] font-black text-primary">{score}/20</span>
                     </div>
                     <div className="h-1.5 bg-secondary/30 rounded-full overflow-hidden">
@@ -897,8 +910,9 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl bg-emerald-500/6 border border-emerald-500/12 p-4">
+                <div className="rounded-xl bg-emerald-500/6 border border-emerald-500/12 p-4 space-y-2">
                   <p className="text-sm text-foreground/85 leading-relaxed">{currentQuestion.r}</p>
+                  <RevealTranslation fr={currentQuestion.rFr} globalShow={showFr} size="sm" />
                 </div>
               </motion.div>
             )}

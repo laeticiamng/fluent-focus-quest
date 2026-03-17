@@ -2,6 +2,8 @@ import { useState } from "react";
 import { safeClean } from "@/utils/safeClean";
 import { SCENARIOS, DECKS } from "@/data/content";
 import { Check, Languages, Sparkles, FileText, HeartPulse, Stethoscope, AlertTriangle } from "lucide-react";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
+import { RevealTranslation, TranslationToggle } from "@/components/translation";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,7 +51,7 @@ interface ClinicalProps {
 export function Clinical({ addArtifact, artifacts = [], addXp }: ClinicalProps) {
   const [sci, setSci] = useState(0);
   const [scs, setScs] = useState(0);
-  const [showTranslations, setShowTranslations] = useState(false);
+  const { showFr: showTranslations, toggleFr: toggleTranslations } = useTranslationPreference();
   const { celebrate } = useCelebration();
   const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
 
@@ -166,17 +168,7 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton 
                 </div>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setShowTranslations(v => !v)}
-                  className={`flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
-                    showTranslations
-                      ? "bg-primary/12 border-primary/25 text-primary"
-                      : "bg-secondary/60 border-border/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Languages className="w-3.5 h-3.5" />
-                  FR
-                </button>
+                <TranslationToggle active={showTranslations} onToggle={toggleTranslations} />
               </div>
             </div>
           </div>
@@ -256,12 +248,14 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton 
           <div className="rounded-xl bg-blue-500/8 border-l-[3px] border-blue-400/40 px-4 py-3 mb-4">
             <p className="text-[10px] uppercase tracking-[2px] text-blue-400/60 mb-1">Briefing Patient</p>
             <p className="text-xs leading-relaxed">{SCENARIOS[sci].sit}</p>
+            <RevealTranslation fr={(SCENARIOS[sci] as Record<string, unknown>).sitFr as string} globalShow={showTranslations} size="xs" />
           </div>
 
           {/* Vocab tags with monitor feel */}
           <div className="flex gap-1.5 flex-wrap mb-4">
             {SCENARIOS[sci].vocab.map((v, i) => {
-              const fr = showTranslations ? lookupTranslation(v) : null;
+              const vocabFrArr = (SCENARIOS[sci] as Record<string, unknown>).vocabFr as string[] | undefined;
+              const fr = showTranslations ? (vocabFrArr?.[i] || lookupTranslation(v)) : null;
               return (
                 <div key={i} className="flex flex-col items-center">
                   <span className="text-[10px] bg-emerald-500/8 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/15 font-medium">
@@ -438,9 +432,15 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton 
                 }`}>
                   {i < scs ? <Check className="w-3.5 h-3.5" /> : i + 1}
                 </div>
-                <p className={`text-xs leading-relaxed transition-all ${i <= scs ? "" : "blur-sm"} ${i < scs ? "text-foreground" : "text-muted-foreground"}`}>
-                  {st}
-                </p>
+                <div>
+                  <p className={`text-xs leading-relaxed transition-all ${i <= scs ? "" : "blur-sm"} ${i < scs ? "text-foreground" : "text-muted-foreground"}`}>
+                    {st}
+                  </p>
+                  {i <= scs && (() => {
+                    const stepsFrArr = (SCENARIOS[sci] as Record<string, unknown>).stepsFr as string[] | undefined;
+                    return <RevealTranslation fr={stepsFrArr?.[i]} globalShow={showTranslations} size="xs" />;
+                  })()}
+                </div>
               </motion.div>
             ))}
           </div>
