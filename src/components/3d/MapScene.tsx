@@ -6,8 +6,9 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import type { RoomStatus } from "@/data/escapeGame";
 import type { Artifact } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro, PulsingFloorVeins, Fireflies } from "./premium/DecorativeElements";
+import { AmbientParticles, BackgroundStructures, SuspendedArcs, CinematicIntro, PulsingFloorVeins, Fireflies, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 
 interface MapSceneProps {
   escapeZoneStatus: Record<string, {
