@@ -4,7 +4,7 @@ import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-
 import * as THREE from "three";
 import type { InventoryItem } from "@/hooks/useProgress";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, CinematicIntro, Fireflies } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface Inventory3DSceneProps {
