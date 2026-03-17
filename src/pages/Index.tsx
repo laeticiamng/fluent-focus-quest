@@ -318,7 +318,7 @@ const Index = () => {
   const readinessPercent = (() => {
     const interviewAnswers = progress.artifacts.filter(a => a.type === "interview_answer");
     const uniqueQuestions = new Set(interviewAnswers.map(a => a.metadata?.simQuestionId)).size;
-    const totalQuestions = 24; // 3+4+4+4+6+3 across 6 zones
+    const totalQuestions = 36; // 6+6+6+6+6+6 across 6 zones
     const questionCoverage = Math.min(1, uniqueQuestions / totalQuestions) * 40;
     const scoreComponent = lastSimScore ? (lastSimScore / 100) * 40 : 0;
     const practiceComponent = Math.min(1, interviewAnswers.length / 30) * 20;

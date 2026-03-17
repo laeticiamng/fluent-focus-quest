@@ -250,6 +250,15 @@ const defaultQuestState: QuestState = {
   newUnlocks: [],
 };
 
+const LOCAL_STORAGE_KEY = "fluent-focus-progress-backup";
+
+function safeLocalGet(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeLocalSet(key: string, value: string) {
+  try { localStorage.setItem(key, value); } catch { /* quota exceeded */ }
+}
+
 const defaultState: ProgressState = {
   done: {}, xp: 0, rat: {}, cl: {},
   streak: 0, lastActiveDate: "",
@@ -434,7 +443,22 @@ export function useProgress() {
           });
         }
       } catch (err) {
-        console.error("[useProgress] Load failed:", err);
+        console.error("[useProgress] Supabase load failed, trying localStorage:", err);
+        // Fallback: try localStorage backup
+        try {
+          const backup = safeLocalGet(LOCAL_STORAGE_KEY);
+          if (backup) {
+            const loaded = JSON.parse(backup) as Partial<ProgressState>;
+            setState({
+              ...defaultState,
+              ...loaded,
+              artifacts: Array.isArray(loaded.artifacts) ? loaded.artifacts : [],
+              earnedBadges: Array.isArray(loaded.earnedBadges) ? loaded.earnedBadges : [],
+              questState: { ...defaultQuestState, ...(loaded.questState || {}) },
+              escapeState: { ...defaultEscapeState, ...(loaded.escapeState || {}) },
+            });
+          }
+        } catch { /* localStorage also failed */ }
       }
       setLoaded(true);
     };
@@ -447,15 +471,18 @@ export function useProgress() {
 
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
+      const serialized = JSON.stringify(state);
+      // Always save to localStorage as backup
+      safeLocalSet(LOCAL_STORAGE_KEY, serialized);
       try {
         await supabase
           .from("user_progress")
           .upsert([{
             user_id: user.id,
-            progress_data: JSON.parse(JSON.stringify(state)),
+            progress_data: JSON.parse(serialized),
           }], { onConflict: "user_id" });
       } catch (err) {
-        console.error("[useProgress] Save failed:", err);
+        console.error("[useProgress] Supabase save failed (localStorage backup saved):", err);
       }
     }, 1000);
 

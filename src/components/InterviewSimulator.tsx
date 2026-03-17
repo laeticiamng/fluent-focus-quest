@@ -147,6 +147,17 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   // Parse AI evaluation response with validation
   useEffect(() => {
     if (!response || simState !== "evaluating") return;
+
+    // If response is a local fallback marker, immediately use evaluateLocally
+    if (response.includes("[LOCAL_EVAL_FALLBACK]")) {
+      if (currentQuestion) {
+        clearTimeout(fallbackTimerRef.current);
+        setEvaluation(evaluateLocally(userAnswer, currentQuestion));
+        setSimState("results");
+      }
+      return;
+    }
+
     try {
       // Extract first complete JSON object (non-greedy)
       const jsonMatch = response.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
@@ -161,6 +172,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
           && "confidence" in s && "persuasion" in s
           && typeof parsed.globalScore === "number") {
 
+          clearTimeout(fallbackTimerRef.current);
           const validScores: DimensionScore = {
             language: clamp(s.language),
             structure: clamp(s.structure),
@@ -183,6 +195,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     } catch {
       // AI returned non-JSON — use local evaluation as fallback
       if (currentQuestion) {
+        clearTimeout(fallbackTimerRef.current);
         setEvaluation(evaluateLocally(userAnswer, currentQuestion));
         setSimState("results");
       }
