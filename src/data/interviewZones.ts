@@ -6,10 +6,13 @@ export interface InterviewQuestion {
   id: string;
   zone: InterviewZoneId;
   q: string;          // Question in German
+  qFr?: string;       // Question in French
   h: string;          // Hint (key points to cover)
-  r: string;          // Reference answer
+  r: string;          // Reference answer in German
+  rFr?: string;       // Reference answer in French
   difficulty: 1 | 2 | 3;
   followUps: string[]; // Pressure training: follow-up questions
+  followUpsFr?: string[]; // Follow-up questions in French
   keywords: string[];  // Key vocabulary expected in the answer
 }
 
@@ -24,8 +27,10 @@ export type InterviewZoneId =
 export interface InterviewZone {
   id: InterviewZoneId;
   name: string;
+  nameFr?: string;
   icon: string;
   description: string;
+  descriptionFr?: string;
   color: string;
   narrativeIntro: string;
   questions: InterviewQuestion[];
@@ -84,57 +89,77 @@ export const INTERVIEW_ZONES: InterviewZone[] = [
   {
     id: "vorstellung",
     name: "Vorstellung",
+    nameFr: "Présentation",
     icon: "👋",
     description: "Sich sicher und professionell vorstellen",
+    descriptionFr: "Se présenter de manière sûre et professionnelle",
     color: "emerald",
     narrativeIntro: "Le Conseil vous attend. Votre premiere impression decidera de la suite...",
     questions: [
       {
         id: "v1", zone: "vorstellung", difficulty: 1,
         q: "Stellen Sie sich bitte vor.",
+        qFr: "Présentez-vous s'il vous plaît.",
         h: "Parcours + urgences + motivation Angiologie",
         r: "Guten Tag. Ich bin Dr. Motongane. Ich habe mein Medizinstudium in Frankreich abgeschlossen und arbeite seit Juli 2024 als Assistenzärztin in der Notaufnahme. Ich möchte mich jetzt in der Angiologie spezialisieren.",
+        rFr: "Bonjour. Je suis le Dr Motongane. J'ai terminé mes études de médecine en France et je travaille depuis juillet 2024 comme médecin assistante aux urgences. Je souhaite maintenant me spécialiser en angiologie.",
         followUps: ["Warum haben Sie Medizin studiert?", "Seit wann arbeiten Sie in der Notaufnahme?"],
+        followUpsFr: ["Pourquoi avez-vous étudié la médecine ?", "Depuis quand travaillez-vous aux urgences ?"],
         keywords: ["Medizinstudium", "Assistenzärztin", "Notaufnahme", "Angiologie", "spezialisieren"],
       },
       {
         id: "v2", zone: "vorstellung", difficulty: 2,
         q: "Können Sie uns Ihren beruflichen Werdegang kurz zusammenfassen?",
+        qFr: "Pouvez-vous résumer brièvement votre parcours professionnel ?",
         h: "Chronologique + clair + pertinent",
         r: "Nach meinem Studium in Frankreich habe ich mein Examen bestanden und als Assistenzärztin in der Notaufnahme angefangen. Dort habe ich Erfahrung in der Akutmedizin gesammelt, einschließlich FAST-Ultraschall und Triage. Jetzt suche ich eine Weiterbildungsstelle in der Angiologie.",
+        rFr: "Après mes études en France, j'ai réussi mon examen et commencé comme médecin assistante aux urgences. J'y ai acquis de l'expérience en médecine aiguë, y compris l'échographie FAST et le triage. Je cherche maintenant un poste de formation en angiologie.",
         followUps: ["Was haben Sie dort genau gemacht?", "Welche Verantwortung hatten Sie?"],
+        followUpsFr: ["Qu'avez-vous fait exactement là-bas ?", "Quelles responsabilités aviez-vous ?"],
         keywords: ["Studium", "Examen", "Assistenzärztin", "Akutmedizin", "Weiterbildungsstelle"],
       },
       {
         id: "v3", zone: "vorstellung", difficulty: 2,
         q: "Was sollten wir über Sie wissen, das nicht im Lebenslauf steht?",
+        qFr: "Que devrions-nous savoir sur vous qui ne figure pas dans votre CV ?",
         h: "Personnalite + soft skills + initiative",
         r: "Ich habe ein Start-up im Bereich digitale Gesundheit gegründet, EmotionsCare. Das zeigt meine Eigeninitiative und mein Interesse an Innovation in der Medizin. Außerdem bin ich sehr teamorientiert und lerne gern Neues.",
+        rFr: "J'ai fondé une start-up dans la santé numérique, EmotionsCare. Cela montre mon sens de l'initiative et mon intérêt pour l'innovation en médecine. Je suis aussi très orientée équipe et j'aime apprendre de nouvelles choses.",
         followUps: ["Was genau macht Ihr Start-up?", "Wie passt das zur klinischen Arbeit?"],
+        followUpsFr: ["Que fait exactement votre start-up ?", "Comment cela s'articule-t-il avec le travail clinique ?"],
         keywords: ["Eigeninitiative", "Innovation", "teamorientiert", "Start-up"],
       },
       {
         id: "v4", zone: "vorstellung", difficulty: 2,
         q: "Wie würden Ihre Kollegen Sie beschreiben?",
+        qFr: "Comment vos collègues vous décriraient-ils ?",
         h: "Teamwork + fiabilite + qualites humaines + exemples",
         r: "Meine Kollegen würden sagen, dass ich zuverlässig und kollegial bin. In der Notaufnahme hat man mir oft komplexe Fälle anvertraut, weil ich strukturiert arbeite und gut mit dem Pflegeteam kommuniziere. Ich bin auch die Person, die neue Kolleginnen einarbeitet.",
+        rFr: "Mes collègues diraient que je suis fiable et collégiale. Aux urgences, on m'a souvent confié des cas complexes car je travaille de manière structurée et je communique bien avec l'équipe soignante. Je suis aussi la personne qui forme les nouvelles collègues.",
         followUps: ["Können Sie ein konkretes Beispiel geben?", "Gab es auch mal Kritik von Kollegen?"],
+        followUpsFr: ["Pouvez-vous donner un exemple concret ?", "Avez-vous déjà reçu des critiques de collègues ?"],
         keywords: ["zuverlässig", "kollegial", "strukturiert", "kommuniziere", "Pflegeteam"],
       },
       {
         id: "v5", zone: "vorstellung", difficulty: 2,
         q: "Was motiviert Sie jeden Tag, als Ärztin zu arbeiten?",
+        qFr: "Qu'est-ce qui vous motive chaque jour en tant que médecin ?",
         h: "Passion + contact patient + impact + exemples",
         r: "Der direkte Kontakt mit den Patienten motiviert mich am meisten. Wenn ich einem Patienten helfen kann, seine Krankheit zu verstehen und eine Lösung zu finden — das gibt mir Energie. Die Medizin verbindet wissenschaftliches Denken mit menschlicher Nähe, und das fasziniert mich.",
+        rFr: "Le contact direct avec les patients me motive le plus. Quand je peux aider un patient à comprendre sa maladie et trouver une solution — cela me donne de l'énergie. La médecine allie pensée scientifique et proximité humaine, et cela me fascine.",
         followUps: ["Gab es einen Moment, der Sie besonders berührt hat?", "Was machen Sie, wenn die Motivation nachlässt?"],
+        followUpsFr: ["Y a-t-il eu un moment qui vous a particulièrement touchée ?", "Que faites-vous quand la motivation baisse ?"],
         keywords: ["Patienten", "motiviert", "Medizin", "wissenschaftlich", "Lösung"],
       },
       {
         id: "v6", zone: "vorstellung", difficulty: 3,
         q: "Warum sollten wir ausgerechnet Sie einstellen?",
+        qFr: "Pourquoi devrions-nous vous embaucher vous en particulier ?",
         h: "Profil unique + urgences + bilingual + digital + motivation",
         r: "Ich bringe eine einzigartige Kombination mit: klinische Erfahrung in der Notaufnahme, ein bilinguales Profil Französisch-Deutsch, ein unternehmerisches Denken aus meinem Start-up und eine tiefe Motivation für die Angiologie. Ich bin bereit, hart zu arbeiten und mich schnell zu integrieren.",
+        rFr: "J'apporte une combinaison unique : expérience clinique aux urgences, profil bilingue français-allemand, esprit entrepreneurial de ma start-up et une motivation profonde pour l'angiologie. Je suis prête à travailler dur et à m'intégrer rapidement.",
         followUps: ["Was genau macht Sie einzigartig?", "Andere Bewerber haben auch Erfahrung in der Notaufnahme."],
+        followUpsFr: ["Qu'est-ce qui vous rend vraiment unique ?", "D'autres candidats ont aussi de l'expérience aux urgences."],
         keywords: ["einzigartig", "klinische Erfahrung", "bilingual", "Motivation", "Angiologie", "integrieren"],
       },
     ],
@@ -142,57 +167,77 @@ export const INTERVIEW_ZONES: InterviewZone[] = [
   {
     id: "motivation",
     name: "Motivation",
+    nameFr: "Motivation",
     icon: "🔥",
     description: "Warum die Schweiz, warum Biel, warum Angiologie",
+    descriptionFr: "Pourquoi la Suisse, pourquoi Bienne, pourquoi l'angiologie",
     color: "amber",
     narrativeIntro: "La chambre du Conseil exige la verite. Seule la conviction ouvre la porte...",
     questions: [
       {
         id: "m1", zone: "motivation", difficulty: 1,
         q: "Warum möchten Sie in der Schweiz arbeiten?",
+        qFr: "Pourquoi souhaitez-vous travailler en Suisse ?",
         h: "Formation FMH + qualite + bilingue",
         r: "Die Schweiz bietet eine exzellente Weiterbildung mit dem FMH-System, hohe medizinische Standards und ein multikulturelles Umfeld. Das bilingue Biel passt perfekt zu meinem Profil.",
+        rFr: "La Suisse offre une excellente formation avec le système FMH, des standards médicaux élevés et un environnement multiculturel. Bienne bilingue correspond parfaitement à mon profil.",
         followUps: ["Was wissen Sie über das FMH-System?", "Haben Sie sich auch in Frankreich beworben?"],
+        followUpsFr: ["Que savez-vous du système FMH ?", "Avez-vous aussi postulé en France ?"],
         keywords: ["Weiterbildung", "FMH", "Standards", "bilingue", "Biel"],
       },
       {
         id: "m2", zone: "motivation", difficulty: 1,
         q: "Warum Angiologie?",
+        qFr: "Pourquoi l'angiologie ?",
         h: "Diagnostic + interventionnel + ultrason",
         r: "Die Gefäßmedizin verbindet diagnostische Präzision mit interventionellen Möglichkeiten. Die Kombination aus Ultraschall und Katheter-Interventionen fasziniert mich besonders.",
+        rFr: "La médecine vasculaire allie précision diagnostique et possibilités interventionnelles. La combinaison échographie et cathétérisme me fascine particulièrement.",
         followUps: ["Welche Erfahrung haben Sie bereits in der Gefäßmedizin?", "Was ist Ihr liebstes Verfahren?"],
+        followUpsFr: ["Quelle expérience avez-vous déjà en médecine vasculaire ?", "Quelle est votre technique préférée ?"],
         keywords: ["Gefäßmedizin", "diagnostisch", "interventionell", "Ultraschall", "Katheter"],
       },
       {
         id: "m3", zone: "motivation", difficulty: 2,
         q: "Warum Spitalzentrum Biel?",
+        qFr: "Pourquoi le Centre hospitalier de Bienne ?",
         h: "Bilingue + Gefäßzentrum + Kat.B + Dr. Attias-Widmer",
         r: "Das Spitalzentrum Biel hat ein interdisziplinäres Gefäßzentrum und ist eine Kategorie-B-Weiterbildungsstätte. Das bilingue Umfeld ermöglicht mir eine sanfte Integration, und die Abteilung unter Dr. Attias-Widmer genießt einen ausgezeichneten Ruf.",
+        rFr: "Le Centre hospitalier de Bienne possède un centre vasculaire interdisciplinaire et est un lieu de formation de catégorie B. L'environnement bilingue me permet une intégration en douceur, et le service du Dr Attias-Widmer jouit d'une excellente réputation.",
         followUps: ["Was wissen Sie über unsere Abteilung?", "Kennen Sie Biel?"],
+        followUpsFr: ["Que savez-vous de notre service ?", "Connaissez-vous Bienne ?"],
         keywords: ["Gefäßzentrum", "Kategorie-B", "bilingue", "interdisziplinär", "Weiterbildungsstätte"],
       },
       {
         id: "m4", zone: "motivation", difficulty: 2,
         q: "Warum möchten Sie Ihre aktuelle Stelle verlassen?",
+        qFr: "Pourquoi souhaitez-vous quitter votre poste actuel ?",
         h: "Positif + evolution + specialisation",
         r: "Ich bin sehr dankbar für die Erfahrung in der Notaufnahme. Aber jetzt möchte ich mich spezialisieren. Die Angiologie ist mein klares Ziel, und die Schweiz bietet mir die beste Weiterbildung dafür.",
+        rFr: "Je suis très reconnaissante pour l'expérience aux urgences. Mais maintenant je souhaite me spécialiser. L'angiologie est mon objectif clair, et la Suisse m'offre la meilleure formation pour cela.",
         followUps: ["Was hat Ihnen an den Urgences am meisten gefallen?", "Vermissen Sie die Akutmedizin nicht?"],
+        followUpsFr: ["Qu'est-ce qui vous a le plus plu aux urgences ?", "La médecine aiguë ne vous manquera-t-elle pas ?"],
         keywords: ["dankbar", "spezialisieren", "Angiologie", "Ziel", "Weiterbildung"],
       },
       {
         id: "m5", zone: "motivation", difficulty: 2,
         q: "Was wissen Sie über die Angiologie als Fachgebiet?",
+        qFr: "Que savez-vous de l'angiologie en tant que spécialité ?",
         h: "Spectre complet: diagnostic vasculaire + interventionnel + chronique + aigu",
         r: "Die Angiologie umfasst die Diagnostik und Therapie von Gefäßerkrankungen: arterielle Verschlusskrankheit, Venenthrombosen, Aneurysmen und Lymphödeme. Sie verbindet nicht-invasive Diagnostik wie die Duplexsonographie mit interventionellen Verfahren wie der Angioplastie. Das fasziniert mich, weil man sowohl ambulant als auch im Notfall arbeitet.",
+        rFr: "L'angiologie englobe le diagnostic et le traitement des maladies vasculaires : artériopathie oblitérante, thromboses veineuses, anévrismes et lymphoedèmes. Elle associe le diagnostic non invasif comme l'échographie duplex aux techniques interventionnelles comme l'angioplastie. Cela me fascine car on travaille en ambulatoire comme en urgence.",
         followUps: ["Welche Untersuchungsmethoden kennen Sie?", "Was ist der Unterschied zwischen Angiologie und Gefäßchirurgie?"],
+        followUpsFr: ["Quelles méthodes d'examen connaissez-vous ?", "Quelle est la différence entre angiologie et chirurgie vasculaire ?"],
         keywords: ["Gefäßerkrankungen", "Duplexsonographie", "Angioplastie", "Venenthrombosen", "arterielle Verschlusskrankheit"],
       },
       {
         id: "m6", zone: "motivation", difficulty: 3,
         q: "Wie stellen Sie sich Ihre Integration in unser Team vor?",
+        qFr: "Comment envisagez-vous votre intégration dans notre équipe ?",
         h: "Proactif + humble + apprendre vite + bilingual advantage",
         r: "Ich möchte von Anfang an aktiv zum Team beitragen. Ich werde aufmerksam zuhören, Fragen stellen und die Abläufe der Abteilung schnell lernen. Mein bilinguales Profil kann in Biel ein Vorteil sein, besonders im Patientenkontakt. Ich bin bereit, mich flexibel anzupassen.",
+        rFr: "Je souhaite contribuer activement à l'équipe dès le début. J'écouterai attentivement, poserai des questions et apprendrai rapidement les procédures du service. Mon profil bilingue peut être un atout à Bienne, surtout dans le contact patient. Je suis prête à m'adapter avec flexibilité.",
         followUps: ["Was machen Sie, wenn Sie sich am Anfang überfordert fühlen?", "Wie schnell denken Sie, sich einarbeiten zu können?"],
+        followUpsFr: ["Que faites-vous si vous vous sentez dépassée au début ?", "En combien de temps pensez-vous pouvoir vous intégrer ?"],
         keywords: ["Team", "beitragen", "zuhören", "bilingual", "flexibel", "anpassen"],
       },
     ],
