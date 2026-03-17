@@ -551,6 +551,7 @@ export function MapScene({
       >
         <Suspense fallback={null}>
           <CinematicIntro targetPosition={[0, 8, 9]} startOffset={[0, 4, 6]} duration={2.5} />
+          <CinematicCameraBreathing fovBreath={0.5} breathSpeed={0.1} parallaxStrength={0.15} />
 
           <PremiumLighting preset="default" accentColor="#d4a017" rimColor="#6366f1" />
 
