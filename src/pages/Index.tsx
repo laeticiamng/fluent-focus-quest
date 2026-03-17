@@ -501,8 +501,8 @@ const Index = () => {
 
                 {/* ESCAPE-GAME MICRO-LOOP: Daily Phrase Gate */}
                 <PhraseGate
-                  solvedGateIds={escapeState.solvedPuzzles || []}
-                  onSolve={(challengeId, xpReward) => progress.solvePuzzle(challengeId, xpReward)}
+                  solvedGateIds={escapeState.solvedGateIds || escapeState.solvedPuzzles || []}
+                  onSolve={(challengeId, xpReward) => progress.solveGate(challengeId, xpReward)}
                 />
 
                 {/* Mission Progress — volumetric metric */}

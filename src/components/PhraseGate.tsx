@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { KeyRound, CheckCircle2, XCircle, Zap, RotateCcw } from "lucide-react";
+import { KeyRound, CheckCircle2, XCircle, Zap, RotateCcw, ChevronRight } from "lucide-react";
 
 // ── Medical German phrase challenges (escape-game "gate" style) ──
 interface PhraseChallenge {
@@ -106,6 +106,52 @@ const DAILY_CHALLENGES: PhraseChallenge[] = [
     xpReward: 20,
     difficulty: 2,
   },
+  // ── Niveau 2 : Intermediaire (suite) ──
+  {
+    id: "gate-allergie-1",
+    prompt: "Traduisez : \"Etes-vous allergique a un medicament ?\"",
+    hint: "Allergien erfragen",
+    answer: "sind sie gegen ein medikament allergisch",
+    keywords: ["allergisch", "medikament", "sind", "gegen"],
+    xpReward: 20,
+    difficulty: 2,
+  },
+  {
+    id: "gate-vitalzeichen-1",
+    prompt: "Completez : \"Der ___ beträgt 140/90 mmHg, die ___ ist 38,5 Grad.\"",
+    hint: "Tension arterielle et temperature",
+    answer: "der blutdruck beträgt 140/90 mmhg die temperatur ist 38,5 grad",
+    keywords: ["blutdruck", "temperatur", "beträgt", "grad"],
+    xpReward: 20,
+    difficulty: 2,
+  },
+  {
+    id: "gate-labor-1",
+    prompt: "Traduisez : \"Les resultats de laboratoire montrent une CRP elevee.\"",
+    hint: "Laborbefunde beschreiben",
+    answer: "die laborergebnisse zeigen einen erhöhten crp-wert",
+    keywords: ["laborergebnisse", "zeigen", "erhöhten", "crp"],
+    xpReward: 20,
+    difficulty: 2,
+  },
+  {
+    id: "gate-schmerz-1",
+    prompt: "Traduisez : \"Sur une echelle de 0 a 10, comment evaluez-vous votre douleur ?\"",
+    hint: "Schmerzskala anwenden",
+    answer: "auf einer skala von 0 bis 10 wie stark sind ihre schmerzen",
+    keywords: ["skala", "schmerzen", "stark", "wie"],
+    xpReward: 20,
+    difficulty: 2,
+  },
+  {
+    id: "gate-einwilligung-1",
+    prompt: "Traduisez : \"Avez-vous compris l'intervention ? Etes-vous d'accord ?\"",
+    hint: "Einwilligung einholen",
+    answer: "haben sie den eingriff verstanden sind sie einverstanden",
+    keywords: ["eingriff", "verstanden", "einverstanden", "haben"],
+    xpReward: 20,
+    difficulty: 2,
+  },
   // ── Niveau 3 : Avance ──
   {
     id: "gate-notfall-1",
@@ -161,6 +207,87 @@ const DAILY_CHALLENGES: PhraseChallenge[] = [
     xpReward: 25,
     difficulty: 3,
   },
+  {
+    id: "gate-op-1",
+    prompt: "Traduisez : \"L'intervention chirurgicale est prevue pour demain matin.\"",
+    hint: "OP-Planung mitteilen",
+    answer: "die operation ist für morgen früh geplant",
+    keywords: ["operation", "morgen", "früh", "geplant"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-röntgen-1",
+    prompt: "Traduisez : \"La radiographie thoracique montre un epanchement pleural bilateral.\"",
+    hint: "Röntgenbefund beschreiben",
+    answer: "das röntgenbild des thorax zeigt einen beidseitigen pleuraerguss",
+    keywords: ["röntgenbild", "thorax", "pleuraerguss", "beidseitigen"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-telefon-1",
+    prompt: "Completez : \"Guten Tag, hier spricht Dr. Nguyen von der ___. Ich rufe an wegen ___.\"",
+    hint: "Appel telephonique professionnel : service d'angiologie, patient Müller",
+    answer: "guten tag hier spricht dr nguyen von der angiologie ich rufe an wegen patient müller",
+    keywords: ["angiologie", "rufe an", "wegen", "spricht"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-brief-1",
+    prompt: "Traduisez : \"Veuillez trouver ci-joint le rapport d'hospitalisation du patient.\"",
+    hint: "Arztbrief / Entlassungsbrief einleiten",
+    answer: "anbei finden sie den entlassungsbrief des patienten",
+    keywords: ["anbei", "entlassungsbrief", "patienten", "finden"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-reha-1",
+    prompt: "Traduisez : \"Nous recommandons une reeducation vasculaire de trois semaines.\"",
+    hint: "Rehabilitationsempfehlung aussprechen",
+    answer: "wir empfehlen eine vaskuläre rehabilitation von drei wochen",
+    keywords: ["empfehlen", "rehabilitation", "vaskuläre", "wochen"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-differenzial-1",
+    prompt: "Completez : \"Die Differenzialdiagnosen sind ___, ___ und ___.\"",
+    hint: "Thrombose veineuse profonde, erysipele, syndrome compartimentaire",
+    answer: "die differenzialdiagnosen sind tiefe venenthrombose erysipel und kompartmentsyndrom",
+    keywords: ["differenzialdiagnosen", "venenthrombose", "erysipel", "kompartmentsyndrom"],
+    xpReward: 30,
+    difficulty: 3,
+  },
+  {
+    id: "gate-notaufnahme-1",
+    prompt: "Traduisez : \"Le patient est arrive aux urgences avec une douleur abdominale aigue.\"",
+    hint: "Notaufnahme-Aufnahme beschreiben",
+    answer: "der patient kam in die notaufnahme mit akuten bauchschmerzen",
+    keywords: ["notaufnahme", "akuten", "bauchschmerzen", "patient"],
+    xpReward: 25,
+    difficulty: 3,
+  },
+  {
+    id: "gate-visite-1",
+    prompt: "Traduisez : \"Comment allez-vous aujourd'hui ? Avez-vous bien dormi ?\"",
+    hint: "Visitengespräch beginnen",
+    answer: "wie geht es ihnen heute haben sie gut geschlafen",
+    keywords: ["wie geht", "ihnen", "heute", "geschlafen"],
+    xpReward: 20,
+    difficulty: 2,
+  },
+  {
+    id: "gate-kolleg-1",
+    prompt: "Traduisez : \"Pouvez-vous prendre en charge le patient en chambre 5 ?\"",
+    hint: "Kollegiale Bitte auf Station",
+    answer: "können sie den patienten in zimmer 5 übernehmen",
+    keywords: ["patienten", "zimmer", "übernehmen", "können"],
+    xpReward: 20,
+    difficulty: 2,
+  },
 ];
 
 function getDailyChallenge(solvedIds: string[]): PhraseChallenge {
@@ -201,9 +328,21 @@ interface PhraseGateProps {
   onSolve: (challengeId: string, xpReward: number) => void;
 }
 
+const TOTAL_GATES = DAILY_CHALLENGES.length;
+
 export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
-  const challenge = useMemo(() => getDailyChallenge(solvedGateIds), [solvedGateIds]);
+  const [forceIdx, setForceIdx] = useState<number | null>(null);
+
+  const challenge = useMemo(() => {
+    if (forceIdx !== null && forceIdx < DAILY_CHALLENGES.length) {
+      return DAILY_CHALLENGES[forceIdx];
+    }
+    return getDailyChallenge(solvedGateIds);
+  }, [solvedGateIds, forceIdx]);
+
   const alreadySolved = solvedGateIds.includes(challenge.id);
+  const solvedCount = solvedGateIds.filter(id => id.startsWith("gate-")).length;
+  const currentIdx = DAILY_CHALLENGES.findIndex(c => c.id === challenge.id);
 
   const [userInput, setUserInput] = useState("");
   const [result, setResult] = useState<{
@@ -232,6 +371,22 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
     setShowHint(false);
   }, []);
 
+  const handleNextChallenge = useCallback(() => {
+    setUserInput("");
+    setResult(null);
+    setSubmitted(false);
+    setShowHint(false);
+    // Find next unsolved after current
+    const nextUnsolved = DAILY_CHALLENGES.findIndex((c, i) => i > currentIdx && !solvedGateIds.includes(c.id));
+    if (nextUnsolved >= 0) {
+      setForceIdx(nextUnsolved);
+    } else {
+      // Wrap around to first unsolved
+      const firstUnsolved = DAILY_CHALLENGES.findIndex(c => !solvedGateIds.includes(c.id));
+      setForceIdx(firstUnsolved >= 0 ? firstUnsolved : (currentIdx + 1) % DAILY_CHALLENGES.length);
+    }
+  }, [currentIdx, solvedGateIds]);
+
   const difficultyLabel = challenge.difficulty === 1 ? "Base" : challenge.difficulty === 2 ? "Intermediaire" : "Avance";
   const difficultyColor = challenge.difficulty === 1 ? "text-emerald-400" : challenge.difficulty === 2 ? "text-amber-400" : "text-rose-400";
 
@@ -255,7 +410,7 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
         <motion.div
           animate={result?.passed ? { rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] } : { scale: [1, 1.05, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${
             result?.passed
               ? "bg-emerald-500/15 border border-emerald-500/25"
               : "bg-violet-500/15 border border-violet-500/25"
@@ -267,25 +422,41 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
             <KeyRound className="w-5 h-5 text-violet-400" />
           )}
         </motion.div>
-        <div className="flex-1">
-          <p className="text-[9px] uppercase tracking-[2px] text-violet-400/80 font-bold">
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] uppercase tracking-[2px] text-violet-400/80 font-bold truncate">
             {result?.passed ? "Porte deverrouillee" : "Defi Medical — Porte de Garde"}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-[8px] font-bold ${difficultyColor}`}>{difficultyLabel}</span>
             <span className="text-[8px] text-muted-foreground/40">·</span>
             <span className="text-[8px] text-amber-400/60 font-bold">+{challenge.xpReward} XP</span>
+            <span className="text-[8px] text-muted-foreground/40">·</span>
+            <span className="text-[8px] text-muted-foreground/50">{solvedCount}/{TOTAL_GATES}</span>
           </div>
         </div>
         {result && !result.passed && (
           <button
             onClick={handleRetry}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground transition-colors min-h-[36px]"
           >
             <RotateCcw className="w-3 h-3" /> Reessayer
           </button>
         )}
       </div>
+
+      {/* Progress bar */}
+      {solvedCount > 0 && (
+        <div className="px-4 pb-2">
+          <div className="h-1 bg-secondary/30 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${(solvedCount / TOTAL_GATES) * 100}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="h-full rounded-full bg-gradient-to-r from-violet-500/60 to-amber-500/50"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Challenge prompt */}
       <div className="px-4 pb-3">
@@ -307,7 +478,7 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
 
       {/* Input & Submit */}
       {!submitted ? (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-4 pb-4 space-y-2.5">
           <div className="relative">
             <input
               type="text"
@@ -315,23 +486,25 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
               placeholder="Ecris ta reponse en allemand..."
-              className="w-full px-3 py-2.5 rounded-xl bg-secondary/30 border border-border/30 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/20 transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl bg-secondary/30 border border-border/30 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/20 transition-colors"
               autoComplete="off"
+              autoCapitalize="off"
               spellCheck={false}
+              enterKeyHint="send"
             />
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleSubmit}
               disabled={!userInput.trim()}
-              className="flex-1 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-bold text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               <Zap className="w-3.5 h-3.5" /> Valider
             </button>
             {!showHint && (
               <button
                 onClick={() => setShowHint(true)}
-                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground/70 transition-colors"
+                className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-[10px] text-muted-foreground/70 transition-colors min-h-[44px]"
               >
                 Indice
               </button>
@@ -385,13 +558,36 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
             </p>
           </div>
 
-          {result.passed && !alreadySolved && (
+          {result.passed && (
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-center py-1"
+              className="flex items-center justify-between"
             >
-              <span className="text-[10px] text-amber-400 font-bold">+{challenge.xpReward} XP gagnes</span>
+              {!alreadySolved && (
+                <span className="text-[10px] text-amber-400 font-bold">+{challenge.xpReward} XP gagnes</span>
+              )}
+              <button
+                onClick={handleNextChallenge}
+                className="ml-auto flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 active:bg-violet-700 text-white text-[10px] font-bold transition-all min-h-[36px]"
+              >
+                Defi suivant <ChevronRight className="w-3 h-3" />
+              </button>
+            </motion.div>
+          )}
+
+          {!result.passed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-end"
+            >
+              <button
+                onClick={handleNextChallenge}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[9px] text-muted-foreground/60 transition-colors"
+              >
+                Passer <ChevronRight className="w-3 h-3" />
+              </button>
             </motion.div>
           )}
         </motion.div>
