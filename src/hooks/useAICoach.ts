@@ -246,7 +246,6 @@ export function useAICoach() {
 
         if (payload?.fallback) {
           if (payload.reason === "credits_exhausted") {
-            aiCreditsExhausted = true;
             reportAIFailure("credits_exhausted");
           } else if (payload.reason === "rate_limited") {
             reportAIFailure("rate_limited");

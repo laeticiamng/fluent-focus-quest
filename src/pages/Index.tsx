@@ -87,25 +87,32 @@ const LazarusScene = lazy(() => import("@/components/3d/LazarusScene").then(m =>
 
 type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard" | "simulator";
 
-const NAV: { id: Tab; icon: string; label: string }[] = [
+// Primary tabs: visible in main nav, ordered by interview-prep priority
+const NAV_PRIMARY: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🏥", label: "Mission" },
-  { id: "questmap", icon: "🗺️", label: "Carte" },
-  { id: "vocab", icon: "🔨", label: "Forge" },
-  { id: "gram", icon: "🌳", label: "Arbre" },
   { id: "simulator", icon: "🎯", label: "Entretien" },
   { id: "iv", icon: "🎙️", label: "Studio" },
+  { id: "vocab", icon: "🔨", label: "Forge" },
+  { id: "gram", icon: "🌳", label: "Arbre" },
   { id: "sim", icon: "🏥", label: "Clinique" },
+  { id: "questmap", icon: "🗺️", label: "Carte" },
+];
+
+// Secondary tabs: accessible via "Plus" expandable section
+const NAV_SECONDARY: { id: Tab; icon: string; label: string }[] = [
   { id: "atelier", icon: "⚗️", label: "Labo" },
   { id: "portfolio", icon: "📚", label: "Archives" },
   { id: "puzzles", icon: "🧩", label: "Enigmes" },
   { id: "lazarus", icon: "🔮", label: "Lazarus" },
   { id: "achievements", icon: "🏆", label: "Succes" },
-  { id: "leaderboard", icon: "🥇", label: "Classement" },
-  { id: "tools", icon: "🛠️", label: "Outils" },
   { id: "stats", icon: "📊", label: "Stats" },
+  { id: "tools", icon: "🛠️", label: "Outils" },
   { id: "cal", icon: "📅", label: "Plan" },
   { id: "motiv", icon: "🔥", label: "Vision" },
+  { id: "leaderboard", icon: "🥇", label: "Classement" },
 ];
+
+const NAV = [...NAV_PRIMARY, ...NAV_SECONDARY];
 
 // Map tabs to atmosphere types for scene wrapping
 const TAB_ATMOSPHERE: Record<string, "forge" | "grammar" | "studio" | "clinical" | "laboratory" | "archive" | "aerzterat" | "neutral"> = {
@@ -240,6 +247,7 @@ const Index = () => {
   });
   const [mapSelectedZone, setMapSelectedZone] = useState<string | null>(null);
   const [inventorySelectedItem, setInventorySelectedItem] = useState<string | null>(null);
+  const [showMoreTabs, setShowMoreTabs] = useState(false);
 
   const handleTutorialComplete = () => {
     safeLocalSet(TUTORIAL_STORAGE_KEY, "true");
@@ -365,14 +373,13 @@ const Index = () => {
         onDismiss={progress.clearNewUnlocks}
       />
 
-      {/* Sticky nav — immersive themed */}
+      {/* Sticky nav — focused on interview prep priority */}
       <nav className="sticky top-0 z-50 glass-nav border-b border-border/30">
         <div className="max-w-5xl mx-auto flex items-center gap-0.5 px-2 py-2 overflow-x-auto scrollbar-hide">
           <div className="shrink-0 mr-1 flex items-center gap-1.5">
             <RankBadge xp={progress.xp} size="sm" />
-            <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} compact />
           </div>
-          {NAV.map(n => (
+          {NAV_PRIMARY.map(n => (
             <button
               key={n.id}
               onClick={() => handleTabChange(n.id)}
@@ -393,11 +400,42 @@ const Index = () => {
               <span className="relative z-10">{n.label}</span>
             </button>
           ))}
+          {/* More tabs toggle */}
+          <button
+            onClick={() => setShowMoreTabs(!showMoreTabs)}
+            className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-[11px] transition-all duration-200 shrink-0 relative ${
+              showMoreTabs || NAV_SECONDARY.some(n => n.id === tab)
+                ? "font-bold text-foreground"
+                : "text-muted-foreground hover:text-foreground/70"
+            }`}
+          >
+            <span className="text-sm sm:text-base relative z-10">...</span>
+            <span className="relative z-10">Plus</span>
+          </button>
           <button onClick={signOut} className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] text-muted-foreground hover:text-foreground/70 shrink-0">
             <LogOut className="w-3.5 h-3.5 relative z-10" />
             <span className="relative z-10">Sortir</span>
           </button>
         </div>
+        {/* Expanded secondary tabs */}
+        {showMoreTabs && (
+          <div className="max-w-5xl mx-auto flex items-center gap-0.5 px-2 py-1.5 overflow-x-auto scrollbar-hide border-t border-border/15">
+            {NAV_SECONDARY.map(n => (
+              <button
+                key={n.id}
+                onClick={() => { handleTabChange(n.id); setShowMoreTabs(false); }}
+                className={`flex flex-col items-center gap-0.5 px-2.5 sm:px-3 py-1 rounded-lg text-[9px] sm:text-[10px] transition-all duration-200 shrink-0 ${
+                  tab === n.id
+                    ? "font-bold text-foreground bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+              >
+                <span className="text-xs sm:text-sm">{n.icon}</span>
+                <span>{n.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Content — with camera transitions */}
@@ -407,83 +445,58 @@ const Index = () => {
           {tab === "dash" && (
             <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
               <div className="space-y-4 stagger-children">
-                {/* 3D HUB SCENE — Real WebGL */}
-                <WebGLGate fallback={
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.97, y: -8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    className="relative overflow-hidden rounded-3xl p-5 sm:p-7 room-3d"
-                    style={{
-                      background: "linear-gradient(145deg, hsl(32 95% 55% / 0.08), hsl(var(--card)), hsl(var(--primary) / 0.05))",
-                      border: "1px solid hsl(32 95% 55% / 0.12)",
-                      boxShadow: "var(--shadow-3d-lg)",
-                    }}
-                  >
-                    <div className="relative z-10 text-center py-6">
-                      <span className="text-3xl">🏥</span>
-                      <h2 className="text-lg font-black mt-2">{CENTRAL_MISSION.title}</h2>
-                      <p className="text-[10px] text-muted-foreground mt-1">Hub 3D indisponible — navigation par onglets</p>
-                    </div>
-                  </motion.div>
-                }>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="rounded-3xl overflow-hidden relative"
-                    style={{
-                      border: "1px solid hsl(32 95% 55% / 0.12)",
-                      boxShadow: "var(--shadow-3d-lg), 0 0 40px -12px hsl(32 95% 55% / 0.1)",
-                    }}
-                  >
-                    <Suspense fallback={
-                      <div className="h-[320px] flex items-center justify-center bg-card/50 rounded-3xl">
-                        <div className="text-center">
-                          <div className="text-3xl animate-pulse mb-2">🏥</div>
-                          <p className="text-[10px] text-muted-foreground">Chargement du Complexe...</p>
-                        </div>
-                      </div>
-                    }>
-                      <HubScene
-                        escapeZoneStatus={progress.escapeZoneStatus}
-                        onNavigate={(t) => handleTabChange(t as Tab)}
-                        sigilCount={sigilCount}
-                      />
-                    </Suspense>
-                    {/* Overlay label */}
-                    <div className="absolute top-3 left-4 z-10 pointer-events-none">
-                      <span className="text-[9px] uppercase tracking-[4px] text-amber-400/60 font-bold">Protocole Lazarus</span>
-                      <h1 className="text-lg sm:text-xl font-black tracking-tight text-white/90 drop-shadow-lg">{CENTRAL_MISSION.title}</h1>
-                    </div>
-                  </motion.div>
-                </WebGLGate>
-
-                {/* HERO: Mission Briefing */}
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
+                {/* PRIORITY 1: SPRINT ENTRETIEN — Objectif 30 mars */}
+                <motion.button
+                  initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                  className="relative overflow-hidden rounded-2xl p-4 sm:p-5"
+                  whileHover={{ y: -3, scale: 1.005 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleTabChange("simulator")}
+                  className="w-full rounded-2xl p-4 sm:p-5 text-left relative overflow-hidden group transition-all"
                   style={{
-                    background: "linear-gradient(145deg, hsl(32 95% 55% / 0.06), hsl(var(--card)))",
-                    border: "1px solid hsl(32 95% 55% / 0.1)",
+                    background: "linear-gradient(145deg, hsl(270 60% 55% / 0.12), hsl(var(--card)), hsl(0 84% 60% / 0.05))",
+                    border: "2px solid hsl(270 60% 55% / 0.25)",
+                    boxShadow: "0 0 30px -8px hsl(270 60% 55% / 0.2)",
                   }}
                 >
-                  <div className="relative z-10">
-                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-lg">
-                      {currentChapter.narrativeIntro.slice(0, 150)}...
-                    </p>
-                    <div className="mt-3 flex items-center gap-3 flex-wrap">
-                      <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
-                      <MissionTimer
-                        missionId={currentChapter.id}
-                        durationMinutes={30}
-                        onBonusXp={progress.addXp}
-                        compact
-                      />
+                  <div className="relative z-10 flex items-center gap-3">
+                    <motion.div
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-12 h-12 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center shrink-0"
+                    >
+                      <Rocket className="w-6 h-6 text-violet-400" />
+                    </motion.div>
+                    <div className="flex-1">
+                      <p className="text-sm font-black text-violet-400 tracking-tight">Sprint Entretien — 30 mars</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        Lancer une session d'entrainement maintenant
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-black text-violet-400">{readinessPercent}%</p>
+                      <p className="text-[8px] text-muted-foreground">pret</p>
                     </div>
                   </div>
-                </motion.div>
+                </motion.button>
+
+                {/* PRIORITY 2: COUNTDOWN + readiness */}
+                <Countdown lastSimScore={lastSimScore} readinessPercent={readinessPercent} />
+
+                {/* PRIORITY 3: Daily Mission Protocol — what to do today */}
+                <div className="rounded-2xl p-5 room-3d"
+                  style={{
+                    background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
+                    border: "1px solid hsl(var(--border) / 0.4)",
+                  }}
+                >
+                  <DailyChain
+                    chainStatus={progress.chainStatus}
+                    zoneStatus={progress.zoneStatus}
+                    onNavigate={handleTabChange}
+                    completedChains={progress.questState.completedChains}
+                  />
+                </div>
 
                 {/* Mission Progress — volumetric metric */}
                 <motion.div
@@ -548,42 +561,6 @@ const Index = () => {
                     </div>
                   </div>
                 </motion.div>
-
-                {/* SPRINT 30 MARS — Priority shortcut */}
-                <motion.button
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08 }}
-                  whileHover={{ y: -3, scale: 1.005 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange("simulator")}
-                  className="w-full rounded-2xl p-4 text-left relative overflow-hidden group transition-all"
-                  style={{
-                    background: "linear-gradient(145deg, hsl(270 60% 55% / 0.1), hsl(var(--card)), hsl(0 84% 60% / 0.04))",
-                    border: "1px solid hsl(270 60% 55% / 0.2)",
-                    boxShadow: "0 0 24px -8px hsl(270 60% 55% / 0.15)",
-                  }}
-                >
-                  <div className="relative z-10 flex items-center gap-3">
-                    <motion.div
-                      animate={{ scale: [1, 1.08, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-11 h-11 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center shrink-0"
-                    >
-                      <Rocket className="w-5 h-5 text-violet-400" />
-                    </motion.div>
-                    <div className="flex-1">
-                      <p className="text-xs font-black text-violet-400 tracking-tight">Sprint Entretien — Objectif 30 mars</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        Entretien medical · Allemand oral · Structure de reponse · Cas clinique
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[10px] font-black text-violet-400">{readinessPercent}%</p>
-                      <p className="text-[8px] text-muted-foreground">pret</p>
-                    </div>
-                  </div>
-                </motion.button>
 
                 {/* PRIMARY CTA — Next Room */}
                 {nextRoom && (
@@ -697,21 +674,6 @@ const Index = () => {
                   )}
                 </motion.div>
 
-                {/* Daily Mission Protocol */}
-                <div className="rounded-2xl p-5 room-3d"
-                  style={{
-                    background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
-                    border: "1px solid hsl(var(--border) / 0.4)",
-                  }}
-                >
-                  <DailyChain
-                    chainStatus={progress.chainStatus}
-                    zoneStatus={progress.zoneStatus}
-                    onNavigate={handleTabChange}
-                    completedChains={progress.questState.completedChains}
-                  />
-                </div>
-
                 {/* Mission Timer — full widget */}
                 <MissionTimer
                   missionId={currentChapter.id}
@@ -747,6 +709,19 @@ const Index = () => {
 
                 {/* Builder Rank */}
                 <XPBar xp={progress.xp} />
+
+                {/* 3D Hub Scene — secondary visualization */}
+                <WebGLGate fallback={null}>
+                  <Suspense fallback={null}>
+                    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(32 95% 55% / 0.12)" }}>
+                      <HubScene
+                        escapeZoneStatus={progress.escapeZoneStatus}
+                        onNavigate={(t) => handleTabChange(t as Tab)}
+                        sigilCount={sigilCount}
+                      />
+                    </div>
+                  </Suspense>
+                </WebGLGate>
 
                 {/* Quick zone access — 3D escape game cards */}
                 <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-3">
