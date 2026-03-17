@@ -144,23 +144,58 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     return () => clearTimeout(timerRef.current);
   }, [timerRunning, timer]);
 
-  // Parse AI evaluation response
+  // Parse AI evaluation response with validation
   useEffect(() => {
     if (!response || simState !== "evaluating") return;
     clearTimeout(fallbackTimerRef.current); // AI responded — cancel fallback
+
+    // If response is a local fallback marker, immediately use evaluateLocally
+    if (response.includes("[LOCAL_EVAL_FALLBACK]")) {
+      if (currentQuestion) {
+        setEvaluation(evaluateLocally(userAnswer, currentQuestion));
+        setSimState("results");
+      }
+      return;
+    }
+
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      // Extract first complete JSON object (non-greedy)
+      const jsonMatch = response.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as EvaluationResult;
-        if (parsed.scores && parsed.globalScore !== undefined) {
-          setEvaluation(parsed);
+        const parsed = JSON.parse(jsonMatch[0]);
+        const s = parsed.scores;
+        const clamp = (n: unknown) => Math.max(0, Math.min(20, Math.round(Number(n) || 0)));
+
+        // Validate all 5 dimensions exist and are numeric
+        if (s && typeof s === "object"
+          && "language" in s && "structure" in s && "medicalReasoning" in s
+          && "confidence" in s && "persuasion" in s
+          && typeof parsed.globalScore === "number") {
+
+          clearTimeout(fallbackTimerRef.current);
+          const validScores: DimensionScore = {
+            language: clamp(s.language),
+            structure: clamp(s.structure),
+            medicalReasoning: clamp(s.medicalReasoning),
+            confidence: clamp(s.confidence),
+            persuasion: clamp(s.persuasion),
+          };
+          const validGlobal = validScores.language + validScores.structure + validScores.medicalReasoning + validScores.confidence + validScores.persuasion;
+
+          setEvaluation({
+            scores: validScores,
+            globalScore: validGlobal,
+            strengths: Array.isArray(parsed.strengths) ? parsed.strengths.filter((x: unknown) => typeof x === "string") : ["Evaluation recue"],
+            improvements: Array.isArray(parsed.improvements) ? parsed.improvements.filter((x: unknown) => typeof x === "string") : ["Continue a t'entrainer"],
+            betterVersion: typeof parsed.betterVersion === "string" ? parsed.betterVersion : (currentQuestion?.r || ""),
+          });
           setSimState("results");
         }
       }
     } catch {
       // AI returned non-JSON — use local evaluation as fallback
       if (currentQuestion) {
+        clearTimeout(fallbackTimerRef.current);
         setEvaluation(evaluateLocally(userAnswer, currentQuestion));
         setSimState("results");
       }
@@ -170,9 +205,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   const followUpTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const triggerFollowUp = useCallback(() => {
     if (!currentQuestion) return;
-    const followUps = currentQuestion.followUps;
-    const interruptions = PRESSURE_INTERRUPTIONS;
-    const pool = [...followUps, ...interruptions];
+    const pool = [...(currentQuestion.followUps || []), ...PRESSURE_INTERRUPTIONS];
+    if (pool.length === 0) return;
     const randomQ = pool[Math.floor(Math.random() * pool.length)];
     setCurrentFollowUp(randomQ);
     setShowFollowUp(true);
@@ -195,8 +229,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   };
 
   const startFullSim = () => {
-    // Pick one question from each zone for full simulation
-    const questions = INTERVIEW_ZONES.flatMap(z => {
+    // Pick one random question from each zone for full simulation
+    const questions = INTERVIEW_ZONES.map(z => {
       const qs = z.questions;
       return qs[Math.floor(Math.random() * qs.length)];
     });
@@ -213,7 +247,11 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   };
 
   const handleSubmitAnswer = () => {
-    if (!currentQuestion || userAnswer.trim().length < 10) return;
+    if (!currentQuestion) return;
+    if (userAnswer.trim().length < 10) {
+      toast("Reponse trop courte", { description: "Minimum 10 caracteres pour une evaluation fiable." });
+      return;
+    }
     setTimerRunning(false);
 
     // Save artifact
@@ -310,6 +348,9 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   };
 
   const retryQuestion = () => {
+    // Stop timer first to avoid race conditions
+    setTimerRunning(false);
+    clearTimeout(fallbackTimerRef.current);
     setUserAnswer("");
     setEvaluation(null);
     setSimState(simState === "full_sim" ? "full_sim" : "question");
@@ -318,7 +359,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
     reset();
     if (currentQuestion) {
       setTimer(TIMER_DURATIONS[currentQuestion.difficulty] || 120);
-      if (pressureMode) setTimerRunning(true);
+      if (pressureMode || simState === "full_sim") setTimerRunning(true);
     }
   };
 
@@ -405,8 +446,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             </div>
           </motion.button>
 
-          {/* Quick start — suggested zone */}
-          {suggestedZone && totalAnswered > 0 && (() => {
+          {/* Quick start — suggested zone (shown always if a zone is suggested) */}
+          {suggestedZone && (() => {
             const zone = INTERVIEW_ZONES.find(z => z.id === suggestedZone);
             if (!zone) return null;
             return (
@@ -424,8 +465,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                     {zone.icon}
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-black text-primary">Continuer : {zone.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Zone recommandee — questions non couvertes</p>
+                    <p className="text-xs font-black text-primary">{totalAnswered > 0 ? "Continuer" : "Commencer"} : {zone.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{totalAnswered > 0 ? "Zone recommandee — questions non couvertes" : "Zone de depart recommandee"}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-primary/50" />
                 </div>
@@ -618,7 +659,8 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             <Textarea
               value={userAnswer}
               onChange={e => setUserAnswer(e.target.value)}
-              placeholder="Antworte auf Deutsch... (minimum 10 Zeichen)"
+              onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") handleSubmitAnswer(); }}
+              placeholder="Antworte auf Deutsch... (minimum 10 Zeichen) — Ctrl+Enter zum Absenden"
               className="min-h-[120px] bg-secondary/40 border-violet-500/10 rounded-xl text-sm resize-none focus:border-violet-500/25"
             />
             <div className="flex gap-2">
@@ -674,6 +716,17 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             <p className="text-sm font-bold text-violet-400">Le Conseil analyse ta reponse...</p>
             <p className="text-[10px] text-muted-foreground mt-1">Evaluation sur 5 dimensions</p>
           </div>
+          <button
+            onClick={() => {
+              if (currentQuestion) {
+                setEvaluation(evaluateLocally(userAnswer, currentQuestion));
+                setSimState("results");
+              }
+            }}
+            className="mx-auto block px-4 py-2 rounded-xl bg-violet-500/10 text-violet-400/70 text-xs hover:bg-violet-500/20 transition-colors"
+          >
+            Utiliser l'evaluation locale
+          </button>
         </div>
       </AtmosphericSceneWrapper>
     );
