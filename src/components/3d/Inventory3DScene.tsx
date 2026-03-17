@@ -1,6 +1,6 @@
 import { useRef, useState, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Float, Html, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import type { InventoryItem } from "@/hooks/useProgress";
 
@@ -22,7 +22,6 @@ const FRAG_COLORS: Record<string, { color: string; emissive: string; shape: "oct
   master_sigil: { color: "#fbbf24", emissive: "#f59e0b", shape: "octa" },
 };
 
-// ── Artifact Object ──
 function ArtifactObject({
   item,
   position,
@@ -47,7 +46,6 @@ function ArtifactObject({
       meshRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.3 + index) * 0.15;
       const targetScale = isSelected ? 1.4 : hovered ? 1.15 : 1;
       meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-      // Float
       meshRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 0.8 + index * 0.7) * 0.08;
     }
   });
@@ -64,17 +62,12 @@ function ArtifactObject({
 
   return (
     <group position={position}>
-      {/* Pedestal */}
+      {/* Pedestal — lighter */}
       <mesh position={[0, -0.25, 0]}>
         <cylinderGeometry args={[0.18, 0.22, 0.15, 8]} />
-        <meshStandardMaterial
-          color="#1a1a2e"
-          metalness={0.7}
-          roughness={0.3}
-        />
+        <meshStandardMaterial color="#2a2a48" metalness={0.6} roughness={0.35} />
       </mesh>
 
-      {/* The artifact */}
       <Float speed={2} rotationIntensity={0} floatIntensity={0.3}>
         <mesh
           ref={meshRef}
@@ -88,29 +81,27 @@ function ArtifactObject({
           <meshStandardMaterial
             color={config.color}
             emissive={new THREE.Color(config.emissive)}
-            emissiveIntensity={isSelected ? 1.2 : hovered ? 0.6 : 0.3}
-            metalness={0.85}
-            roughness={0.15}
+            emissiveIntensity={isSelected ? 1.5 : hovered ? 0.8 : 0.4}
+            metalness={0.8}
+            roughness={0.18}
           />
         </mesh>
       </Float>
 
-      {/* Glow light */}
       <pointLight
         position={[0, 0.15, 0]}
-        intensity={isSelected ? 2 : hovered ? 0.8 : 0.2}
+        intensity={isSelected ? 2.5 : hovered ? 1.0 : 0.3}
         color={config.emissive}
-        distance={2}
+        distance={2.5}
         decay={2}
       />
 
-      {/* Label */}
       {(isSelected || hovered) && (
         <Html position={[0, 0.55, 0]} center distanceFactor={5}>
           <div className="text-center pointer-events-none select-none max-w-[120px]">
             <div className="text-[10px] font-bold text-white/90">{item.name}</div>
             {isSelected && (
-              <div className="text-[8px] text-white/50 mt-0.5">{item.description}</div>
+              <div className="text-[8px] text-white/60 mt-0.5">{item.description}</div>
             )}
           </div>
         </Html>
@@ -119,7 +110,6 @@ function ArtifactObject({
   );
 }
 
-// ── Sigil Display Stand ──
 function SigilStand({ count, total }: { count: number; total: number }) {
   const standRef = useRef<THREE.Group>(null);
 
@@ -131,13 +121,11 @@ function SigilStand({ count, total }: { count: number; total: number }) {
 
   return (
     <group ref={standRef} position={[0, 0, 0]}>
-      {/* Central pedestal */}
       <mesh position={[0, -0.1, 0]}>
         <cylinderGeometry args={[0.5, 0.6, 0.3, 8]} />
-        <meshStandardMaterial color="#16213e" metalness={0.8} roughness={0.2} />
+        <meshStandardMaterial color="#242448" metalness={0.7} roughness={0.25} />
       </mesh>
 
-      {/* Sigil slots in a circle */}
       {Array.from({ length: total }).map((_, i) => {
         const angle = (i / total) * Math.PI * 2;
         const x = Math.cos(angle) * 0.35;
@@ -148,15 +136,15 @@ function SigilStand({ count, total }: { count: number; total: number }) {
             <mesh>
               <octahedronGeometry args={[0.08, 0]} />
               <meshStandardMaterial
-                color={obtained ? "#f59e0b" : "#222"}
-                emissive={new THREE.Color(obtained ? "#f59e0b" : "#000")}
-                emissiveIntensity={obtained ? 1 : 0}
+                color={obtained ? "#f59e0b" : "#333"}
+                emissive={new THREE.Color(obtained ? "#f59e0b" : "#111")}
+                emissiveIntensity={obtained ? 1.2 : 0.02}
                 metalness={0.9}
                 roughness={0.1}
               />
             </mesh>
             {obtained && (
-              <pointLight position={[0, 0, 0]} intensity={0.5} color="#f59e0b" distance={1} decay={2} />
+              <pointLight position={[0, 0, 0]} intensity={0.6} color="#f59e0b" distance={1} decay={2} />
             )}
           </group>
         );
@@ -165,12 +153,10 @@ function SigilStand({ count, total }: { count: number; total: number }) {
   );
 }
 
-// ── Main Inventory 3D Scene ──
 export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSelectItem }: Inventory3DSceneProps) {
   const sigils = items.filter(i => i.type === "master_sigil");
   const fragments = items.filter(i => i.type !== "master_sigil");
 
-  // Arrange fragments in a grid
   const fragmentPositions = useMemo(() => {
     const cols = Math.min(5, fragments.length);
     return fragments.map((_, i): [number, number, number] => {
@@ -191,26 +177,33 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
         shadows
         camera={{ position: [0, 3, 4], fov: 45 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.4,
+        }}
+        onCreated={({ scene }) => {
+          scene.background = new THREE.Color("#151530");
+        }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.45} color="#b0b8d0" />
-          <directionalLight position={[4, 8, 4]} intensity={0.9} color="#ffe4b5" castShadow />
-          <directionalLight position={[-3, 4, -2]} intensity={0.3} color="#8899cc" />
-          <pointLight position={[0, 2, 0]} intensity={0.6} color="#d4a017" distance={10} />
+          <Environment preset="city" environmentIntensity={0.25} />
 
-          <fog attach="fog" args={["#0c0c20", 10, 18]} />
+          <ambientLight intensity={0.65} color="#c0c8e0" />
+          <directionalLight position={[4, 8, 4]} intensity={1.2} color="#ffe8c0" castShadow />
+          <directionalLight position={[-3, 4, -2]} intensity={0.45} color="#99aadd" />
+          <pointLight position={[0, 2, 0]} intensity={0.8} color="#d4a017" distance={12} />
+          <pointLight position={[0, -0.2, 0]} intensity={0.2} color="#334477" distance={8} decay={2} />
 
-          {/* Floor */}
+          <fog attach="fog" args={["#181838", 12, 22]} />
+
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} receiveShadow>
             <planeGeometry args={[10, 10]} />
-            <meshStandardMaterial color="#14142c" metalness={0.4} roughness={0.5} />
+            <meshStandardMaterial color="#1e1e3a" metalness={0.35} roughness={0.55} />
           </mesh>
 
-          {/* Sigil stand */}
           <SigilStand count={sigils.length} total={7} />
 
-          {/* Fragment objects */}
           {fragments.map((item, i) => (
             <ArtifactObject
               key={item.id}
@@ -222,7 +215,7 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
             />
           ))}
 
-          <ContactShadows position={[0, -0.29, 0]} opacity={0.3} scale={10} blur={2} />
+          <ContactShadows position={[0, -0.29, 0]} opacity={0.25} scale={10} blur={2} />
 
           <OrbitControls
             enablePan={false}

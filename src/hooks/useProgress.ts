@@ -441,6 +441,7 @@ export function useProgress() {
               inventory: Array.isArray(safeEscapeState.inventory) ? safeEscapeState.inventory : [],
               sigilsCollected: Array.isArray(safeEscapeState.sigilsCollected) ? safeEscapeState.sigilsCollected : [],
               solvedPuzzles: Array.isArray(safeEscapeState.solvedPuzzles) ? safeEscapeState.solvedPuzzles : [],
+              solvedGateIds: Array.isArray(safeEscapeState.solvedGateIds) ? safeEscapeState.solvedGateIds : [],
             },
           });
         }

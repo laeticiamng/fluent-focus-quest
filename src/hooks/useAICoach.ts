@@ -207,8 +207,9 @@ export function useAICoach() {
           return;
         }
         reportAIFailure("error");
-        setError("Connexion au coach interrompue. Ta création reste enregistrée et tes XP sont comptabilisés.");
-        setStatus("error");
+        setResponse(generateFallback(userMessage, mode));
+        setError("Connexion au coach interrompue. Feedback local activé.");
+        setStatus("fallback");
         setIsLoading(false);
         return;
       }

@@ -437,7 +437,7 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
         {result && !result.passed && (
           <button
             onClick={handleRetry}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground transition-colors min-h-[36px]"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-muted-foreground transition-colors min-h-[44px]"
           >
             <RotateCcw className="w-3 h-3" /> Reessayer
           </button>
@@ -569,7 +569,7 @@ export function PhraseGate({ solvedGateIds, onSolve }: PhraseGateProps) {
               )}
               <button
                 onClick={handleNextChallenge}
-                className="ml-auto flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 active:bg-violet-700 text-white text-[10px] font-bold transition-all min-h-[36px]"
+                className="ml-auto flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 active:bg-violet-700 text-white text-[10px] font-bold transition-all min-h-[44px]"
               >
                 Defi suivant <ChevronRight className="w-3 h-3" />
               </button>

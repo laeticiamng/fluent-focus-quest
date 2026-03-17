@@ -90,7 +90,7 @@ export function TodayPlan({ done, toggleTask, onExpand }: TodayPlanProps) {
             <button
               key={i}
               onClick={() => toggleTask(tP.date, i)}
-              className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-left transition-all min-h-[40px] ${
+              className={`w-full flex items-center gap-2.5 px-2 py-2.5 rounded-xl text-left transition-all min-h-[44px] ${
                 isDone
                   ? "opacity-50 bg-emerald-500/5"
                   : "hover:bg-white/5 active:bg-white/8"

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Map, Package, KeyRound, Shield, Rocket, Zap } from "lucide-react";
 import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
-import { WebGLGate } from "@/components/3d/WebGLDetect";
+import { WebGLGate, WebGLDiagnosticBadge } from "@/components/3d/WebGLDetect";
 
 // ── Tab-level Error Boundary — catches crashes in individual tabs ──
 class TabErrorBoundary extends Component<{ tabName: string; children: ReactNode }, { hasError: boolean }> {
@@ -364,6 +364,9 @@ const Index = () => {
 
       {/* AI Status Banner — global fallback notification */}
       <AIStatusBanner />
+
+      {/* WebGL Diagnostic Badge — visible in dev or with ?debug=1 */}
+      <WebGLDiagnosticBadge />
 
       {/* Onboarding Tutorial */}
       <OnboardingTutorial
@@ -729,36 +732,58 @@ const Index = () => {
 
                 {/* 3D Hub Scene — interactive zone portal map */}
                 <WebGLGate sceneName="Hub" fallback={
-                  <div className="rounded-2xl p-4 space-y-3" style={{
-                    background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
-                    border: "1px solid hsl(32 95% 55% / 0.12)",
+                  <div className="rounded-2xl p-5 space-y-4 relative overflow-hidden" style={{
+                    background: "linear-gradient(145deg, hsl(225 25% 14%), hsl(var(--card)), hsl(32 95% 55% / 0.03))",
+                    border: "1px solid hsl(32 95% 55% / 0.15)",
+                    boxShadow: "0 4px 20px -6px hsl(225 40% 8% / 0.5)",
                   }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-base">🏛️</span>
-                      <p className="text-xs font-black tracking-tight">Hub du Complexe Medical</p>
-                      <span className="text-[8px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/70 font-bold ml-auto">Mode 2D</span>
+                    {/* Decorative accent */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center">
+                        <span className="text-lg">🏛️</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-black tracking-tight">Hub du Complexe Medical</p>
+                        <p className="text-[9px] text-muted-foreground">
+                          {Object.values(progress.escapeZoneStatus).filter(z => z.unlocked).length}/{ESCAPE_ZONES.length} ailes accessibles
+                        </p>
+                      </div>
+                      <span className="text-[8px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/60 font-bold">2D</span>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                       {ESCAPE_ZONES.map((zone) => {
                         const zs = progress.escapeZoneStatus[zone.id];
                         const isLocked = !zs?.unlocked;
+                        const isCleared = zs && zs.roomsSolved === zs.totalRooms;
                         return (
                           <button
                             key={zone.id}
                             onClick={() => { if (!isLocked) handleTabChange(ZONE_TAB_MAP[zone.id] as Tab); }}
                             disabled={isLocked}
-                            className={`rounded-xl p-3 text-center transition-all ${isLocked ? "opacity-30 cursor-not-allowed" : "hover:scale-[1.04] hover:bg-white/5"}`}
+                            className={`rounded-xl p-3 text-center transition-all min-h-[72px] ${isLocked ? "opacity-30 cursor-not-allowed" : "hover:scale-[1.04] active:scale-[0.98] hover:bg-white/5"}`}
                             style={{
-                              background: isLocked ? "hsl(225 14% 10%)" : "linear-gradient(145deg, hsl(var(--primary) / 0.06), hsl(var(--card)))",
-                              border: isLocked ? "1px solid hsl(225 14% 12%)" : "1px solid hsl(var(--border) / 0.3)",
+                              background: isLocked
+                                ? "hsl(225 14% 12%)"
+                                : isCleared
+                                ? "linear-gradient(145deg, hsl(142 71% 45% / 0.08), hsl(var(--card)))"
+                                : "linear-gradient(145deg, hsl(var(--primary) / 0.06), hsl(var(--card)))",
+                              border: isLocked
+                                ? "1px solid hsl(225 14% 15%)"
+                                : isCleared
+                                ? "1px solid hsl(142 71% 45% / 0.2)"
+                                : "1px solid hsl(var(--border) / 0.3)",
                             }}
                           >
-                            <div className="text-xl mb-1">{isLocked ? "🔒" : zone.icon}</div>
-                            <div className="text-[9px] font-bold">{zone.name.replace(/Aile d[eu']?\s*/i, "").slice(0, 12)}</div>
+                            <div className="text-xl mb-1">{isLocked ? "🔒" : isCleared ? "✅" : zone.icon}</div>
+                            <div className="text-[9px] font-bold leading-tight">{zone.name.replace(/Aile d[eu']?\s*/i, "").slice(0, 12)}</div>
                             {!isLocked && zs && (
-                              <div className="mt-1 h-1 bg-secondary/30 rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-amber-500/40" style={{ width: `${zs.progress * 100}%` }} />
-                              </div>
+                              <>
+                                <div className="mt-1.5 h-1 bg-secondary/30 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full ${isCleared ? "bg-emerald-500/50" : "bg-amber-500/40"}`} style={{ width: `${zs.progress * 100}%` }} />
+                                </div>
+                                <p className="text-[7px] text-muted-foreground mt-0.5">{zs.roomsSolved}/{zs.totalRooms}</p>
+                              </>
                             )}
                           </button>
                         );
