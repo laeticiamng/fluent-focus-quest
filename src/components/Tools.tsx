@@ -116,8 +116,8 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
         <div className="flex gap-2.5 justify-center">
           <Button onClick={() => { if (!tmrOn && tmr === 0) setTmr(tmrM * 60); setTmrOn(!tmrOn); }}
             className={`rounded-xl px-6 ${tmrOn ? "bg-accent text-accent-foreground" : "bg-success text-primary-foreground"}`}
-          >{tmrOn ? "⏸ Pause" : "▶ Start"}</Button>
-          <Button variant="secondary" onClick={() => { setTmrOn(false); setTmr(0); }} className="rounded-xl">↺ Reset</Button>
+          >{tmrOn ? "⏸ Pause" : "▶ Lancer"}</Button>
+          <Button variant="secondary" onClick={() => { setTmrOn(false); setTmr(0); }} className="rounded-xl">↺ Reinitialiser</Button>
         </div>
         <p className="text-[10px] text-center text-muted-foreground mt-3 flex items-center justify-center gap-1">
           <Volume2 className="w-3 h-3" /> Son à la fin
