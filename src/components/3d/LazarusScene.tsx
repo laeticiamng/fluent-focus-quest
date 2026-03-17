@@ -605,10 +605,10 @@ export function LazarusScene({
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4,
+          toneMappingExposure: 1.65,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color(activated ? "#040a04" : "#040410");
+          scene.background = new THREE.Color(activated ? "#060c06" : "#060612");
         }}
       >
         <Suspense fallback={null}>
@@ -682,14 +682,14 @@ export function LazarusScene({
 
           {quality.enableFogLayers && (
             <>
-              <AnimatedFogLayers layers={2} baseY={-0.3} radius={8} color={rig.fogColor} maxOpacity={0.12} />
+              <AnimatedFogLayers layers={rig.animFogLayers} baseY={rig.animFogBaseY} radius={rig.animFogRadius} color={rig.fogColor} maxOpacity={rig.animFogMaxOpacity} />
               <AtmosphericHeightFog
-                groundColor={rig.fogColor}
-                midColor={activated ? "#061006" : "#0a0a1e"}
-                baseY={-0.45}
-                radius={10}
-                groundOpacity={0.14}
-                midOpacity={0.05}
+                groundColor={rig.heightFogGroundColor}
+                midColor={rig.heightFogMidColor}
+                baseY={rig.heightFogBaseY}
+                radius={rig.heightFogRadius}
+                groundOpacity={rig.heightFogGroundOpacity}
+                midOpacity={rig.heightFogMidOpacity}
               />
             </>
           )}
@@ -705,14 +705,14 @@ export function LazarusScene({
           )}
 
           <PremiumPostProcessing
-            bloomIntensity={activated ? 1.0 : 0.75}
-            bloomThreshold={activated ? 0.25 : 0.3}
-            bloomSmoothing={0.6}
-            vignetteOpacity={activated ? 0.42 : 0.38}
-            chromaticAberration={0.0004}
+            bloomIntensity={activated ? 0.85 : 0.65}
+            bloomThreshold={activated ? 0.3 : 0.35}
+            bloomSmoothing={0.65}
+            vignetteOpacity={activated ? 0.35 : 0.3}
+            chromaticAberration={0.0003}
             qualityTier={quality.tier}
-            aoRadius={0.55}
-            aoIntensity={1.6}
+            aoRadius={0.5}
+            aoIntensity={1.2}
           />
 
           <OrbitControls

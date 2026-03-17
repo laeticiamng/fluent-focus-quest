@@ -12,7 +12,7 @@ export function DecorativePillars({
   count = 8,
   radius = 6,
   height = 3,
-  color = "#1e2040",
+  color = "#222448",
   accentColor = "#6366f1",
 }: {
   count?: number;
@@ -31,27 +31,27 @@ export function DecorativePillars({
 
         return (
           <group key={i} position={[x, 0, z]}>
-            {/* Pillar base — tiered pedestal */}
+            {/* Pillar base — support stone tier */}
             <mesh position={[0, -0.4, 0]}>
               <cylinderGeometry args={[isMajor ? 0.2 : 0.14, isMajor ? 0.24 : 0.17, 0.15, 8]} />
               <meshStandardMaterial
-                color="#141430"
-                metalness={0.7}
-                roughness={0.25}
+                color="#181838"
+                metalness={0.55}
+                roughness={0.4}
                 emissive={accentColor}
-                emissiveIntensity={0.03}
+                emissiveIntensity={0.02}
               />
             </mesh>
 
-            {/* Pillar body — tapered column */}
+            {/* Pillar body — support stone column */}
             <mesh position={[0, height / 2 - 0.25, 0]} castShadow>
               <cylinderGeometry args={[isMajor ? 0.1 : 0.065, isMajor ? 0.14 : 0.09, height, 8]} />
               <meshStandardMaterial
                 color={color}
-                metalness={0.75}
-                roughness={0.2}
+                metalness={0.6}
+                roughness={0.35}
                 emissive={accentColor}
-                emissiveIntensity={0.03}
+                emissiveIntensity={0.02}
               />
             </mesh>
 
@@ -75,9 +75,9 @@ export function DecorativePillars({
             <mesh position={[0, height - 0.15, 0]}>
               <cylinderGeometry args={[isMajor ? 0.16 : 0.1, isMajor ? 0.1 : 0.065, 0.15, 8]} />
               <meshStandardMaterial
-                color="#1a1a3a"
-                metalness={0.7}
-                roughness={0.2}
+                color="#1e1e40"
+                metalness={0.55}
+                roughness={0.35}
               />
             </mesh>
 
@@ -259,7 +259,7 @@ export function FloatingArch({
       {/* Left pillar */}
       <mesh position={[-0.9, 1.1, 0]} castShadow>
         <boxGeometry args={[0.14, 2.4, 0.14]} />
-        <meshStandardMaterial color={color} metalness={0.75} roughness={0.2} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.35} />
       </mesh>
       {/* Left pillar accent band */}
       <mesh position={[-0.9, 1.8, 0]}>
@@ -270,7 +270,7 @@ export function FloatingArch({
       {/* Right pillar */}
       <mesh position={[0.9, 1.1, 0]} castShadow>
         <boxGeometry args={[0.14, 2.4, 0.14]} />
-        <meshStandardMaterial color={color} metalness={0.75} roughness={0.2} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.35} />
       </mesh>
       {/* Right pillar accent band */}
       <mesh position={[0.9, 1.8, 0]}>
@@ -328,7 +328,7 @@ export function BackgroundStructures({
   minRadius = 14,
   maxRadius = 22,
   height = 6,
-  color = "#0c0c22",
+  color = "#10102a",
 }: {
   count?: number;
   minRadius?: number;
@@ -360,8 +360,8 @@ export function BackgroundStructures({
                   color={color}
                   metalness={0.4}
                   roughness={0.6}
-                  emissive="#0a0a1a"
-                  emissiveIntensity={0.05}
+                  emissive="#121222"
+                  emissiveIntensity={0.08}
                 />
               </mesh>
             ) : (
@@ -371,8 +371,8 @@ export function BackgroundStructures({
                   color={color}
                   metalness={0.4}
                   roughness={0.6}
-                  emissive="#0a0a1a"
-                  emissiveIntensity={0.05}
+                  emissive="#121222"
+                  emissiveIntensity={0.08}
                 />
               </mesh>
             )}

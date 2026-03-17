@@ -94,21 +94,21 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* ── Grand tiered base — 4 levels ── */}
+      {/* ── Grand tiered base — support stone ── */}
       <mesh position={[0, -0.5, 0]} receiveShadow>
         <cylinderGeometry args={[3.2, 3.6, 0.2, 32]} />
-        <meshStandardMaterial color="#0f0f28" metalness={0.8} roughness={0.25} envMapIntensity={0.4} />
+        <meshStandardMaterial color="#121230" metalness={0.6} roughness={0.38} envMapIntensity={0.3} />
       </mesh>
       <mesh position={[0, -0.38, 0]} receiveShadow>
         <cylinderGeometry args={[2.6, 2.9, 0.15, 32]} />
-        <meshStandardMaterial color="#151538" metalness={0.75} roughness={0.28} envMapIntensity={0.4} />
+        <meshStandardMaterial color="#181840" metalness={0.58} roughness={0.35} envMapIntensity={0.3} />
       </mesh>
       <mesh position={[0, -0.28, 0]} receiveShadow>
         <cylinderGeometry args={[2.0, 2.3, 0.12, 32]} />
         <meshStandardMaterial
-          color="#1a1a42"
-          metalness={0.7}
-          roughness={0.3}
+          color="#1e1e48"
+          metalness={0.55}
+          roughness={0.35}
           emissive="#d4a017"
           emissiveIntensity={0.02 + sigilIntensity * 0.05}
         />
@@ -116,9 +116,9 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
       <mesh position={[0, -0.2, 0]} receiveShadow>
         <cylinderGeometry args={[1.5, 1.7, 0.08, 32]} />
         <meshStandardMaterial
-          color="#1e1e4a"
-          metalness={0.65}
-          roughness={0.32}
+          color="#222250"
+          metalness={0.52}
+          roughness={0.35}
           emissive="#d4a017"
           emissiveIntensity={0.04 + sigilIntensity * 0.08}
         />
@@ -139,16 +139,16 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
         </mesh>
       ))}
 
-      {/* ── Central pillar column ── */}
+      {/* ── Central pillar column — support stone ── */}
       <mesh ref={pillarRef} position={[0, 1.0, 0]} castShadow>
         <cylinderGeometry args={[0.3, 0.42, 2.6, 8]} />
         <meshStandardMaterial
-          color="#151538"
-          metalness={0.9}
-          roughness={0.12}
+          color="#181840"
+          metalness={0.65}
+          roughness={0.28}
           emissive="#d4a017"
           emissiveIntensity={0.06 + sigilIntensity * 0.3}
-          envMapIntensity={0.6}
+          envMapIntensity={0.4}
         />
       </mesh>
 
@@ -678,10 +678,10 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4,
+          toneMappingExposure: 1.7,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color("#06060f");
+          scene.background = new THREE.Color("#080812");
         }}
       >
         <Suspense fallback={null}>
@@ -723,15 +723,15 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             <BackgroundStructures count={8} minRadius={16} maxRadius={24} height={7} color="#060614" />
           )}
 
-          {/* Atmospheric height fog */}
+          {/* Atmospheric height fog — per-scene tuned */}
           {quality.enableFogLayers && (
             <AtmosphericHeightFog
-              groundColor={rig.fogColor}
-              midColor="#0a0a20"
-              baseY={-0.5}
-              radius={12}
-              groundOpacity={0.15}
-              midOpacity={0.06}
+              groundColor={rig.heightFogGroundColor}
+              midColor={rig.heightFogMidColor}
+              baseY={rig.heightFogBaseY}
+              radius={rig.heightFogRadius}
+              groundOpacity={rig.heightFogGroundOpacity}
+              midOpacity={rig.heightFogMidOpacity}
             />
           )}
 
@@ -751,9 +751,9 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             <EnergyTrails count={6} radius={5} height={4} color="#d4a017" secondaryColor="#6366f1" speed={0.25} />
           )}
 
-          {/* Fog layers */}
+          {/* Fog layers — per-scene tuned */}
           {quality.enableFogLayers && (
-            <AnimatedFogLayers layers={3} baseY={-0.3} radius={12} color={rig.fogColor} maxOpacity={0.12} />
+            <AnimatedFogLayers layers={rig.animFogLayers} baseY={rig.animFogBaseY} radius={rig.animFogRadius} color={rig.fogColor} maxOpacity={rig.animFogMaxOpacity} />
           )}
 
           {/* Fireflies */}
@@ -776,14 +776,14 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
 
           {/* Post-processing */}
           <PremiumPostProcessing
-            bloomIntensity={0.8}
-            bloomThreshold={0.3}
-            bloomSmoothing={0.6}
-            vignetteOpacity={0.4}
-            chromaticAberration={0.0004}
+            bloomIntensity={0.7}
+            bloomThreshold={0.35}
+            bloomSmoothing={0.65}
+            vignetteOpacity={0.3}
+            chromaticAberration={0.0003}
             qualityTier={quality.tier}
-            aoRadius={0.6}
-            aoIntensity={1.8}
+            aoRadius={0.5}
+            aoIntensity={1.2}
           />
 
           <OrbitControls

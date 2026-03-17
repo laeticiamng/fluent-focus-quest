@@ -346,10 +346,10 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4,
+          toneMappingExposure: 1.75,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color("#060612");
+          scene.background = new THREE.Color("#080816");
         }}
       >
         <Suspense fallback={null}>
@@ -410,14 +410,14 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
 
           {quality.enableFogLayers && (
             <>
-              <AnimatedFogLayers layers={2} baseY={-0.15} radius={8} color={rig.fogColor} maxOpacity={0.1} />
+              <AnimatedFogLayers layers={rig.animFogLayers} baseY={rig.animFogBaseY} radius={rig.animFogRadius} color={rig.fogColor} maxOpacity={rig.animFogMaxOpacity} />
               <AtmosphericHeightFog
-                groundColor={rig.fogColor}
-                midColor="#0a0a1e"
-                baseY={-0.32}
-                radius={8}
-                groundOpacity={0.1}
-                midOpacity={0.04}
+                groundColor={rig.heightFogGroundColor}
+                midColor={rig.heightFogMidColor}
+                baseY={rig.heightFogBaseY}
+                radius={rig.heightFogRadius}
+                groundOpacity={rig.heightFogGroundOpacity}
+                midOpacity={rig.heightFogMidOpacity}
               />
             </>
           )}
@@ -435,14 +435,14 @@ export function Inventory3DScene({ items, sigilsCollected, selectedItemId, onSel
           )}
 
           <PremiumPostProcessing
-            bloomIntensity={0.7}
-            bloomThreshold={0.32}
-            bloomSmoothing={0.6}
-            vignetteOpacity={0.32}
-            chromaticAberration={0.0004}
+            bloomIntensity={0.6}
+            bloomThreshold={0.38}
+            bloomSmoothing={0.65}
+            vignetteOpacity={0.25}
+            chromaticAberration={0.0003}
             qualityTier={quality.tier}
-            aoRadius={0.5}
-            aoIntensity={1.5}
+            aoRadius={0.45}
+            aoIntensity={1.0}
           />
 
           <OrbitControls
