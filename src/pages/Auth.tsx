@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAvailable } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 /** Map Supabase auth error messages to user-friendly French messages. */
 function translateAuthError(error: unknown): string {
@@ -42,20 +44,33 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!supabaseAvailable) {
+      toast.error("Service d'authentification non configure. Contacte l'administrateur.");
+      logger.critical("Auth", "Login attempted but Supabase is not configured");
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        logger.info("Auth", "Login successful");
         toast.success("Connecté !");
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        logger.info("Auth", "Signup successful");
         toast.success("Vérifie ton email pour confirmer ton compte !");
       }
     } catch (error: unknown) {
-      toast.error(translateAuthError(error));
+      const msg = translateAuthError(error);
+      logger.error("Auth", `${isLogin ? "Login" : "Signup"} failed`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { logger } from "@/utils/logger";
 
 // ── Quality tier system ──
 // Determines rendering quality based on device capabilities.
@@ -166,12 +167,29 @@ export function getCapabilities(tier?: QualityTier): QualityCapabilities {
   return TIER_CAPABILITIES[tier || getQualityTier()];
 }
 
-export function useQualityTier(): QualityCapabilities {
+export function useQualityTier(): QualityCapabilities & { downgrade: () => void } {
   const [tier, setTier] = useState<QualityTier>(() => getOverrideTier() || getQualityTier());
 
   useEffect(() => {
     setTier(getQualityTier());
   }, []);
 
-  return useMemo(() => TIER_CAPABILITIES[tier], [tier]);
+  const downgrade = useCallback(() => {
+    setTier(current => {
+      if (current === "high") {
+        logger.warn("QualityTier", "Auto-downgrading from high to medium due to performance");
+        cachedTier = "medium";
+        return "medium";
+      }
+      if (current === "medium") {
+        logger.warn("QualityTier", "Auto-downgrading from medium to mobile due to performance");
+        cachedTier = "mobile";
+        return "mobile";
+      }
+      return current;
+    });
+  }, []);
+
+  const capabilities = useMemo(() => TIER_CAPABILITIES[tier], [tier]);
+  return useMemo(() => ({ ...capabilities, downgrade }), [capabilities, downgrade]);
 }

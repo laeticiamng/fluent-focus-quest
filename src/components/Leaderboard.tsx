@@ -99,6 +99,21 @@ export function Leaderboard({ currentXp, currentStreak, currentSigils, currentRo
 
   return (
     <div className="space-y-4">
+      {/* Simulated data disclaimer */}
+      <div className="rounded-xl px-4 py-3 text-center"
+        style={{
+          background: "hsl(40 80% 50% / 0.08)",
+          border: "1px solid hsl(40 80% 50% / 0.2)",
+        }}
+      >
+        <p className="text-[10px] font-semibold" style={{ color: "hsl(40 80% 60%)" }}>
+          Apercu — Donnees simulees
+        </p>
+        <p className="text-[9px] text-muted-foreground mt-0.5">
+          Ce classement est genere localement a partir de ta progression. Le classement reel sera actif quand la communaute grandira.
+        </p>
+      </div>
+
       {/* Header */}
       <div className="rounded-2xl p-5 room-3d"
         style={{
@@ -114,7 +129,7 @@ export function Leaderboard({ currentXp, currentStreak, currentSigils, currentRo
           <div>
             <h2 className="text-lg font-black tracking-tight">Classement</h2>
             <p className="text-[10px] text-muted-foreground">
-              Ta position : <span className="text-amber-400 font-bold">#{currentUserRank}</span> sur {sorted.length} apprenants
+              Ta position estimee : <span className="text-amber-400 font-bold">#{currentUserRank}</span> sur {sorted.length} apprenants (simule)
             </p>
           </div>
         </div>
@@ -223,7 +238,7 @@ export function Leaderboard({ currentXp, currentStreak, currentSigils, currentRo
 
       {/* Note */}
       <p className="text-[9px] text-muted-foreground/40 text-center px-4">
-        Classement simule — les vrais classements seront actifs quand la communaute grandira
+        Classement simule — seule ta ligne (« Toi ») reflete tes vraies donnees. Les autres profils sont generes localement.
       </p>
     </div>
   );

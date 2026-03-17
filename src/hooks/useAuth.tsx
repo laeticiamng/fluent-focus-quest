@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAvailable } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -22,35 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authUnavailable, setAuthUnavailable] = useState(false);
 
   useEffect(() => {
+    // If Supabase is not configured, skip auth entirely
+    if (!supabaseAvailable) {
+      logger.warn("Auth", "Supabase not configured — auth unavailable");
+      setAuthUnavailable(true);
+      setLoading(false);
+      return;
+    }
+
     // Timeout guard: if auth takes too long, stop loading but still allow login
     const loadingTimeout = setTimeout(() => {
-      if (import.meta.env.DEV) {
-        console.warn("[Auth] Timeout after 8s — session check failed");
-      }
+      logger.error("Auth", "Session check timed out after 8s");
       setAuthUnavailable(true);
       setLoading(false);
     }, 8000);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
       clearTimeout(loadingTimeout);
-      setSession(session);
-      setUser(session?.user ?? null);
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s) {
+        logger.info("Auth", "Session restored", { userId: s.user.id });
+      } else {
+        logger.info("Auth", "No existing session");
+      }
       setLoading(false);
     }).catch((err) => {
       clearTimeout(loadingTimeout);
-      if (import.meta.env.DEV) {
-        console.warn("[Auth] getSession failed:", err);
-      }
+      logger.critical("Auth", "getSession failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       setAuthUnavailable(true);
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       clearTimeout(loadingTimeout);
-      setSession(session);
-      setUser(session?.user ?? null);
+      setSession(s);
+      setUser(s?.user ?? null);
       setAuthUnavailable(false);
       setLoading(false);
+      logger.info("Auth", `Auth state changed: ${event}`, {
+        userId: s?.user?.id ?? null,
+      });
     });
 
     return () => {
@@ -60,7 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        logger.error("Auth", "Sign out failed", { error: error.message });
+      } else {
+        logger.info("Auth", "User signed out");
+      }
+    } catch (err) {
+      logger.critical("Auth", "Sign out threw exception", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   };
 
   return (

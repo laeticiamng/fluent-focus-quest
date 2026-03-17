@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { supabaseAvailable } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 /**
  * Global AI status store — shared across all components.
@@ -47,19 +48,24 @@ export function reportAIFailure(reason: "credits_exhausted" | "rate_limited" | "
     error: "Coach IA indisponible — feedback local active.",
   };
 
+  const newStatus = reason === "credits_exhausted" ? "credits_exhausted"
+    : reason === "rate_limited" ? "rate_limited"
+    : "offline";
   state = {
-    status: reason === "credits_exhausted" ? "credits_exhausted"
-      : reason === "rate_limited" ? "rate_limited"
-      : "offline",
+    status: newStatus,
     lastChecked: Date.now(),
     failCount: state.failCount + 1,
     message: messages[reason] || messages.error,
   };
+  logger.warn("AIStatus", `AI failure reported: ${reason}`, { failCount: state.failCount, status: newStatus });
   emitChange();
 }
 
 /** Report AI recovery */
 export function reportAIRecovery() {
+  if (state.status !== "available") {
+    logger.info("AIStatus", "AI recovered from fallback", { previousStatus: state.status });
+  }
   state = {
     status: "available",
     lastChecked: Date.now(),

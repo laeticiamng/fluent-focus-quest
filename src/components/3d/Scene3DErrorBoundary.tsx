@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { logger } from "@/utils/logger";
 
 interface Props {
   children: ReactNode;
@@ -27,10 +28,10 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     const label = this.props.sceneName || "unknown";
-    console.warn(`[3D:${label}] Scene crashed — falling back to 2D. Reason: ${error.message}`);
-    if (import.meta.env.DEV) {
-      console.debug(`[3D:${label}] Stack:`, error.stack);
-    }
+    logger.error("3D", `Scene "${label}" crashed — falling back to 2D`, {
+      error: error.message,
+      stack: error.stack,
+    });
     this.props.onError?.(error.message);
   }
 

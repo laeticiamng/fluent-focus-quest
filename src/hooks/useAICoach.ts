@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { reportAIFailure, reportAIRecovery, isAIInFallback } from "./useAIStatus";
 import { supabaseAvailable } from "@/integrations/supabase/client";
 import { safeClean } from "@/utils/safeClean";
+import { logger } from "@/utils/logger";
 
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
@@ -345,7 +346,10 @@ export function useAICoach() {
       setStatus("success");
       setIsLoading(false);
     } catch (e) {
-      console.error("AI coach error:", e);
+      logger.error("AICoach", "Network error during AI request", {
+        error: e instanceof Error ? e.message : String(e),
+        mode,
+      });
       reportAIFailure("network");
       setResponse(generateFallback(userMessage, mode));
       setError("Connexion au coach interrompue. Feedback local activé.");

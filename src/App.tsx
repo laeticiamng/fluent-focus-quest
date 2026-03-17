@@ -6,9 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CelebrationProvider } from "@/components/CelebrationProvider";
 import { Component, type ReactNode } from "react";
+import { logger } from "@/utils/logger";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { DiagnosticPanel } from "@/components/DiagnosticPanel";
 
 // ── Global Error Boundary — prevents blank screens on any React crash ──
 interface ErrorBoundaryState {
@@ -27,7 +29,10 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[AppErrorBoundary]", error, errorInfo.componentStack);
+    logger.critical("AppErrorBoundary", error.message, {
+      stack: error.stack,
+      componentStack: errorInfo.componentStack ?? undefined,
+    });
   }
 
   render() {
@@ -65,7 +70,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, loading } = useAuth();
+  const { user, loading, authUnavailable } = useAuth();
 
   if (loading) {
     return (
@@ -74,6 +79,27 @@ function AppRoutes() {
           <div className="text-4xl mb-3 animate-pulse">🏠</div>
           <p className="text-sm font-semibold text-foreground">Operation Bienne</p>
           <p className="text-xs text-muted-foreground mt-1">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Auth service is unreachable — show explicit error, not a silent fake state
+  if (!user && authUnavailable) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-sm space-y-4">
+          <div className="text-4xl">🔌</div>
+          <h1 className="text-lg font-bold text-foreground">Connexion impossible</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Le service d'authentification est temporairement inaccessible. Verifie ta connexion internet et reessaie.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+          >
+            Reessayer
+          </button>
         </div>
       </div>
     );
@@ -102,6 +128,7 @@ const App = () => (
               <AppRoutes />
             </BrowserRouter>
           </CelebrationProvider>
+          <DiagnosticPanel />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

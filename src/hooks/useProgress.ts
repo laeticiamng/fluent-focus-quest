@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAvailable } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { logger } from "@/utils/logger";
 import {
   ESCAPE_ZONES,
   computeRoomProgress,
@@ -418,9 +420,16 @@ export function useProgress() {
           questState: { ...defaultQuestState, ...(parsed.questState || {}) },
           escapeState: { ...defaultEscapeState, ...(parsed.escapeState || {}) },
         });
+        logger.info("Progress", "Loaded from localStorage backup", {
+          artifactCount: Array.isArray(parsed.artifacts) ? parsed.artifacts.length : 0,
+        });
         return true;
       }
-    } catch { /* localStorage unavailable or corrupted */ }
+    } catch (err) {
+      logger.error("Progress", "Failed to load from localStorage", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
     return false;
   };
 
@@ -436,12 +445,30 @@ export function useProgress() {
     if (!user) { setState(defaultState); setLoaded(false); return; }
 
     const load = async () => {
+      // Skip Supabase if not available
+      if (!supabaseAvailable) {
+        logger.warn("Progress", "Supabase not available, using localStorage only");
+        loadFromLocalStorage();
+        setLoaded(true);
+        return;
+      }
+
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("user_progress")
           .select("progress_data")
           .eq("user_id", user.id)
           .maybeSingle();
+
+        if (error) {
+          logger.error("Progress", "Supabase load error", {
+            error: error.message,
+            code: error.code,
+          });
+          loadFromLocalStorage();
+          setLoaded(true);
+          return;
+        }
 
         if (data?.progress_data) {
           const loaded = data.progress_data as unknown as Partial<ProgressState>;
@@ -478,11 +505,17 @@ export function useProgress() {
               solvedGateIds: Array.isArray(safeEscapeState.solvedGateIds) ? safeEscapeState.solvedGateIds : [],
             },
           });
+          logger.info("Progress", "Loaded from Supabase", {
+            artifactCount: safeArtifacts.length,
+            xp: typeof loaded.xp === "number" ? loaded.xp : 0,
+          });
+        } else {
+          logger.info("Progress", "No existing progress data — starting fresh");
         }
       } catch (err) {
-        if (import.meta.env.DEV) {
-          console.error("[useProgress] Supabase load failed, trying localStorage:", err);
-        }
+        logger.critical("Progress", "Supabase load threw exception, falling back to localStorage", {
+          error: err instanceof Error ? err.message : String(err),
+        });
         loadFromLocalStorage();
       }
       setLoaded(true);
@@ -499,19 +532,26 @@ export function useProgress() {
       const serialized = JSON.stringify(state);
       // Always save to localStorage as backup
       safeLocalSet(LOCAL_STORAGE_KEY, serialized);
-      // Only save to Supabase if authenticated
-      if (user) {
+      // Only save to Supabase if authenticated and available
+      if (user && supabaseAvailable) {
         try {
-          await supabase
+          const { error } = await supabase
             .from("user_progress")
             .upsert([{
               user_id: user.id,
               progress_data: JSON.parse(serialized),
             }], { onConflict: "user_id" });
-        } catch (err) {
-          if (import.meta.env.DEV) {
-            console.error("[useProgress] Supabase save failed (localStorage backup saved):", err);
+
+          if (error) {
+            logger.error("Progress", "Supabase save failed", {
+              error: error.message,
+              code: error.code,
+            });
           }
+        } catch (err) {
+          logger.error("Progress", "Supabase save threw exception (localStorage backup saved)", {
+            error: err instanceof Error ? err.message : String(err),
+          });
         }
       }
     }, 1000);
