@@ -688,6 +688,7 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
       >
         <Suspense fallback={null}>
           <CameraSetup />
+          <CinematicCameraBreathing fovBreath={0.8} breathSpeed={0.125} parallaxStrength={0.2} />
 
           {/* Premium cinematic lighting */}
           <PremiumLighting preset="dramatic" accentColor="#d4a017" rimColor="#6366f1" />
