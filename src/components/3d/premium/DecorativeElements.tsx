@@ -848,6 +848,147 @@ export function HolographicDistortion({
 }
 
 /**
+ * Fireflies — erratic luminous points with bright emissive glow.
+ * Wander randomly with smooth noise-like motion for organic life.
+ */
+export function Fireflies({
+  count = 20,
+  radius = 6,
+  height = 4,
+  color = "#fbbf24",
+  secondaryColor = "#6366f1",
+}: {
+  count?: number;
+  radius?: number;
+  height?: number;
+  color?: string;
+  secondaryColor?: string;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+
+  const flies = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => ({
+      x: (Math.random() - 0.5) * radius * 2,
+      y: Math.random() * height,
+      z: (Math.random() - 0.5) * radius * 2,
+      speedX: 0.3 + Math.random() * 0.6,
+      speedY: 0.2 + Math.random() * 0.5,
+      speedZ: 0.3 + Math.random() * 0.6,
+      phase: Math.random() * Math.PI * 2,
+      wanderRadius: 0.8 + Math.random() * 1.5,
+      isGold: Math.random() > 0.4,
+      pulseSpeed: 1.5 + Math.random() * 2,
+    }));
+  }, [count, radius, height]);
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime();
+
+    flies.forEach((f, i) => {
+      // Erratic wandering with multiple sine waves
+      const wx = f.x + Math.sin(t * f.speedX + f.phase) * f.wanderRadius + Math.sin(t * f.speedX * 1.7 + f.phase * 2) * f.wanderRadius * 0.3;
+      const wy = f.y + Math.sin(t * f.speedY + f.phase * 1.5) * 0.8;
+      const wz = f.z + Math.cos(t * f.speedZ + f.phase) * f.wanderRadius + Math.cos(t * f.speedZ * 1.3 + f.phase * 3) * f.wanderRadius * 0.2;
+      
+      dummy.position.set(wx, wy, wz);
+      // Pulsing scale — fireflies blink
+      const pulse = Math.sin(t * f.pulseSpeed + f.phase) * 0.5 + 0.5;
+      const s = 0.02 + pulse * 0.04;
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      meshRef.current!.setMatrixAt(i, dummy.matrix);
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <sphereGeometry args={[1, 6, 6]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={5}
+        transparent
+        opacity={0.8}
+      />
+    </instancedMesh>
+  );
+}
+
+/**
+ * Thematic particles — zone-specific effects (embers, spores, sparks).
+ */
+export function ThematicParticles({
+  count = 25,
+  radius = 5,
+  height = 3,
+  color = "#f59e0b",
+  variant = "embers",
+}: {
+  count?: number;
+  radius?: number;
+  height?: number;
+  color?: string;
+  variant?: "embers" | "spores" | "sparks";
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+
+  const particles = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => ({
+      x: (Math.random() - 0.5) * radius * 2,
+      y: Math.random() * height,
+      z: (Math.random() - 0.5) * radius * 2,
+      speed: variant === "embers" ? 0.3 + Math.random() * 0.4 : variant === "sparks" ? 0.8 + Math.random() * 1.2 : 0.1 + Math.random() * 0.2,
+      phase: Math.random() * Math.PI * 2,
+      rise: variant === "embers" ? 0.3 + Math.random() * 0.5 : variant === "sparks" ? 0.1 : -0.05 + Math.random() * 0.1,
+      scale: variant === "sparks" ? 0.008 + Math.random() * 0.012 : 0.012 + Math.random() * 0.02,
+    }));
+  }, [count, radius, height, variant]);
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime();
+
+    particles.forEach((p, i) => {
+      let y = p.y + (t * p.rise) % height;
+      if (y > height) y -= height;
+      if (y < 0) y += height;
+
+      dummy.position.set(
+        p.x + Math.sin(t * p.speed + p.phase) * 0.6,
+        y,
+        p.z + Math.cos(t * p.speed + p.phase) * 0.6
+      );
+      const flicker = variant === "sparks" ? (Math.sin(t * 8 + p.phase) * 0.5 + 0.5) : 1;
+      dummy.scale.setScalar(p.scale * flicker);
+      dummy.updateMatrix();
+      meshRef.current!.setMatrixAt(i, dummy.matrix);
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  const emissiveIntensity = variant === "embers" ? 4 : variant === "sparks" ? 6 : 2;
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <sphereGeometry args={[1, 4, 4]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={emissiveIntensity}
+        transparent
+        opacity={0.7}
+      />
+    </instancedMesh>
+  );
+}
+
+/**
  * Depth fog plane — horizontal fog layer for atmosphere.
  */
 export function DepthFogPlane({
