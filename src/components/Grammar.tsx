@@ -421,7 +421,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
                         <div key={ei} className="rounded-xl bg-background/40 p-3.5 border border-border/15">
                           <div className="flex items-start gap-2 mb-2.5">
                             <p className="text-xs font-semibold flex-1">{ex.q}</p>
-                            {(ex as any).fr && (
+                            {(ex as Record<string, unknown>).fr && (
                               <button
                                 onClick={() => toggleTr(trKey)}
                                 className={`shrink-0 flex items-center gap-0.5 text-[9px] font-bold rounded px-1.5 py-1 transition-all ${
@@ -436,7 +436,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
                           </div>
 
                           <AnimatePresence>
-                            {trVisible && (ex as any).fr && (
+                            {trVisible && (ex as Record<string, unknown>).fr && (
                               <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
@@ -445,7 +445,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
                                 className="overflow-hidden mb-2.5"
                               >
                                 <div className="text-[11px] text-primary/80 bg-primary/8 border border-primary/15 rounded-lg px-3 py-2">
-                                  {(ex as any).fr}
+                                  {(ex as Record<string, unknown>).fr}
                                 </div>
                               </motion.div>
                             )}

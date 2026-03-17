@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useCallback, useSyncExternalStore } from "react";
+import { supabaseAvailable } from "@/integrations/supabase/client";
 
 /**
  * Global AI status store — shared across all components.
@@ -73,11 +74,15 @@ export function isAIInFallback(): boolean {
   return state.status !== "available";
 }
 
-const HEALTH_CHECK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`;
+const HEALTH_CHECK_URL = import.meta.env.VITE_SUPABASE_URL
+  ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-coach`
+  : null;
 let healthCheckInProgress = false;
 
 /** Run a lightweight health check against the edge function */
 async function runHealthCheck(): Promise<boolean> {
+  // Skip health checks if Supabase is not configured
+  if (!HEALTH_CHECK_URL || !supabaseAvailable) return false;
   // Prevent concurrent health checks
   if (healthCheckInProgress) return state.status === "available";
   healthCheckInProgress = true;

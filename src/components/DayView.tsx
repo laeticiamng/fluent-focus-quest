@@ -27,7 +27,16 @@ interface DayViewProps {
 
 export function DayView({ done, toggleTask }: DayViewProps) {
   const tStr = new Date().toISOString().split("T")[0];
-  const tP = PROG.find(d => d.date === tStr) || PROG[0];
+  const tP = PROG.find(d => d.date === tStr) ?? PROG[0];
+
+  if (!tP) {
+    return (
+      <div className="rounded-2xl p-6 text-center">
+        <p className="text-sm text-muted-foreground">Aucun programme disponible.</p>
+      </div>
+    );
+  }
+
   const tDone = tP.tasks.filter((_, i) => done[`${tP.date}-${i}`]).length;
   const { celebrate } = useCelebration();
   const prevDone = useRef(tDone);
