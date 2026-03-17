@@ -203,13 +203,16 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
             color={coreColor}
             emissive={new THREE.Color(coreEmissive)}
             emissiveIntensity={activated ? 5.0 : 0.6 + intensity * 1.0}
-            metalness={0.95}
+            metalness={0.3}
             roughness={0.02}
-            envMapIntensity={1.0}
+            envMapIntensity={1.5}
             clearcoat={1}
             clearcoatRoughness={0.05}
             iridescence={activated ? 1.0 : 0.4}
             iridescenceIOR={1.8}
+            transmission={activated ? 0.5 : 0.3}
+            thickness={1.5}
+            ior={1.5}
           />
         </mesh>
         {/* Holographic distortion aura */}
