@@ -188,13 +188,17 @@ function CentralPillar({ sigilCount }: { sigilCount: number }) {
       <Float speed={1.2} floatIntensity={0.25} rotationIntensity={0.15}>
         <mesh ref={coreRef} position={[0, 3.0, 0]} castShadow>
           <icosahedronGeometry args={[0.35, 2]} />
-          <meshStandardMaterial
+          <meshPhysicalMaterial
             color="#fbbf24"
             emissive="#fbbf24"
             emissiveIntensity={1.2 + sigilIntensity * 2.5}
             metalness={0.95}
             roughness={0.03}
             envMapIntensity={1.0}
+            clearcoat={1}
+            clearcoatRoughness={0.05}
+            iridescence={0.6}
+            iridescenceIOR={1.8}
           />
         </mesh>
         {/* Holographic distortion aura */}
