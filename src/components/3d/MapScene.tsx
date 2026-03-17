@@ -84,7 +84,7 @@ function ZoneBuilding({
 
   const buildingHeight = 0.6 + (status?.progress ?? 0) * 0.8;
   const baseColor = isLocked ? "#1a1a2e" : color;
-  const emissiveIntensity = isLocked ? 0 : isSelected ? 0.6 : hovered ? 0.3 : 0.1;
+  const emissiveIntensity = isLocked ? 0 : isSelected ? 1.0 : hovered ? 0.6 : 0.25;
 
   return (
     <group
@@ -100,7 +100,7 @@ function ZoneBuilding({
       <mesh position={[0, -0.1, 0]} receiveShadow>
         <cylinderGeometry args={[1, 1.1, 0.2, 6]} />
         <meshStandardMaterial
-          color={isLocked ? "#111" : "#1a1a2e"}
+          color={isLocked ? "#181828" : "#22223a"}
           metalness={0.6}
           roughness={0.4}
         />
@@ -216,9 +216,9 @@ function Connectors() {
             <meshStandardMaterial
               color="#d4a017"
               emissive="#d4a017"
-              emissiveIntensity={0.15}
+              emissiveIntensity={0.35}
               transparent
-              opacity={0.3}
+              opacity={0.45}
             />
           </mesh>
         );
@@ -233,10 +233,10 @@ function MapFloor() {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.55, 0]} receiveShadow>
         <planeGeometry args={[16, 16]} />
-        <meshStandardMaterial color="#06060f" metalness={0.3} roughness={0.8} />
+        <meshStandardMaterial color="#12122a" metalness={0.3} roughness={0.7} />
       </mesh>
       {/* Grid lines */}
-      <gridHelper args={[16, 32, "#1a1a2e", "#0d0d1a"]} position={[0, -0.54, 0]} />
+      <gridHelper args={[16, 32, "#2a2a45", "#181830"]} position={[0, -0.54, 0]} />
     </group>
   );
 }
@@ -259,18 +259,20 @@ export function MapScene({
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          {/* Lighting */}
-          <ambientLight intensity={0.12} color="#6666aa" />
+          {/* Lighting — tuned for legibility */}
+          <ambientLight intensity={0.45} color="#b0b8d0" />
           <directionalLight
-            position={[6, 10, 4]}
-            intensity={0.35}
+            position={[6, 12, 5]}
+            intensity={1.0}
             color="#ffe4b5"
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
           />
+          <directionalLight position={[-4, 6, -3]} intensity={0.35} color="#8899cc" />
+          <pointLight position={[0, 4, 0]} intensity={0.6} color="#d4a017" distance={16} decay={2} />
 
-          <fog attach="fog" args={["#060610", 10, 22]} />
+          <fog attach="fog" args={["#0c0c20", 14, 28]} />
 
           <MapFloor />
           <Connectors />

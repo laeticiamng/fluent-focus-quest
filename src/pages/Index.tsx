@@ -627,7 +627,7 @@ const Index = () => {
                 )}
 
                 {/* Inventory preview — Real 3D when available */}
-                <WebGLGate fallback={
+                <WebGLGate sceneName="Inventory" fallback={
                   <InventoryArtifact3D items={escapeState.inventory} sigilsCollected={escapeState.sigilsCollected} />
                 }>
                   {escapeState.inventory.length > 0 ? (
@@ -718,7 +718,7 @@ const Index = () => {
                 <XPBar xp={progress.xp} />
 
                 {/* 3D Hub Scene — interactive zone portal map */}
-                <WebGLGate fallback={
+                <WebGLGate sceneName="Hub" fallback={
                   <div className="rounded-2xl p-4 space-y-3" style={{
                     background: "linear-gradient(145deg, hsl(var(--card)), hsl(225 18% 9%))",
                     border: "1px solid hsl(32 95% 55% / 0.12)",
@@ -878,7 +878,7 @@ const Index = () => {
           {tab === "questmap" && (
             <div className="space-y-4">
               {/* 3D Map Scene */}
-              <WebGLGate fallback={
+              <WebGLGate sceneName="Map" fallback={
                 <EscapeMap
                   escapeZoneStatus={progress.escapeZoneStatus}
                   artifacts={progress.artifacts}
@@ -1063,7 +1063,7 @@ const Index = () => {
           )}
           {tab === "lazarus" && (
             <AtmosphericSceneWrapper atmosphere="neutral" intensity="medium">
-              <WebGLGate fallback={
+              <WebGLGate sceneName="Lazarus" fallback={
                 <MetaPuzzle
                   sigilsCollected={escapeState.sigilsCollected}
                   onActivateProtocol={progress.activateProtocol}
