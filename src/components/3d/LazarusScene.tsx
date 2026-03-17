@@ -637,8 +637,8 @@ export function LazarusScene({
 
           <fog attach="fog" args={[activated ? "#081408" : "#08081a", 8, 28]} />
 
-          {/* Cinematic camera intro */}
           <CinematicIntro targetPosition={[0, 5, 6]} startOffset={[0, 3, 5]} duration={2.2} />
+          <CinematicCameraBreathing fovBreath={0.6} breathSpeed={0.1} parallaxStrength={0.15} />
 
           {/* Sacred floor */}
           <LazarusFloor activated={activated} />
