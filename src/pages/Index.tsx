@@ -4,6 +4,7 @@ import { LogOut, Map, Package, KeyRound, Shield, Rocket, Zap } from "lucide-reac
 import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
 import { WebGLGate, WebGLDiagnosticBadge } from "@/components/3d/WebGLDetect";
+import { PremiumFallback, FallbackAction } from "@/components/3d/PremiumFallback";
 
 // ── Tab-level Error Boundary — catches crashes in individual tabs ──
 class TabErrorBoundary extends Component<{ tabName: string; children: ReactNode }, { hasError: boolean }> {
@@ -841,18 +842,19 @@ const Index = () => {
 
                 {/* 3D Hub Scene — interactive zone portal map */}
                 <WebGLGate sceneName="Hub" fallback={
-                  <div className="rounded-2xl p-4 text-center" style={{
-                    background: "linear-gradient(145deg, hsl(225 25% 14%), hsl(var(--card)))",
-                    border: "1px solid hsl(32 95% 55% / 0.12)",
-                  }}>
-                    <button
-                      onClick={() => handleTabChange("questmap")}
-                      className="flex items-center justify-center gap-2 mx-auto text-amber-400 hover:text-amber-300 transition-colors"
-                    >
-                      <Map className="w-4 h-4" />
-                      <span className="text-xs font-bold">Explorer la carte du Complexe</span>
-                    </button>
-                  </div>
+                  <PremiumFallback
+                    sceneName="Hub"
+                    icon="🏛️"
+                    title="Le Complexe Linguistique"
+                    subtitle={`${sigilCount}/7 sceaux collectés`}
+                    accentColor="#d4a017"
+                    actions={
+                      <FallbackAction onClick={() => handleTabChange("questmap")}>
+                        <Map className="w-3.5 h-3.5" />
+                        Explorer la carte
+                      </FallbackAction>
+                    }
+                  />
                 }>
                   <Suspense fallback={
                     <div className="rounded-2xl overflow-hidden h-[300px] flex items-center justify-center" style={{

@@ -1,12 +1,14 @@
 import { useRef, useState, useCallback, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Float, Html, ContactShadows, Environment } from "@react-three/drei";
+import { OrbitControls, Float, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { META_PUZZLE_FRAGMENTS, type MetaPuzzleFragment } from "@/data/puzzleEngine";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
-import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles, EnergyTrails, AnimatedFogLayers } from "./premium/DecorativeElements";
+import { AmbientParticles, FloatingRings, BackgroundStructures, SuspendedArcs, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, ThematicParticles, EnergyTrails, AnimatedFogLayers, AtmosphericHeightFog } from "./premium/DecorativeElements";
 import { PremiumPostProcessing } from "./premium/PostProcessing";
 import { CinematicCameraBreathing } from "./premium/CinematicCamera";
+import { useQualityTier } from "@/hooks/useQualityTier";
+import { getSceneLightingRig } from "./premium/SceneLightingConfig";
 
 interface LazarusSceneProps {
   sigilsCollected: string[];
@@ -17,7 +19,7 @@ interface LazarusSceneProps {
   feedback: string | null;
 }
 
-// ── Central Altar — SPECTACULAR TECHNO-SACRED FOCAL POINT ──
+// ── Central Altar ──
 function Altar({ sigilCount, activated }: { sigilCount: number; activated: boolean }) {
   const coreRef = useRef<THREE.Mesh>(null);
   const innerRingRef = useRef<THREE.Group>(null);
@@ -34,9 +36,7 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
       const s = activated ? 1.6 : 1;
       coreRef.current.scale.lerp(new THREE.Vector3(s, s, s), 0.04);
     }
-    if (innerRingRef.current) {
-      innerRingRef.current.rotation.z = t * 0.12;
-    }
+    if (innerRingRef.current) innerRingRef.current.rotation.z = t * 0.12;
     if (outerRingRef.current) {
       outerRingRef.current.rotation.z = -t * 0.08;
       outerRingRef.current.rotation.x = Math.sin(t * 0.06) * 0.12;
@@ -45,12 +45,8 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
       orbitalRef.current.rotation.y = t * 0.35;
       orbitalRef.current.rotation.x = Math.sin(t * 0.18) * 0.3;
     }
-    if (shieldRef.current) {
-      shieldRef.current.rotation.y = -t * 0.06;
-    }
-    if (columnRef.current) {
-      columnRef.current.rotation.y = t * 0.03;
-    }
+    if (shieldRef.current) shieldRef.current.rotation.y = -t * 0.06;
+    if (columnRef.current) columnRef.current.rotation.y = t * 0.03;
   });
 
   const intensity = sigilCount / 7;
@@ -60,75 +56,74 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
 
   return (
     <group position={[0, 0, 0]}>
-      {/* ── Grand four-tier base platform ── */}
+      {/* Four-tier base */}
       <mesh position={[0, -0.35, 0]} receiveShadow>
         <cylinderGeometry args={[2.5, 2.8, 0.18, 32]} />
         <meshStandardMaterial
-          color={activated ? "#142014" : "#121232"}
-          metalness={0.75}
-          roughness={0.22}
-          envMapIntensity={0.5}
+          color={activated ? "#0e180e" : "#0e0e28"}
+          metalness={0.8}
+          roughness={0.25}
+          envMapIntensity={0.4}
         />
       </mesh>
       <mesh position={[0, -0.22, 0]} receiveShadow>
         <cylinderGeometry args={[2.0, 2.3, 0.14, 32]} />
         <meshStandardMaterial
-          color={activated ? "#183018" : "#161640"}
-          metalness={0.7}
-          roughness={0.25}
+          color={activated ? "#142814" : "#121238"}
+          metalness={0.75}
+          roughness={0.28}
           emissive={new THREE.Color(ringColor)}
-          emissiveIntensity={0.03 + intensity * 0.04}
+          emissiveIntensity={0.02 + intensity * 0.03}
         />
       </mesh>
       <mesh position={[0, -0.12, 0]} receiveShadow>
         <cylinderGeometry args={[1.6, 1.8, 0.1, 32]} />
         <meshStandardMaterial
-          color={activated ? "#1e381e" : "#1a1a45"}
-          metalness={0.65}
-          roughness={0.28}
+          color={activated ? "#183418" : "#151540"}
+          metalness={0.7}
+          roughness={0.3}
           emissive={new THREE.Color(ringColor)}
-          emissiveIntensity={0.04 + intensity * 0.08}
+          emissiveIntensity={0.03 + intensity * 0.06}
         />
       </mesh>
       <mesh position={[0, -0.05, 0]} receiveShadow>
         <cylinderGeometry args={[1.2, 1.4, 0.08, 32]} />
         <meshStandardMaterial
-          color={activated ? "#22421e" : "#1e1e48"}
-          metalness={0.6}
-          roughness={0.3}
+          color={activated ? "#1e3c1e" : "#181845"}
+          metalness={0.65}
+          roughness={0.32}
           emissive={new THREE.Color(ringColor)}
-          emissiveIntensity={0.06 + intensity * 0.12}
+          emissiveIntensity={0.05 + intensity * 0.1}
         />
       </mesh>
 
-      {/* ── Base accent energy rings ── */}
+      {/* Base accent rings */}
       {[2.2, 1.7, 1.3].map((r, i) => (
         <mesh key={i} position={[0, -0.28 + i * 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[r - 0.025, r, 64]} />
           <meshStandardMaterial
             color={activated ? "#10b981" : i === 1 ? "#6366f1" : "#d4a017"}
             emissive={activated ? "#10b981" : i === 1 ? "#6366f1" : "#d4a017"}
-            emissiveIntensity={activated ? 1.2 : 0.5 + intensity * 0.3}
+            emissiveIntensity={activated ? 1.0 : 0.4 + intensity * 0.25}
             transparent
-            opacity={0.3}
+            opacity={0.25}
             side={THREE.DoubleSide}
           />
         </mesh>
       ))}
 
-      {/* ── Inner rune ring — rotating, with glyphs ── */}
+      {/* Inner rune ring */}
       <group ref={innerRingRef} position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <mesh>
           <torusGeometry args={[1.25, 0.03, 16, 64]} />
           <meshStandardMaterial
             color={ringColor}
             emissive={ringColor}
-            emissiveIntensity={activated ? 3.0 : 0.7 + intensity * 0.5}
+            emissiveIntensity={activated ? 2.5 : 0.6 + intensity * 0.4}
             metalness={1}
             roughness={0.04}
           />
         </mesh>
-        {/* Glyph marks */}
         {Array.from({ length: 14 }).map((_, i) => {
           const a = (i / 14) * Math.PI * 2;
           const isMajor = i % 2 === 0;
@@ -138,32 +133,32 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
               <meshStandardMaterial
                 color={ringColor}
                 emissive={ringColor}
-                emissiveIntensity={activated ? 2.5 : 0.5}
+                emissiveIntensity={activated ? 2.0 : 0.4}
                 transparent
-                opacity={isMajor ? 0.6 : 0.3}
+                opacity={isMajor ? 0.55 : 0.25}
               />
             </mesh>
           );
         })}
       </group>
 
-      {/* ── Outer ring — counter-rotating ── */}
+      {/* Outer ring */}
       <group ref={outerRingRef} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <mesh>
           <torusGeometry args={[1.8, 0.02, 16, 64]} />
           <meshStandardMaterial
             color="#d4a017"
             emissive="#d4a017"
-            emissiveIntensity={activated ? 1.5 : 0.35}
+            emissiveIntensity={activated ? 1.2 : 0.3}
             metalness={1}
             roughness={0.04}
             transparent
-            opacity={0.5}
+            opacity={0.45}
           />
         </mesh>
       </group>
 
-      {/* ── Shield ring system — triple protection rings ── */}
+      {/* Shield rings */}
       <group ref={shieldRef} position={[0, 0.7, 0]}>
         {[0, Math.PI / 3, Math.PI * 2 / 3].map((rot, i) => (
           <mesh key={i} rotation={[Math.PI / 2, rot, Math.PI / 5]}>
@@ -171,51 +166,50 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
             <meshStandardMaterial
               color={activated ? "#10b981" : "#6366f1"}
               emissive={activated ? "#10b981" : "#6366f1"}
-              emissiveIntensity={activated ? 1.5 : 0.35 + intensity * 0.2}
+              emissiveIntensity={activated ? 1.2 : 0.3 + intensity * 0.15}
               metalness={1}
               roughness={0.05}
               transparent
-              opacity={0.3}
+              opacity={0.25}
             />
           </mesh>
         ))}
       </group>
 
-      {/* ── Orbital ring — tilted, wide ── */}
+      {/* Orbital ring */}
       <mesh ref={orbitalRef} position={[0, 0.85, 0]}>
         <torusGeometry args={[0.75, 0.012, 16, 48]} />
         <meshStandardMaterial
           color={activated ? "#10b981" : "#6366f1"}
           emissive={activated ? "#10b981" : "#6366f1"}
-          emissiveIntensity={activated ? 2.5 : 0.55}
+          emissiveIntensity={activated ? 2.0 : 0.45}
           metalness={1}
           roughness={0.04}
           transparent
-          opacity={0.6}
+          opacity={0.55}
         />
       </mesh>
 
-      {/* ── Central core — the sacred heart, more spectacular ── */}
+      {/* Central core — hero material */}
       <Float speed={activated ? 3.5 : 1.2} floatIntensity={activated ? 0.35 : 0.1}>
         <mesh ref={coreRef} position={[0, 1.0, 0]} castShadow>
           <icosahedronGeometry args={[0.4, 2]} />
           <meshPhysicalMaterial
             color={coreColor}
             emissive={new THREE.Color(coreEmissive)}
-            emissiveIntensity={activated ? 5.0 : 0.6 + intensity * 1.0}
+            emissiveIntensity={activated ? 4.0 : 0.5 + intensity * 0.8}
             metalness={0.3}
-            roughness={0.02}
+            roughness={0.03}
             envMapIntensity={1.5}
             clearcoat={1}
-            clearcoatRoughness={0.05}
-            iridescence={activated ? 1.0 : 0.4}
+            clearcoatRoughness={0.06}
+            iridescence={activated ? 1.0 : 0.35}
             iridescenceIOR={1.8}
             transmission={activated ? 0.5 : 0.3}
             thickness={1.5}
             ior={1.5}
           />
         </mesh>
-        {/* Holographic distortion aura */}
         <HolographicDistortion
           position={[0, 1.0, 0]}
           radius={0.4}
@@ -225,7 +219,7 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
         />
       </Float>
 
-      {/* ── Sentinel pillars around altar ── */}
+      {/* Sentinel pillars */}
       <group ref={columnRef}>
         {[0, Math.PI / 3, Math.PI * 2 / 3, Math.PI, Math.PI * 4 / 3, Math.PI * 5 / 3].map((angle, i) => {
           const d = 2.1;
@@ -233,47 +227,39 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
           const z = Math.sin(angle) * d;
           return (
             <group key={i} position={[x, 0, z]}>
-              {/* Base */}
               <mesh position={[0, -0.02, 0]}>
                 <cylinderGeometry args={[0.07, 0.09, 0.08, 6]} />
-                <meshStandardMaterial
-                  color="#101028"
-                  metalness={0.7}
-                  roughness={0.25}
-                />
+                <meshStandardMaterial color="#0a0a20" metalness={0.75} roughness={0.28} />
               </mesh>
-              {/* Column */}
               <mesh position={[0, 0.85, 0]}>
                 <cylinderGeometry args={[0.035, 0.055, 1.9, 6]} />
                 <meshStandardMaterial
-                  color="#141435"
-                  metalness={0.75}
-                  roughness={0.2}
+                  color="#0e0e28"
+                  metalness={0.8}
+                  roughness={0.22}
                   emissive={new THREE.Color(activated ? "#10b981" : "#6366f1")}
-                  emissiveIntensity={0.04}
+                  emissiveIntensity={0.03}
                 />
               </mesh>
-              {/* Accent band */}
               <mesh position={[0, 1.2, 0]}>
                 <torusGeometry args={[0.045, 0.006, 8, 16]} />
                 <meshStandardMaterial
                   color={activated ? "#10b981" : "#6366f1"}
                   emissive={activated ? "#10b981" : "#6366f1"}
-                  emissiveIntensity={0.6}
+                  emissiveIntensity={0.5}
                   metalness={1}
                   roughness={0.05}
                   transparent
-                  opacity={0.4}
+                  opacity={0.35}
                 />
               </mesh>
-              {/* Crown gem */}
               <Float speed={1.5} floatIntensity={0.05}>
                 <mesh position={[0, 1.9, 0]}>
                   <octahedronGeometry args={[0.05, 0]} />
                   <meshStandardMaterial
                     color={activated ? "#10b981" : "#6366f1"}
                     emissive={activated ? "#10b981" : "#6366f1"}
-                    emissiveIntensity={activated ? 2.5 : 0.7}
+                    emissiveIntensity={activated ? 2.0 : 0.6}
                     metalness={1}
                     roughness={0}
                   />
@@ -282,7 +268,7 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
               {i % 2 === 0 && (
                 <pointLight
                   position={[0, 1.9, 0]}
-                  intensity={0.3}
+                  intensity={0.25}
                   color={activated ? "#10b981" : "#6366f1"}
                   distance={3}
                   decay={2}
@@ -293,24 +279,24 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
         })}
       </group>
 
-      {/* ── Core lighting — dramatic ── */}
+      {/* Core lighting */}
       <pointLight
         position={[0, 1.0, 0]}
-        intensity={activated ? 10 : 1.2 + intensity * 2.5}
+        intensity={activated ? 8 : 1.0 + intensity * 2.0}
         color={activated ? "#fbbf24" : "#6366f1"}
         distance={12}
         decay={2}
       />
       <pointLight
         position={[0, 0, 0]}
-        intensity={activated ? 4 : 0.6}
+        intensity={activated ? 3 : 0.5}
         color={activated ? "#10b981" : "#d4a017"}
         distance={7}
         decay={2}
       />
       <pointLight
         position={[0, -0.3, 0]}
-        intensity={0.3}
+        intensity={0.25}
         color={activated ? "#10b981" : "#6366f1"}
         distance={5}
         decay={2}
@@ -319,7 +305,7 @@ function Altar({ sigilCount, activated }: { sigilCount: number; activated: boole
   );
 }
 
-// ── Sigil Slot — PREMIUM SACRED ──
+// ── Sigil Slot ──
 function SigilSlot({
   fragment,
   index,
@@ -368,45 +354,45 @@ function SigilSlot({
     else if (isObtained) onPlace();
   }, [activated, isPlaced, isObtained, onPlace, onRemove]);
 
-  const slotColor = isPlaced ? "#fbbf24" : isObtained ? "#4a4a6a" : "#161630";
-  const emissive = isPlaced ? "#fbbf24" : isObtained && hovered ? "#6366f1" : "#0a0a15";
+  const slotColor = isPlaced ? "#fbbf24" : isObtained ? "#4a4a6a" : "#121228";
+  const emissive = isPlaced ? "#fbbf24" : isObtained && hovered ? "#6366f1" : "#080812";
 
   return (
     <group position={[x, 0, z]}>
-      {/* ── Slot pedestal — tiered ── */}
+      {/* Pedestal */}
       <mesh position={[0, -0.05, 0]} receiveShadow>
         <cylinderGeometry args={[0.24, 0.28, 0.08, 6]} />
         <meshStandardMaterial
-          color={isPlaced ? "#2a2010" : "#121228"}
-          metalness={0.7}
-          roughness={0.25}
-          emissive={new THREE.Color(isPlaced ? "#fbbf24" : "#0a0a15")}
-          emissiveIntensity={isPlaced ? 0.3 : 0.01}
+          color={isPlaced ? "#2a2010" : "#0e0e22"}
+          metalness={0.75}
+          roughness={0.28}
+          emissive={new THREE.Color(isPlaced ? "#fbbf24" : "#080812")}
+          emissiveIntensity={isPlaced ? 0.25 : 0.008}
         />
       </mesh>
       <mesh position={[0, 0.0, 0]}>
         <cylinderGeometry args={[0.18, 0.22, 0.05, 6]} />
         <meshStandardMaterial
-          color={isPlaced ? "#302510" : "#161632"}
-          metalness={0.65}
-          roughness={0.28}
+          color={isPlaced ? "#302510" : "#121228"}
+          metalness={0.7}
+          roughness={0.3}
         />
       </mesh>
 
-      {/* ── Slot accent ring ── */}
+      {/* Accent ring */}
       <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.2, 0.24, 16]} />
         <meshStandardMaterial
-          color={isPlaced ? "#fbbf24" : isObtained ? "#6366f1" : "#101025"}
-          emissive={isPlaced ? "#fbbf24" : isObtained ? "#6366f1" : "#060612"}
-          emissiveIntensity={isPlaced ? 1.5 : isObtained ? 0.35 : 0.02}
+          color={isPlaced ? "#fbbf24" : isObtained ? "#6366f1" : "#0a0a1e"}
+          emissive={isPlaced ? "#fbbf24" : isObtained ? "#6366f1" : "#050510"}
+          emissiveIntensity={isPlaced ? 1.2 : isObtained ? 0.3 : 0.01}
           transparent
-          opacity={0.4}
+          opacity={0.35}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* ── Sigil gem ── */}
+      {/* Sigil gem */}
       <Float speed={1.8} floatIntensity={isPlaced ? 0.12 : 0}>
         <mesh
           ref={meshRef}
@@ -420,22 +406,21 @@ function SigilSlot({
           <meshStandardMaterial
             color={slotColor}
             emissive={new THREE.Color(emissive)}
-            emissiveIntensity={isPlaced ? 2.5 : hovered ? 1.0 : 0.04}
+            emissiveIntensity={isPlaced ? 2.0 : hovered ? 0.8 : 0.03}
             metalness={0.92}
             roughness={0.06}
             transparent={!isObtained}
             opacity={isObtained ? 1 : 0.2}
-            envMapIntensity={0.9}
+            envMapIntensity={0.8}
           />
         </mesh>
       </Float>
 
-      {/* ── Placed sigil light ── */}
       {isPlaced && (
-        <pointLight position={[0, 0.3, 0]} intensity={3.0} color="#fbbf24" distance={2.5} decay={2} />
+        <pointLight position={[0, 0.3, 0]} intensity={2.5} color="#fbbf24" distance={2.5} decay={2} />
       )}
 
-      {/* ── Label ── */}
+      {/* Label */}
       <Html position={[0, -0.3, 0]} center distanceFactor={6}>
         <div className={`text-center pointer-events-none select-none ${isObtained ? "" : "opacity-18"}`}>
           <div className="text-xs drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]">{isObtained ? fragment.icon : "?"}</div>
@@ -459,7 +444,7 @@ function SigilSlot({
   );
 }
 
-// ── Lazarus Floor — sacred ritual ground with deep engraving ──
+// ── Lazarus Floor ──
 function LazarusFloor({ activated }: { activated: boolean }) {
   const runeRef = useRef<THREE.Group>(null);
   const innerRef = useRef<THREE.Group>(null);
@@ -472,39 +457,36 @@ function LazarusFloor({ activated }: { activated: boolean }) {
 
   return (
     <group>
-      {/* ── Outer floor — deep dark ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.45, 0]} receiveShadow>
         <circleGeometry args={[7, 64]} />
         <meshStandardMaterial
-          color={activated ? "#0e1a0e" : "#0e0e25"}
+          color={activated ? "#0a140a" : "#0a0a20"}
+          metalness={0.65}
+          roughness={0.38}
+          envMapIntensity={0.35}
+        />
+      </mesh>
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.44, 0]}>
+        <circleGeometry args={[3.5, 64]} />
+        <meshStandardMaterial
+          color={activated ? "#0e1c0e" : "#0e0e28"}
           metalness={0.6}
-          roughness={0.35}
+          roughness={0.32}
           envMapIntensity={0.4}
         />
       </mesh>
 
-      {/* ── Inner sanctum ── */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.44, 0]}>
-        <circleGeometry args={[3.5, 64]} />
-        <meshStandardMaterial
-          color={activated ? "#122012" : "#121230"}
-          metalness={0.55}
-          roughness={0.3}
-          envMapIntensity={0.5}
-        />
-      </mesh>
-
-      {/* ── Inner core zone ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.435, 0]}>
         <circleGeometry args={[1.8, 48]} />
         <meshStandardMaterial
-          color={activated ? "#162816" : "#161638"}
-          metalness={0.5}
-          roughness={0.32}
+          color={activated ? "#122212" : "#121232"}
+          metalness={0.55}
+          roughness={0.35}
         />
       </mesh>
 
-      {/* ── Rune circles — outer set ── */}
+      {/* Rune circles */}
       <group ref={runeRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.425, 0]}>
         {[1.6, 2.6, 4.2, 5.8].map((r, i) => (
           <mesh key={i}>
@@ -512,15 +494,14 @@ function LazarusFloor({ activated }: { activated: boolean }) {
             <meshStandardMaterial
               color={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
               emissive={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
-              emissiveIntensity={activated ? 1.2 - i * 0.15 : 0.45 - i * 0.06}
+              emissiveIntensity={activated ? 1.0 - i * 0.12 : 0.35 - i * 0.05}
               transparent
-              opacity={activated ? 0.4 - i * 0.05 : 0.22 - i * 0.03}
+              opacity={activated ? 0.35 - i * 0.04 : 0.18 - i * 0.025}
               side={THREE.DoubleSide}
             />
           </mesh>
         ))}
 
-        {/* ── Radial glyph marks — 20 for high density ── */}
         {Array.from({ length: 20 }).map((_, i) => {
           const a = (i / 20) * Math.PI * 2;
           const isMajor = i % 5 === 0;
@@ -531,29 +512,28 @@ function LazarusFloor({ activated }: { activated: boolean }) {
               <meshStandardMaterial
                 color={activated ? "#10b981" : "#d4a017"}
                 emissive={activated ? "#10b981" : "#d4a017"}
-                emissiveIntensity={isMajor ? 0.7 : 0.3}
+                emissiveIntensity={isMajor ? 0.6 : 0.25}
                 transparent
-                opacity={isMajor ? 0.35 : 0.15}
+                opacity={isMajor ? 0.3 : 0.12}
               />
             </mesh>
           );
         })}
       </group>
 
-      {/* ── Inner counter-rotating rune ring ── */}
+      {/* Inner rune ring */}
       <group ref={innerRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.42, 0]}>
         <mesh>
           <ringGeometry args={[1.05, 1.1, 48]} />
           <meshStandardMaterial
             color={activated ? "#10b981" : "#d4a017"}
             emissive={activated ? "#10b981" : "#d4a017"}
-            emissiveIntensity={activated ? 1.5 : 0.6}
+            emissiveIntensity={activated ? 1.2 : 0.5}
             transparent
-            opacity={0.35}
+            opacity={0.3}
             side={THREE.DoubleSide}
           />
         </mesh>
-        {/* Inner glyphs */}
         {Array.from({ length: 7 }).map((_, i) => {
           const a = (i / 7) * Math.PI * 2;
           const r = 1.07;
@@ -563,41 +543,40 @@ function LazarusFloor({ activated }: { activated: boolean }) {
               <meshStandardMaterial
                 color={activated ? "#10b981" : "#fbbf24"}
                 emissive={activated ? "#10b981" : "#fbbf24"}
-                emissiveIntensity={0.8}
+                emissiveIntensity={0.7}
                 transparent
-                opacity={0.5}
+                opacity={0.45}
               />
             </mesh>
           );
         })}
       </group>
 
-      {/* ── Cardinal energy nodes ── */}
+      {/* Cardinal energy nodes */}
       {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle, i) => {
         const d = 4.5;
         return (
-          <group key={i}>
-            <mesh
-              position={[Math.cos(angle) * d, -0.42, Math.sin(angle) * d]}
-              rotation={[-Math.PI / 2, 0, 0]}
-            >
-              <circleGeometry args={[0.2, 12]} />
-              <meshStandardMaterial
-                color={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
-                emissive={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
-                emissiveIntensity={1.0}
-                transparent
-                opacity={0.4}
-              />
-            </mesh>
-          </group>
+          <mesh
+            key={i}
+            position={[Math.cos(angle) * d, -0.42, Math.sin(angle) * d]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <circleGeometry args={[0.2, 12]} />
+            <meshStandardMaterial
+              color={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
+              emissive={activated ? "#10b981" : i % 2 === 0 ? "#d4a017" : "#6366f1"}
+              emissiveIntensity={0.8}
+              transparent
+              opacity={0.35}
+            />
+          </mesh>
         );
       })}
     </group>
   );
 }
 
-// ── Main Lazarus Scene — SPECTACULAR TECHNO-SACRED ──
+// ── Main Lazarus Scene ──
 export function LazarusScene({
   sigilsCollected,
   arrangement,
@@ -606,6 +585,10 @@ export function LazarusScene({
   activated,
   feedback,
 }: LazarusSceneProps) {
+  const quality = useQualityTier();
+  const sceneKey = activated ? "lazarus_activated" : "lazarus";
+  const rig = useMemo(() => getSceneLightingRig(sceneKey), [sceneKey]);
+
   const fragments = META_PUZZLE_FRAGMENTS.map(f => ({
     ...f,
     obtained: sigilsCollected.some(s =>
@@ -618,32 +601,30 @@ export function LazarusScene({
       <Canvas
         shadows
         camera={{ position: [0, 5, 6], fov: 42 }}
-        dpr={[1, 1.5]}
+        dpr={quality.dpr}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.4,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color(activated ? "#061006" : "#060618");
+          scene.background = new THREE.Color(activated ? "#040a04" : "#040410");
         }}
       >
         <Suspense fallback={null}>
           <PremiumLighting
-            preset="sacred"
+            scene={sceneKey}
             accentColor={activated ? "#10b981" : "#d4a017"}
             rimColor={activated ? "#059669" : "#6366f1"}
           />
 
-          <fog attach="fog" args={[activated ? "#081408" : "#08081a", 8, 28]} />
+          <fog attach="fog" args={[rig.fogColor, rig.fogNear, rig.fogFar]} />
 
           <CinematicIntro targetPosition={[0, 5, 6]} startOffset={[0, 3, 5]} duration={2.2} />
           <CinematicCameraBreathing fovBreath={0.6} breathSpeed={0.1} parallaxStrength={0.15} />
 
-          {/* Sacred floor */}
           <LazarusFloor activated={activated} />
 
-          {/* Pulsing floor energy veins */}
           <PulsingFloorVeins
             count={14}
             innerRadius={1.5}
@@ -653,13 +634,10 @@ export function LazarusScene({
             secondaryColor={activated ? "#fbbf24" : "#6366f1"}
           />
 
-          {/* Energy beams from sentinel pillars */}
           <EnergyBeams count={6} radius={2.1} height={2} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} activated={activated} />
 
-          {/* The Altar */}
           <Altar sigilCount={sigilsCollected.length} activated={activated} />
 
-          {/* Sigil slots */}
           {fragments.map((f, i) => (
             <SigilSlot
               key={f.id}
@@ -675,7 +653,6 @@ export function LazarusScene({
             />
           ))}
 
-          {/* Floating rings above altar */}
           <FloatingRings
             count={activated ? 5 : 3}
             baseY={activated ? 2.8 : 2.2}
@@ -683,42 +660,59 @@ export function LazarusScene({
             color={activated ? "#10b981" : "#d4a017"}
           />
 
-          {/* Suspended energy arcs */}
           <SuspendedArcs count={activated ? 6 : 3} baseY={3.5} radius={4} color={activated ? "#10b981" : "#6366f1"} />
 
-          {/* Ambient particles */}
-          <AmbientParticles
-            count={activated ? 65 : 35}
-            radius={6}
-            height={5}
-            color={activated ? "#10b981" : "#d4a017"}
-            secondaryColor={activated ? "#fbbf24" : "#6366f1"}
-          />
+          {quality.enableParticles && (
+            <AmbientParticles
+              count={Math.round((activated ? 65 : 35) * quality.particleMultiplier)}
+              radius={6}
+              height={5}
+              color={activated ? "#10b981" : "#d4a017"}
+              secondaryColor={activated ? "#fbbf24" : "#6366f1"}
+            />
+          )}
 
-          {/* Fireflies — erratic luminous wanderers */}
-          <Fireflies count={activated ? 30 : 15} radius={5} height={4} color={activated ? "#10b981" : "#fbbf24"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} />
+          {quality.enableFireflies && (
+            <Fireflies count={Math.round((activated ? 30 : 15) * quality.particleMultiplier)} radius={5} height={4} color={activated ? "#10b981" : "#fbbf24"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} />
+          )}
 
-          {/* Energy trails */}
-          <EnergyTrails count={4} radius={3} height={3} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} speed={activated ? 0.5 : 0.2} />
+          {quality.enableEnergyTrails && (
+            <EnergyTrails count={4} radius={3} height={3} color={activated ? "#10b981" : "#d4a017"} secondaryColor={activated ? "#fbbf24" : "#6366f1"} speed={activated ? 0.5 : 0.2} />
+          )}
 
-          {/* Animated fog layers */}
-          <AnimatedFogLayers layers={2} baseY={-0.3} radius={8} color={activated ? "#061006" : "#0a0a1e"} maxOpacity={0.15} />
+          {quality.enableFogLayers && (
+            <>
+              <AnimatedFogLayers layers={2} baseY={-0.3} radius={8} color={rig.fogColor} maxOpacity={0.12} />
+              <AtmosphericHeightFog
+                groundColor={rig.fogColor}
+                midColor={activated ? "#061006" : "#0a0a1e"}
+                baseY={-0.45}
+                radius={10}
+                groundOpacity={0.14}
+                midOpacity={0.05}
+              />
+            </>
+          )}
 
-          {/* Thematic embers */}
           <ThematicParticles count={20} radius={4} height={5} color={activated ? "#10b981" : "#f59e0b"} variant="embers" />
 
-          {/* Background depth */}
-          <BackgroundStructures count={5} minRadius={12} maxRadius={18} height={5} color={activated ? "#040e04" : "#050514"} />
+          {quality.enableBackgroundStructures && (
+            <BackgroundStructures count={5} minRadius={12} maxRadius={18} height={5} color={activated ? "#030a03" : "#030310"} />
+          )}
 
-          <PremiumShadows y={-0.44} opacity={0.35} scale={14} />
+          {quality.enableContactShadows && (
+            <PremiumShadows y={rig.shadowY} opacity={rig.shadowOpacity} scale={rig.shadowScale} blur={rig.shadowBlur} />
+          )}
 
           <PremiumPostProcessing
-            bloomIntensity={activated ? 1.1 : 0.8}
-            bloomThreshold={activated ? 0.22 : 0.3}
+            bloomIntensity={activated ? 1.0 : 0.75}
+            bloomThreshold={activated ? 0.25 : 0.3}
             bloomSmoothing={0.6}
-            vignetteOpacity={activated ? 0.45 : 0.4}
-            chromaticAberration={0.0005}
-            quality="high"
+            vignetteOpacity={activated ? 0.42 : 0.38}
+            chromaticAberration={0.0004}
+            qualityTier={quality.tier}
+            aoRadius={0.55}
+            aoIntensity={1.6}
           />
 
           <OrbitControls

@@ -2,6 +2,7 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
+import { getSceneLightingRig, type SceneLightingRig } from "./SceneLightingConfig";
 
 // ── GLSL Simplex Noise (inline) ──
 const NOISE_GLSL = `
@@ -56,27 +57,19 @@ float snoise(vec3 v) {
 
 /**
  * Animated GLSL Nebula Skybox — living, breathing cosmic dome.
- * Replaces static canvas texture with real-time shader.
+ * Palette driven by scene-specific config.
  */
-function NebulaSkybox({ preset = "default" }: { preset?: string }) {
+function NebulaSkybox({ palette }: { palette: { c1: string; c2: string; c3: string; c4: string } }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
-
-  const palettes: Record<string, { c1: string; c2: string; c3: string; c4: string }> = {
-    default:  { c1: "#050510", c2: "#0c0c2a", c3: "#6366f1", c4: "#d4a017" },
-    dramatic: { c1: "#030308", c2: "#0a0822", c3: "#7c3aed", c4: "#f59e0b" },
-    sacred:   { c1: "#040410", c2: "#0e0a28", c3: "#8b5cf6", c4: "#10b981" },
-    showcase: { c1: "#060612", c2: "#0e0e2e", c3: "#6366f1", c4: "#d4a017" },
-  };
-  const p = palettes[preset] || palettes.default;
 
   const shaderData = useMemo(() => ({
     uniforms: {
       uTime: { value: 0 },
-      uColor1: { value: new THREE.Color(p.c1) },
-      uColor2: { value: new THREE.Color(p.c2) },
-      uColor3: { value: new THREE.Color(p.c3) },
-      uColor4: { value: new THREE.Color(p.c4) },
+      uColor1: { value: new THREE.Color(palette.c1) },
+      uColor2: { value: new THREE.Color(palette.c2) },
+      uColor3: { value: new THREE.Color(palette.c3) },
+      uColor4: { value: new THREE.Color(palette.c4) },
     },
     vertexShader: `
       varying vec3 vWorldPos;
@@ -140,7 +133,7 @@ function NebulaSkybox({ preset = "default" }: { preset?: string }) {
         gl_FragColor = vec4(col, 1.0);
       }
     `,
-  }), [p.c1, p.c2, p.c3, p.c4]);
+  }), [palette.c1, palette.c2, palette.c3, palette.c4]);
 
   useFrame(({ clock }) => {
     if (matRef.current) {
@@ -197,16 +190,20 @@ function BreathingLight({
 }
 
 /**
- * Cinematic lighting rig — premium immersive 2026.
- * 8-light setup with breathing dynamics for living feel.
- * Now with animated GLSL nebula skybox.
+ * Cinematic lighting rig — per-scene configuration.
+ * Uses SceneLightingConfig for distinct artistic direction per scene.
+ *
+ * scene prop selects from: "hub" | "map" | "inventory" | "lazarus" | "lazarus_activated"
+ * Falls back to legacy preset system if scene is not provided.
  */
 export function PremiumLighting({
-  preset = "default",
-  accentColor = "#d4a017",
-  rimColor = "#6366f1",
+  scene,
+  preset,
+  accentColor,
+  rimColor,
   intensity = 1,
 }: {
+  scene?: string;
   preset?: "default" | "dramatic" | "sacred" | "showcase";
   accentColor?: string;
   rimColor?: string;
@@ -214,31 +211,39 @@ export function PremiumLighting({
 }) {
   const mult = intensity;
 
-  const presets = {
-    default:  { ambient: 0.35, key: 2.0, fill: 0.5, rim: 1.2, accent: 1.4, envIntensity: 0.3, backFill: 0.3 },
-    dramatic: { ambient: 0.2,  key: 2.4, fill: 0.3, rim: 1.6, accent: 2.0, envIntensity: 0.2, backFill: 0.2 },
-    sacred:   { ambient: 0.3,  key: 1.8, fill: 0.45, rim: 1.4, accent: 2.2, envIntensity: 0.25, backFill: 0.35 },
-    showcase: { ambient: 0.45, key: 1.6, fill: 0.65, rim: 0.9, accent: 1.0, envIntensity: 0.4, backFill: 0.25 },
-  };
+  // Resolve lighting rig — prefer scene-specific, fallback to legacy presets
+  const rig: SceneLightingRig = useMemo(() => {
+    if (scene) return getSceneLightingRig(scene);
 
-  const p = presets[preset];
+    // Legacy preset mapping for backwards compatibility
+    const legacyPresets: Record<string, string> = {
+      default: "map",
+      dramatic: "hub",
+      sacred: "lazarus",
+      showcase: "inventory",
+    };
+    return getSceneLightingRig(legacyPresets[preset || "default"] || "hub");
+  }, [scene, preset]);
+
+  const effectiveAccent = accentColor || rig.accentColor;
+  const effectiveRim = rimColor || rig.rimColor;
 
   return (
     <>
       {/* HDRI for reflections only */}
-      <Environment preset="city" environmentIntensity={p.envIntensity} background={false} />
+      <Environment preset="city" environmentIntensity={rig.envIntensity} background={false} />
 
-      {/* Animated GLSL nebula skybox — living cosmic dome */}
-      <NebulaSkybox preset={preset} />
+      {/* Animated GLSL nebula skybox */}
+      <NebulaSkybox palette={rig.skyPalette} />
 
-      {/* Ambient — desaturated cool blue for depth */}
-      <ambientLight intensity={p.ambient * mult} color="#a0b0d0" />
+      {/* Ambient — scene-tuned color and intensity */}
+      <ambientLight intensity={rig.ambientIntensity * mult} color={rig.ambientColor} />
 
-      {/* Key light — warm cinematic from upper-right-front */}
+      {/* Key light — warm cinematic, scene-positioned */}
       <directionalLight
-        position={[6, 14, 7]}
-        intensity={p.key * mult}
-        color="#ffe4b5"
+        position={rig.keyPosition}
+        intensity={rig.keyIntensity * mult}
+        color={rig.keyColor}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -251,45 +256,100 @@ export function PremiumLighting({
         shadow-bias={-0.001}
       />
 
-      {/* Fill light — cool steel blue */}
-      <directionalLight position={[-6, 8, -5]} intensity={p.fill * mult} color="#7090bb" />
+      {/* Fill light — cool complement */}
+      <directionalLight
+        position={rig.fillPosition}
+        intensity={rig.fillIntensity * mult}
+        color={rig.fillColor}
+      />
 
-      {/* Rim lights — breathing for living feel */}
-      <BreathingLight position={[0, 3, -10]} baseIntensity={p.rim * mult} color={rimColor} distance={25} breathSpeed={0.6} breathAmount={0.15} />
-      <BreathingLight position={[-8, 2, -5]} baseIntensity={p.rim * 0.5 * mult} color="#7c3aed" distance={18} breathSpeed={0.45} breathAmount={0.2} />
-      <BreathingLight position={[8, 2, -5]} baseIntensity={p.rim * 0.35 * mult} color="#4f46e5" distance={14} breathSpeed={0.55} breathAmount={0.18} />
+      {/* Rim lights — breathing for living feel, scene-colored */}
+      <BreathingLight
+        position={[0, 3, -10]}
+        baseIntensity={rig.rimIntensity * mult}
+        color={effectiveRim}
+        distance={25}
+        breathSpeed={rig.breathSpeed}
+        breathAmount={rig.breathAmount}
+      />
+      <BreathingLight
+        position={[-8, 2, -5]}
+        baseIntensity={rig.rimIntensity * 0.45 * mult}
+        color={rig.rimSecondaryColor}
+        distance={18}
+        breathSpeed={rig.breathSpeed * 0.75}
+        breathAmount={rig.breathAmount * 1.3}
+      />
+      <BreathingLight
+        position={[8, 2, -5]}
+        baseIntensity={rig.rimIntensity * 0.3 * mult}
+        color={rig.rimTertiaryColor}
+        distance={14}
+        breathSpeed={rig.breathSpeed * 0.9}
+        breathAmount={rig.breathAmount * 1.1}
+      />
 
-      {/* Top accent — breathing gold spotlight */}
-      <BreathingLight position={[0, 10, 0]} baseIntensity={p.accent * mult} color={accentColor} distance={25} breathSpeed={0.4} breathAmount={0.12} />
+      {/* Top accent — breathing spotlight */}
+      <BreathingLight
+        position={[0, 10, 0]}
+        baseIntensity={rig.accentIntensity * mult}
+        color={effectiveAccent}
+        distance={25}
+        breathSpeed={rig.breathSpeed * 0.7}
+        breathAmount={rig.breathAmount * 0.8}
+      />
 
-      {/* Under-fill */}
-      <pointLight position={[0, -2, 0]} intensity={p.backFill * mult} color="#1e2a4a" distance={15} decay={2} />
+      {/* Under-fill — subtle uplight for volume */}
+      <pointLight
+        position={[0, -2, 0]}
+        intensity={rig.underFillIntensity * mult}
+        color={rig.underFillColor}
+        distance={15}
+        decay={2}
+      />
 
-      {/* Side accents with breathing */}
-      <BreathingLight position={[7, 1.5, 3]} baseIntensity={0.35 * mult} color="#22d3ee" distance={12} breathSpeed={0.7} breathAmount={0.25} />
-      <BreathingLight position={[-7, 1.5, 3]} baseIntensity={0.2 * mult} color="#f59e0b" distance={10} breathSpeed={0.5} breathAmount={0.2} />
+      {/* Side accents — cool/warm separation */}
+      <BreathingLight
+        position={[7, 1.5, 3]}
+        baseIntensity={rig.sideAccentCyan * mult}
+        color="#22d3ee"
+        distance={12}
+        breathSpeed={0.7}
+        breathAmount={0.2}
+      />
+      <BreathingLight
+        position={[-7, 1.5, 3]}
+        baseIntensity={rig.sideAccentWarm * mult}
+        color="#f59e0b"
+        distance={10}
+        breathSpeed={0.5}
+        breathAmount={0.15}
+      />
     </>
   );
 }
 
 /**
  * Premium contact shadows — soft, cinematic ground contact.
+ * Configurable per-scene via rig or direct props.
  */
 export function PremiumShadows({
   y = -0.49,
   opacity = 0.4,
   scale = 18,
+  blur = 3,
 }: {
   y?: number;
   opacity?: number;
   scale?: number;
+  blur?: number;
 }) {
   return (
     <ContactShadows
       position={[0, y, 0]}
       opacity={opacity}
       scale={scale}
-      blur={3}
+      blur={blur}
       far={8}
       color="#050510"
     />
