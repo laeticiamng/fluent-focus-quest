@@ -4,6 +4,36 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
+/** Map Supabase auth error messages to user-friendly French messages. */
+function translateAuthError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  const lower = raw.toLowerCase();
+
+  if (lower.includes("invalid login credentials") || lower.includes("invalid_credentials")) {
+    return "Email ou mot de passe incorrect.";
+  }
+  if (lower.includes("email not confirmed")) {
+    return "Ton email n'est pas encore confirmé. Vérifie ta boîte de réception.";
+  }
+  if (lower.includes("rate limit") || lower.includes("too many requests") || lower.includes("over_request_rate_limit")) {
+    return "Trop de tentatives. Réessaie dans quelques minutes.";
+  }
+  if (lower.includes("user already registered") || lower.includes("already been registered")) {
+    return "Cet email est déjà enregistré. Essaie de te connecter.";
+  }
+  if (lower.includes("password") && lower.includes("least")) {
+    return "Le mot de passe doit contenir au moins 6 caractères.";
+  }
+  if (lower.includes("network") || lower.includes("fetch") || lower.includes("failed to fetch")) {
+    return "Erreur réseau. Vérifie ta connexion internet et réessaie.";
+  }
+  if (lower.includes("service_unavailable") || lower.includes("service unavailable")) {
+    return "Le service d'authentification est temporairement indisponible. Réessaie plus tard.";
+  }
+  // Fallback: show the original error — never fabricate a config diagnostic
+  return raw;
+}
+
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -25,8 +55,7 @@ export default function Auth() {
         toast.success("Vérifie ton email pour confirmer ton compte !");
       }
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Erreur de connexion. Reessaie.";
-      toast.error(msg);
+      toast.error(translateAuthError(error));
     } finally {
       setLoading(false);
     }

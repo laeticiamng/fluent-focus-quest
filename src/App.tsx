@@ -65,7 +65,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, loading, authUnavailable } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -79,17 +79,7 @@ function AppRoutes() {
     );
   }
 
-  // If auth system is down (env vars missing, network failure, timeout),
-  // show the dashboard in offline mode rather than a useless login page
-  if (authUnavailable) {
-    return (
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    );
-  }
-
+  // No user session: always show the login page — never bypass it with env guards
   if (!user) return <Auth />;
 
   return (
