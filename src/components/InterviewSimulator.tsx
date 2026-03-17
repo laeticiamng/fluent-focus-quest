@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAICoach } from "@/hooks/useAICoach";
 import { useCelebration } from "@/components/CelebrationProvider";
+import { useTranslationPreference } from "@/hooks/useTranslationPreference";
+import { RevealTranslation, TranslationToggle } from "@/components/translation";
 import {
   Timer, ChevronRight, ChevronDown, Sparkles, Zap, Target,
   RotateCcw, ArrowRight, Trophy, AlertTriangle, BookOpen,
@@ -60,6 +62,7 @@ const TIMER_DURATIONS: Record<number, number> = { 1: 120, 2: 90, 3: 60 };
 export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts = [] }: InterviewSimulatorProps) {
   const { response, isLoading, error: aiError, ask, reset } = useAICoach();
   const { celebrate } = useCelebration();
+  const { showFr, toggleFr } = useTranslationPreference();
 
   // State
   const [simState, setSimState] = useState<SimState>("zone_select");
@@ -405,7 +408,10 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
                   <Target className="w-7 h-7 text-violet-400" />
                 </motion.div>
                 <div>
-                  <h2 className="text-2xl font-black tracking-tight">Simulateur d'entretien</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-black tracking-tight">Simulateur d'entretien</h2>
+                    <TranslationToggle active={showFr} onToggle={toggleFr} />
+                  </div>
                   <p className="text-[10px] text-violet-400/50 font-medium">Protocole Lazarus — Preparation Biel</p>
                 </div>
               </div>
