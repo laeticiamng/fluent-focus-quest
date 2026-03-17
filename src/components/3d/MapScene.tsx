@@ -1,10 +1,13 @@
 import { useRef, useState, useCallback, Suspense, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, ContactShadows, Html, Float, Environment } from "@react-three/drei";
 import * as THREE from "three";
-import { ESCAPE_ZONES, ZONE_TAB_MAP, ZONE_COLORS } from "@/data/escapeGame";
-import type { RoomStatus, EscapeRoom } from "@/data/escapeGame";
+import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
+import type { RoomStatus } from "@/data/escapeGame";
 import type { Artifact } from "@/hooks/useProgress";
+import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
+import { AmbientParticles } from "./premium/DecorativeElements";
+import { PremiumPostProcessing } from "./premium/PostProcessing";
 
 interface MapSceneProps {
   escapeZoneStatus: Record<string, {
@@ -21,7 +24,7 @@ interface MapSceneProps {
   onSelectZone: (zoneId: string | null) => void;
 }
 
-// Zone layout: a complex-like arrangement
+// Zone layout: complex-like arrangement
 const ZONE_LAYOUT: Record<string, { pos: [number, number, number]; scale: number }> = {
   forge: { pos: [-3.5, 0, -2], scale: 1 },
   grammar: { pos: [-1.5, 0, -3.5], scale: 1 },
@@ -42,7 +45,7 @@ const ZONE_COLORS_3D: Record<string, string> = {
   aerzterat: "#6366f1",
 };
 
-// ── Zone Building ──
+// ── Zone Building — PREMIUM ──
 function ZoneBuilding({
   zone,
   status,
@@ -59,6 +62,7 @@ function ZoneBuilding({
   onNavigate: (tab: string) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const beaconRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const color = ZONE_COLORS_3D[zone.id] || "#888";
   const isLocked = !status?.unlocked;
@@ -66,9 +70,15 @@ function ZoneBuilding({
   const roomCount = zone.rooms.length;
 
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
     if (groupRef.current) {
-      const targetY = isSelected ? 0.3 : hovered ? 0.15 : 0;
+      const targetY = isSelected ? 0.35 : hovered ? 0.15 : 0;
       groupRef.current.position.y += (targetY - groupRef.current.position.y) * 0.08;
+    }
+    if (beaconRef.current) {
+      beaconRef.current.rotation.y = t * 0.8;
+      const pulse = Math.sin(t * 2) * 0.1 + 0.9;
+      beaconRef.current.scale.setScalar(pulse);
     }
   });
 
@@ -82,9 +92,9 @@ function ZoneBuilding({
     onNavigate(ZONE_TAB_MAP[zone.id] || "dash");
   }, [isLocked, zone.id, onNavigate]);
 
-  const buildingHeight = 0.6 + (status?.progress ?? 0) * 0.8;
-  const baseColor = isLocked ? "#2a2a40" : color;
-  const emissiveIntensity = isLocked ? 0.02 : isSelected ? 1.2 : hovered ? 0.7 : 0.35;
+  const buildingHeight = 0.6 + (status?.progress ?? 0) * 1.0;
+  const baseColor = isLocked ? "#1e1e35" : color;
+  const emissiveIntensity = isLocked ? 0.02 : isSelected ? 1.4 : hovered ? 0.8 : 0.4;
 
   return (
     <group
@@ -96,61 +106,120 @@ function ZoneBuilding({
       onPointerOver={() => { setHovered(true); document.body.style.cursor = isLocked ? "not-allowed" : "pointer"; }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
     >
-      {/* Base platform */}
-      <mesh position={[0, -0.1, 0]} receiveShadow>
-        <cylinderGeometry args={[1, 1.1, 0.2, 6]} />
+      {/* Base platform — tiered, premium */}
+      <mesh position={[0, -0.15, 0]} receiveShadow>
+        <cylinderGeometry args={[1.1, 1.2, 0.15, 8]} />
         <meshStandardMaterial
-          color={isLocked ? "#252540" : "#303050"}
-          metalness={0.5}
-          roughness={0.45}
+          color={isLocked ? "#181830" : "#1e1e40"}
+          metalness={0.6}
+          roughness={0.3}
+          envMapIntensity={0.4}
+        />
+      </mesh>
+      <mesh position={[0, -0.05, 0]} receiveShadow>
+        <cylinderGeometry args={[0.9, 1.0, 0.1, 8]} />
+        <meshStandardMaterial
+          color={isLocked ? "#1a1a32" : "#222245"}
+          metalness={0.55}
+          roughness={0.35}
+          emissive={new THREE.Color(baseColor)}
+          emissiveIntensity={isLocked ? 0 : 0.05}
         />
       </mesh>
 
-      {/* Main building body */}
-      <mesh position={[0, buildingHeight / 2, 0]} castShadow>
-        <boxGeometry args={[0.9, buildingHeight, 0.9]} />
+      {/* Accent ring on platform */}
+      {!isLocked && (
+        <mesh position={[0, -0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.85, 0.9, 32]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.6}
+            transparent
+            opacity={0.4}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+
+      {/* Main building body — more refined */}
+      <mesh position={[0, buildingHeight / 2 + 0.02, 0]} castShadow>
+        <cylinderGeometry args={[0.55, 0.65, buildingHeight, 8]} />
         <meshStandardMaterial
           color={baseColor}
-          metalness={0.4}
-          roughness={0.45}
+          metalness={0.5}
+          roughness={0.35}
           emissive={new THREE.Color(baseColor)}
           emissiveIntensity={emissiveIntensity}
           transparent={isLocked}
-          opacity={isLocked ? 0.4 : 1}
+          opacity={isLocked ? 0.3 : 1}
+          envMapIntensity={0.5}
         />
       </mesh>
 
-      {/* Roof piece */}
-      <mesh position={[0, buildingHeight + 0.15, 0]} castShadow>
-        <coneGeometry args={[0.65, 0.3, 6]} />
+      {/* Building accent bands */}
+      {!isLocked && [0.3, 0.6].filter(h => h < buildingHeight).map((h, i) => (
+        <mesh key={i} position={[0, h, 0]}>
+          <torusGeometry args={[0.58 + i * 0.02, 0.015, 8, 32]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.8}
+            metalness={1}
+            roughness={0.05}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
+      ))}
+
+      {/* Roof / crown */}
+      <mesh position={[0, buildingHeight + 0.1, 0]} castShadow>
+        <coneGeometry args={[0.45, 0.4, 8]} />
         <meshStandardMaterial
           color={isCleared ? "#10b981" : baseColor}
-          metalness={0.6}
-          roughness={0.25}
+          metalness={0.7}
+          roughness={0.2}
           emissive={new THREE.Color(isCleared ? "#10b981" : baseColor)}
-          emissiveIntensity={isCleared ? 0.7 : emissiveIntensity * 0.6}
+          emissiveIntensity={isCleared ? 1.0 : emissiveIntensity * 0.5}
           transparent={isLocked}
-          opacity={isLocked ? 0.4 : 1}
+          opacity={isLocked ? 0.3 : 1}
         />
       </mesh>
 
-      {/* Room indicators */}
+      {/* Beacon at top */}
+      {!isLocked && (
+        <Float speed={2} floatIntensity={0.1}>
+          <mesh ref={beaconRef} position={[0, buildingHeight + 0.45, 0]}>
+            <octahedronGeometry args={[0.08, 0]} />
+            <meshStandardMaterial
+              color={isCleared ? "#10b981" : color}
+              emissive={isCleared ? "#10b981" : color}
+              emissiveIntensity={2.0}
+              metalness={1}
+              roughness={0}
+            />
+          </mesh>
+        </Float>
+      )}
+
+      {/* Room indicators — orbiting around base */}
       {zone.rooms.map((room, i) => {
         const roomStatus = status?.rooms?.find(r => r.id === room.id);
         const angle = (i / roomCount) * Math.PI * 2;
-        const rx = Math.cos(angle) * 0.75;
-        const rz = Math.sin(angle) * 0.75;
+        const rx = Math.cos(angle) * 0.8;
+        const rz = Math.sin(angle) * 0.8;
         const isSolved = roomStatus?.status === "solved";
         const isAccessible = roomStatus?.status === "accessible" || roomStatus?.status === "in_progress";
         return (
-          <mesh key={room.id} position={[rx, 0.1, rz]}>
-            <boxGeometry args={[0.12, 0.12, 0.12]} />
+          <mesh key={room.id} position={[rx, 0.08, rz]}>
+            <sphereGeometry args={[0.06, 8, 8]} />
             <meshStandardMaterial
-              color={isSolved ? "#10b981" : isAccessible ? color : "#444"}
+              color={isSolved ? "#10b981" : isAccessible ? color : "#2a2a45"}
               emissive={new THREE.Color(isSolved ? "#10b981" : isAccessible ? color : "#111")}
-              emissiveIntensity={isSolved ? 0.8 : isAccessible ? 0.4 : 0.02}
-              metalness={0.7}
-              roughness={0.25}
+              emissiveIntensity={isSolved ? 1.2 : isAccessible ? 0.6 : 0.02}
+              metalness={0.8}
+              roughness={0.15}
             />
           </mesh>
         );
@@ -159,8 +228,8 @@ function ZoneBuilding({
       {/* Zone light */}
       {!isLocked && (
         <pointLight
-          position={[0, buildingHeight + 0.5, 0]}
-          intensity={isSelected ? 2.5 : hovered ? 1.2 : 0.5}
+          position={[0, buildingHeight + 0.6, 0]}
+          intensity={isSelected ? 3.0 : hovered ? 1.5 : 0.6}
           color={color}
           distance={5}
           decay={2}
@@ -168,10 +237,10 @@ function ZoneBuilding({
       )}
 
       {/* Label */}
-      <Html position={[0, -0.5, 0]} center distanceFactor={8}>
-        <div className={`text-center pointer-events-none select-none ${isLocked ? "opacity-25" : ""}`}>
+      <Html position={[0, -0.55, 0]} center distanceFactor={8}>
+        <div className={`text-center pointer-events-none select-none ${isLocked ? "opacity-20" : ""}`}>
           <div className="text-base">{zone.icon}</div>
-          <div className="text-[8px] font-bold text-white/80 whitespace-nowrap">
+          <div className="text-[8px] font-bold text-white/80 whitespace-nowrap drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]">
             {zone.name.replace("Aile de la ", "").replace("Aile de l'", "").replace("Aile du ", "").replace("Aile d'", "").replace("Laboratoire de ", "Labo ").replace("Archives ", "Archives").replace("Der ", "").slice(0, 16)}
           </div>
           {!isLocked && status && (
@@ -185,60 +254,132 @@ function ZoneBuilding({
   );
 }
 
-// ── Connectors ──
-function Connectors() {
+// ── Connectors — PREMIUM luminous paths ──
+function Connectors({ escapeZoneStatus }: { escapeZoneStatus: MapSceneProps["escapeZoneStatus"] }) {
   const connections = [
-    { from: ZONE_LAYOUT.forge.pos, to: ZONE_LAYOUT.grammar.pos },
-    { from: ZONE_LAYOUT.grammar.pos, to: ZONE_LAYOUT.studio.pos },
-    { from: ZONE_LAYOUT.studio.pos, to: ZONE_LAYOUT.clinical.pos },
-    { from: ZONE_LAYOUT.clinical.pos, to: ZONE_LAYOUT.laboratory.pos },
-    { from: ZONE_LAYOUT.forge.pos, to: ZONE_LAYOUT.laboratory.pos },
-    { from: ZONE_LAYOUT.laboratory.pos, to: ZONE_LAYOUT.archive.pos },
-    { from: ZONE_LAYOUT.studio.pos, to: ZONE_LAYOUT.aerzterat.pos },
-    { from: ZONE_LAYOUT.clinical.pos, to: ZONE_LAYOUT.aerzterat.pos },
+    { from: "forge", to: "grammar" },
+    { from: "grammar", to: "studio" },
+    { from: "studio", to: "clinical" },
+    { from: "clinical", to: "laboratory" },
+    { from: "forge", to: "laboratory" },
+    { from: "laboratory", to: "archive" },
+    { from: "studio", to: "aerzterat" },
+    { from: "clinical", to: "aerzterat" },
   ];
 
   return (
     <group>
       {connections.map((c, i) => {
-        const start = new THREE.Vector3(...c.from);
-        const end = new THREE.Vector3(...c.to);
+        const start = new THREE.Vector3(...ZONE_LAYOUT[c.from].pos);
+        const end = new THREE.Vector3(...ZONE_LAYOUT[c.to].pos);
         const dir = end.clone().sub(start);
         const length = dir.length();
         const center = start.clone().add(end).multiplyScalar(0.5);
-        center.y = -0.45;
+        center.y = -0.48;
+        const bothUnlocked = escapeZoneStatus[c.from]?.unlocked && escapeZoneStatus[c.to]?.unlocked;
 
         return (
-          <mesh key={i} position={[center.x, center.y, center.z]} rotation={[0, Math.atan2(dir.x, dir.z), 0]}>
-            <boxGeometry args={[0.04, 0.02, length]} />
-            <meshStandardMaterial
-              color="#d4a017"
-              emissive="#d4a017"
-              emissiveIntensity={0.5}
-              transparent
-              opacity={0.55}
-            />
-          </mesh>
+          <group key={i}>
+            {/* Main connector */}
+            <mesh position={[center.x, center.y, center.z]} rotation={[0, Math.atan2(dir.x, dir.z), 0]}>
+              <boxGeometry args={[0.05, 0.015, length]} />
+              <meshStandardMaterial
+                color={bothUnlocked ? "#d4a017" : "#2a2a45"}
+                emissive={bothUnlocked ? "#d4a017" : "#1a1a30"}
+                emissiveIntensity={bothUnlocked ? 0.8 : 0.05}
+                transparent
+                opacity={bothUnlocked ? 0.7 : 0.3}
+                metalness={0.8}
+                roughness={0.15}
+              />
+            </mesh>
+            {/* Glow connector underneath */}
+            {bothUnlocked && (
+              <mesh position={[center.x, center.y - 0.01, center.z]} rotation={[0, Math.atan2(dir.x, dir.z), 0]}>
+                <boxGeometry args={[0.15, 0.005, length]} />
+                <meshStandardMaterial
+                  color="#d4a017"
+                  emissive="#d4a017"
+                  emissiveIntensity={0.4}
+                  transparent
+                  opacity={0.15}
+                />
+              </mesh>
+            )}
+          </group>
         );
       })}
     </group>
   );
 }
 
-// ── Floor grid ──
+// ── Map Floor — PREMIUM ──
 function MapFloor() {
+  const runeRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (runeRef.current) {
+      runeRef.current.rotation.z = clock.getElapsedTime() * 0.015;
+    }
+  });
+
   return (
     <group>
+      {/* Main floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.55, 0]} receiveShadow>
-        <planeGeometry args={[16, 16]} />
-        <meshStandardMaterial color="#1e1e3a" metalness={0.25} roughness={0.65} />
+        <planeGeometry args={[18, 18]} />
+        <meshStandardMaterial
+          color="#151530"
+          metalness={0.5}
+          roughness={0.35}
+          envMapIntensity={0.5}
+        />
       </mesh>
-      <gridHelper args={[16, 32, "#353560", "#252545"]} position={[0, -0.54, 0]} />
+
+      {/* Subtle grid — softer than before */}
+      <gridHelper args={[18, 36, "#252548", "#1e1e3a"]} position={[0, -0.54, 0]} />
+
+      {/* Decorative floor rings */}
+      <group ref={runeRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.53, 0]}>
+        {[3, 5.5, 8].map((r, i) => (
+          <mesh key={i}>
+            <ringGeometry args={[r - 0.02, r, 64]} />
+            <meshStandardMaterial
+              color={i === 1 ? "#6366f1" : "#d4a017"}
+              emissive={i === 1 ? "#6366f1" : "#d4a017"}
+              emissiveIntensity={0.4 - i * 0.08}
+              transparent
+              opacity={0.25 - i * 0.05}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Corner landmarks — subtle pillars at map edges */}
+      {[[-6, -6], [6, -6], [-6, 6], [6, 6]].map(([x, z], i) => (
+        <group key={i} position={[x, 0, z]}>
+          <mesh position={[0, 0.5, 0]}>
+            <cylinderGeometry args={[0.06, 0.08, 1.5, 6]} />
+            <meshStandardMaterial color="#1a1a38" metalness={0.7} roughness={0.25} />
+          </mesh>
+          <mesh position={[0, 1.35, 0]}>
+            <octahedronGeometry args={[0.05, 0]} />
+            <meshStandardMaterial
+              color="#6366f1"
+              emissive="#6366f1"
+              emissiveIntensity={0.8}
+              metalness={1}
+              roughness={0}
+            />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
 
-// ── Main Map Scene ──
+// ── Main Map Scene — PREMIUM ──
 export function MapScene({
   escapeZoneStatus,
   artifacts,
@@ -251,37 +392,24 @@ export function MapScene({
     <div className="w-full rounded-2xl overflow-hidden relative" style={{ height: "clamp(360px, 55vh, 520px)" }}>
       <Canvas
         shadows
-        camera={{ position: [0, 7, 8], fov: 45 }}
+        camera={{ position: [0, 7, 8], fov: 44 }}
         dpr={[1, 1.5]}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4,
+          toneMappingExposure: 1.5,
         }}
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color("#161630");
+          scene.background = new THREE.Color("#0a0a1c");
         }}
       >
         <Suspense fallback={null}>
-          <Environment preset="city" environmentIntensity={0.25} />
+          <PremiumLighting preset="default" accentColor="#d4a017" rimColor="#6366f1" />
 
-          <ambientLight intensity={0.65} color="#c0c8e0" />
-          <directionalLight
-            position={[6, 12, 5]}
-            intensity={1.3}
-            color="#ffe8c0"
-            castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-          />
-          <directionalLight position={[-4, 6, -3]} intensity={0.5} color="#99aadd" />
-          <pointLight position={[0, 4, 0]} intensity={0.8} color="#d4a017" distance={18} decay={2} />
-          <pointLight position={[0, -0.3, 0]} intensity={0.25} color="#334477" distance={12} decay={2} />
-
-          <fog attach="fog" args={["#1a1a38", 16, 30]} />
+          <fog attach="fog" args={["#0c0c20", 14, 32]} />
 
           <MapFloor />
-          <Connectors />
+          <Connectors escapeZoneStatus={escapeZoneStatus} />
 
           {ESCAPE_ZONES.map((zone) => {
             const layout = ZONE_LAYOUT[zone.id] || { pos: [0, 0, 0] as [number, number, number], scale: 1 };
@@ -299,7 +427,17 @@ export function MapScene({
             );
           })}
 
-          <ContactShadows position={[0, -0.54, 0]} opacity={0.25} scale={20} blur={2.5} />
+          {/* Ambient particles */}
+          <AmbientParticles count={35} radius={8} height={4} color="#d4a017" secondaryColor="#6366f1" />
+
+          <PremiumShadows y={-0.54} opacity={0.3} scale={20} />
+
+          <PremiumPostProcessing
+            bloomIntensity={0.5}
+            bloomThreshold={0.4}
+            bloomSmoothing={0.5}
+            vignetteOpacity={0.3}
+          />
 
           <OrbitControls
             enablePan={true}
@@ -320,7 +458,7 @@ export function MapScene({
       <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background/50 to-transparent pointer-events-none" />
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[9px] text-white/30 pointer-events-none">
-        Clic = selectionner · Double-clic = entrer · Glisser = pivoter
+        Clic = sélectionner · Double-clic = entrer · Glisser = pivoter
       </div>
     </div>
   );
