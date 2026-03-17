@@ -344,7 +344,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
         });
       }
       addXp?.(100);
-      celebrate("achievement");
+      celebrate("milestone");
       toast("Simulation terminee !", { description: `Score global : ${avgScore}/100` });
       setSimState("zone_select");
     } else {
