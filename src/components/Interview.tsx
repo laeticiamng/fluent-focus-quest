@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { Artifact } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
+import { useExperience } from "@/experience";
 
 type Tab = "vocab" | "gram" | "atelier" | "tools";
 
@@ -70,6 +71,7 @@ Commence TOUJOURS par reconnaitre ce que la candidate a produit. Utilise le ton 
 export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, artifacts = [] }: InterviewProps) {
   const { response, isLoading, error: aiError, ask, reset } = useAICoach();
   const { celebrate } = useCelebration();
+  const { fireEvent } = useExperience();
 
   const [ii, setIi] = useState(0);
   const [sa, setSa] = useState(false);
@@ -124,7 +126,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
     setShowRecorder(false); setShowPrevVersions(false);
   };
 
-  const startSim = () => { setSimMode(true); goToQuestion(0); setSimRunning(true); };
+  const startSim = () => { setSimMode(true); goToQuestion(0); setSimRunning(true); fireEvent("SIMULATION_START"); };
   const stopSim = () => { setSimMode(false); setSimRunning(false); setSimTimer(120); };
 
   const currentQ = IVW[ii] ?? IVW[0];
@@ -145,6 +147,7 @@ export function Interview({ rat, setRating, addXp, onNavigate, addArtifact, arti
     }
     setAnswerSubmitted(true);
     celebrate("creation");
+    fireEvent("ARTIFACT_FORGED", { type: "interview_answer", questionIdx: ii });
     if (isImproved) {
       toast("🎬 Prise amelioree ! +15 XP", { description: `Version ${versionNum} — chaque reprise renforce` });
     } else {

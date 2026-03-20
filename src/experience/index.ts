@@ -34,7 +34,9 @@ export { UnlockRevealV2 } from "./renderers/UnlockRevealV2";
 
 // Audio
 export { soundController } from "./audio/sound-controller";
+export { SoundBridge } from "./audio/SoundBridge";
 
 // Performance
 export { detectPerformanceTier, getExperienceCapabilities } from "./performance/capability-tier";
 export { AdaptiveQualityMonitor } from "./performance/adaptive-quality";
+export { QualityBridge } from "./performance/QualityBridge";
