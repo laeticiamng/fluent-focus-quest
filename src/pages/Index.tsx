@@ -7,6 +7,9 @@ import { PROG } from "@/data/content";
 import { getBuilderRank } from "@/data/content";
 import { WebGLGate, WebGLDiagnosticBadge } from "@/components/3d/WebGLDetect";
 import { PremiumFallback, FallbackAction } from "@/components/3d/PremiumFallback";
+import { useExperience } from "@/experience";
+import { AmbientRenderer } from "@/experience";
+import { TransitionDirector, getTransitionStyle } from "@/experience";
 
 // ── Tab-level Error Boundary — catches crashes in individual tabs ──
 class TabErrorBoundary extends Component<{ tabName: string; children: ReactNode }, { hasError: boolean }> {
@@ -353,15 +356,22 @@ const Index = () => {
     .filter(a => a.condition(achievementStats))
     .map(a => a.id);
 
+  // Experience engine integration
+  const { setZoneAtmosphere, fireEvent } = useExperience();
+
   const handleTabChange = (newTab: Tab) => {
     prevTabRef.current = tab;
     setTab(newTab);
+    // Sync experience atmosphere when tab changes
+    const atmosphere = TAB_ATMOSPHERE[newTab] || "neutral";
+    setZoneAtmosphere(atmosphere);
+    fireEvent("ZONE_ENTERED", { zone: atmosphere, tab: newTab });
   };
 
   const cameraDirection = getCameraDirection(tab);
 
   return (
-    <div className="min-h-screen bg-background ambient-bg">
+    <div className="min-h-screen bg-background ambient-bg grain-texture">
       <div className="ambient-orb ambient-orb-1" />
       <div className="ambient-orb ambient-orb-2" />
       <div className="ambient-orb ambient-orb-3" />
@@ -464,10 +474,10 @@ const Index = () => {
 
       {/* Content — with camera transitions */}
       <main className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-20">
-        <CameraTransitionLayer transitionKey={tab} direction={cameraDirection}>
+        <TransitionDirector transitionKey={tab} style={getTransitionStyle(tab)}>
           <TabErrorBoundary tabName={tab} key={tab}>
           {tab === "dash" && (
-            <AtmosphericSceneWrapper atmosphere="neutral" intensity="low">
+            <AmbientRenderer>
               <div className="space-y-4 stagger-children">
 
                 {/* ═══ ABOVE THE FOLD: 3 clear actions ═══ */}
@@ -892,7 +902,7 @@ const Index = () => {
 
                 <MotivBanner />
               </div>
-            </AtmosphericSceneWrapper>
+            </AmbientRenderer>
           )}
 
           {tab === "questmap" && (
@@ -1117,7 +1127,7 @@ const Index = () => {
           )}
           {tab === "cal" && <CalendarView done={progress.done} toggleTask={progress.toggleTask} />}
           </TabErrorBoundary>
-        </CameraTransitionLayer>
+        </TransitionDirector>
       </main>
     </div>
   );
