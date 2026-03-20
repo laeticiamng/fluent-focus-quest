@@ -79,7 +79,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        className="relative overflow-hidden rounded-2xl p-5 surface-premium"
         style={{
           background: "linear-gradient(145deg, hsl(187 100% 42% / 0.08), hsl(var(--card)), hsl(38 92% 50% / 0.04))",
           border: "1px solid hsl(187 100% 42% / 0.12)",
@@ -111,7 +111,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
           { v: `${streak}`, l: "streak 🔥", cls: "text-primary" },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="room-3d rounded-2xl p-3.5 text-center"
+            className="surface-premium rounded-2xl p-3.5 text-center"
             style={{ boxShadow: "var(--shadow-3d-sm)" }}>
             <div className={`text-xl font-black ${s.cls}`}>{s.v}</div>
             <div className="text-[9px] font-medium text-muted-foreground mt-0.5">{s.l}</div>
@@ -120,7 +120,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       </div>
 
       {/* Production breakdown */}
-      <div className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+      <div className="surface-premium rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <p className="text-[10px] uppercase tracking-[3px] text-muted-foreground mb-3">Detail de production</p>
         <div className="grid grid-cols-2 gap-2.5">
           {[
@@ -142,7 +142,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Production by day chart */}
       {artifacts.length > 0 && (
-        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">🔨 Creations par jour</h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={productionByDay}>
@@ -157,7 +157,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Production pie */}
       {productionPie.length > 0 && (
-        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">🎯 Repartition des creations</h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -173,7 +173,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
 
       {/* Zone progression */}
       {zoneStatus && (
-        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-md)" }}>
+        <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-md)" }}>
           <h3 className="text-sm font-bold mb-4">🗺️ Progression des zones</h3>
           <div className="space-y-3">
             {ZONES.map(zone => {
@@ -213,7 +213,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
           { v: `${pomodoroCount}`, l: "pomodoros", cls: "text-info" },
           { v: `${totalHard}`, l: "mots ⭐", cls: "text-primary" },
         ].map((s, i) => (
-          <div key={i} className="room-3d rounded-2xl p-2.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+          <div key={i} className="surface-premium rounded-2xl p-2.5 text-center" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
             <div className={`text-lg font-black ${s.cls}`}>{s.v}</div>
             <div className="text-[8px] font-medium text-muted-foreground mt-0.5">{s.l}</div>
           </div>
@@ -221,7 +221,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       </div>
 
       {quizData.length > 0 && (
-        <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <h3 className="text-sm font-bold mb-4">📈 Score moyen par deck</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={quizData}>
@@ -235,7 +235,7 @@ export function Stats({ xp, quizScores, hardCards, pomodoroCount, streak, done, 
       )}
 
       {artifacts.length === 0 && quizData.length === 0 && (
-        <div className="room-3d rounded-2xl p-10 text-center" style={{ boxShadow: "var(--shadow-3d-md)" }}>
+        <div className="surface-premium rounded-2xl p-10 text-center" style={{ boxShadow: "var(--shadow-3d-md)" }}>
           <div className="text-5xl mb-4">🔨</div>
           <p className="text-sm text-muted-foreground">Commence a creer pour voir tes stats de production !</p>
         </div>

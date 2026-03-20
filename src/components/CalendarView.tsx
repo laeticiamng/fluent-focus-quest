@@ -31,7 +31,7 @@ export function CalendarView({ done, toggleTask }: CalendarProps) {
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        className="relative overflow-hidden rounded-2xl p-5 surface-premium"
         style={{
           background: "linear-gradient(145deg, hsl(270 60% 60% / 0.08), hsl(var(--card)), hsl(142 71% 45% / 0.04))",
           border: "1px solid hsl(270 60% 60% / 0.12)",
@@ -69,7 +69,7 @@ export function CalendarView({ done, toggleTask }: CalendarProps) {
                 <div key={day.date}>
                   <div
                     onClick={() => setCalD(open ? null : day.date)}
-                    className={`rounded-lg px-3 py-2 cursor-pointer transition-all room-3d ${
+                    className={`rounded-lg px-3 py-2 cursor-pointer transition-all surface-premium ${
                       isT ? "room-in-progress" : allD ? "room-solved" : "room-accessible"
                     } ${open ? "rounded-b-none" : ""}`}
                     style={{ boxShadow: isT ? "var(--shadow-3d-md)" : "var(--shadow-3d-sm)" }}

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { Artifact } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
+import { ClinicalSituationLayer } from "@/experience";
 
 const DE_FR_LOOKUP: Record<string, string> = {};
 DECKS.forEach(dk => {
@@ -131,8 +132,16 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton 
 
   const narrative = PATIENT_NARRATIVES[sci % PATIENT_NARRATIVES.length];
 
+  const clinicalPhase = aiResponse ? "feedback"
+    : noteSubmitted ? "submitted"
+    : hypothesesSubmitted ? "writing"
+    : hypotheses.length > 0 ? "hypothesizing"
+    : scs > 0 ? "analyzing"
+    : "reading" as const;
+
   return (
     <AtmosphericSceneWrapper atmosphere="clinical" intensity="medium">
+      <ClinicalSituationLayer phase={clinicalPhase} scenarioIndex={sci} narrativeText={narrative}>
       <div className="space-y-4">
         {/* Hospital header — immersive */}
         <motion.div
@@ -456,6 +465,7 @@ Sois concis (max 100 mots). Commence par reconnaitre la qualite. Utilise le ton 
           )}
         </motion.div>
       </div>
+      </ClinicalSituationLayer>
     </AtmosphericSceneWrapper>
   );
 }

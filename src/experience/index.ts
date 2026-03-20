@@ -27,6 +27,10 @@ export { getZonePreset } from "./presets";
 export { AmbientRenderer } from "./renderers/AmbientRenderer";
 export { FeedbackLayer } from "./renderers/FeedbackLayer";
 export { TransitionDirector, getTransitionStyle } from "./renderers/TransitionDirector";
+export { InterviewStageDirector } from "./renderers/InterviewStageDirector";
+export { ClinicalSituationLayer } from "./renderers/ClinicalSituationLayer";
+export { ProgressEnvironmentMapper } from "./renderers/ProgressEnvironmentMapper";
+export { UnlockRevealV2 } from "./renderers/UnlockRevealV2";
 
 // Audio
 export { soundController } from "./audio/sound-controller";

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import type { Artifact } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
+import { InterviewStageDirector } from "@/experience";
 import {
   INTERVIEW_ZONES,
   PRESSURE_INTERRUPTIONS,
@@ -385,16 +386,16 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   if (simState === "zone_select") {
     return (
       <AtmosphericSceneWrapper atmosphere="studio" intensity="medium">
+        <InterviewStageDirector stage="preparation" score={lastSimScore}>
         <div className="space-y-4">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl p-6 room-3d"
+            className="relative overflow-hidden rounded-3xl p-6 surface-premium"
             style={{
               background: "linear-gradient(145deg, hsl(270 60% 55% / 0.08), hsl(var(--card)), hsl(270 40% 35% / 0.04))",
               border: "1px solid hsl(270 60% 55% / 0.12)",
-              boxShadow: "var(--shadow-3d-xl)",
             }}
           >
             <div className="relative z-10">
@@ -566,6 +567,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             })}
           </div>
         </div>
+        </InterviewStageDirector>
       </AtmosphericSceneWrapper>
     );
   }
@@ -580,6 +582,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
 
     return (
       <AtmosphericSceneWrapper atmosphere="studio" intensity="medium">
+        <InterviewStageDirector stage="answering" timerSeconds={timer} timerRunning={timerRunning} pressureMode={pressureMode}>
         <div className="space-y-4">
           {/* Back + zone header */}
           <div className="flex items-center justify-between">
@@ -720,6 +723,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             </div>
           </div>
         </div>
+        </InterviewStageDirector>
       </AtmosphericSceneWrapper>
     );
   }
@@ -730,6 +734,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
   if (simState === "evaluating") {
     return (
       <AtmosphericSceneWrapper atmosphere="studio" intensity="medium">
+        <InterviewStageDirector stage="evaluating">
         <div className="space-y-6 py-10">
           <motion.div
             animate={{ rotate: 360 }}
@@ -754,6 +759,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             Utiliser l'evaluation locale
           </button>
         </div>
+        </InterviewStageDirector>
       </AtmosphericSceneWrapper>
     );
   }
@@ -766,6 +772,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
 
     return (
       <AtmosphericSceneWrapper atmosphere="studio" intensity="medium">
+        <InterviewStageDirector stage="results" score={globalScore}>
         <div className="space-y-4">
           {/* Back */}
           <button
@@ -938,6 +945,7 @@ export function InterviewSimulator({ addXp, onNavigate, addArtifact, artifacts =
             </Button>
           </div>
         </div>
+        </InterviewStageDirector>
       </AtmosphericSceneWrapper>
     );
   }

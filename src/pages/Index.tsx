@@ -10,6 +10,7 @@ import { PremiumFallback, FallbackAction } from "@/components/3d/PremiumFallback
 import { useExperience } from "@/experience";
 import { AmbientRenderer } from "@/experience";
 import { TransitionDirector, getTransitionStyle } from "@/experience";
+import { ProgressEnvironmentMapper } from "@/experience";
 
 // ── Tab-level Error Boundary — catches crashes in individual tabs ──
 class TabErrorBoundary extends Component<{ tabName: string; children: ReactNode }, { hasError: boolean }> {
@@ -478,6 +479,13 @@ const Index = () => {
           <TabErrorBoundary tabName={tab} key={tab}>
           {tab === "dash" && (
             <AmbientRenderer>
+              <ProgressEnvironmentMapper
+                xp={progress.xp}
+                streak={progress.streak}
+                artifactCount={progress.artifacts.length}
+                progressRatio={solvedRoomCount / Math.max(1, totalEscapeRooms)}
+                daysRemaining={daysUntilInterview}
+              >
               <div className="space-y-4 stagger-children">
 
                 {/* ═══ ABOVE THE FOLD: 3 clear actions ═══ */}
@@ -902,6 +910,7 @@ const Index = () => {
 
                 <MotivBanner />
               </div>
+              </ProgressEnvironmentMapper>
             </AmbientRenderer>
           )}
 
