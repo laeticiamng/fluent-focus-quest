@@ -12,6 +12,7 @@ import { CareerBuilder } from "./ateliers/CareerBuilder";
 import { ArrowLeft, ChevronRight, KeyRound } from "lucide-react";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
 import { CameraTransitionLayer } from "./immersive/CameraTransitionLayer";
+import { useExperience } from "@/experience";
 
 type AtelierMode = "hub" | "phrase" | "script" | "diagnostic" | "case" | "interview" | "identity" | "document" | "beat" | "career";
 
@@ -104,6 +105,7 @@ interface AtelierHubProps {
 
 export function AtelierHub({ addXp, xp = 0 }: AtelierHubProps) {
   const [mode, setMode] = useState<AtelierMode>("hub");
+  const { fireEvent } = useExperience();
 
   const currentAtelier = ATELIERS.find(a => a.id === mode);
 
@@ -197,7 +199,7 @@ export function AtelierHub({ addXp, xp = 0 }: AtelierHubProps) {
                   transition={{ delay: 0.12 + i * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
                   whileHover={{ y: -4, rotateX: 1, scale: 1.005 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setMode(a.id)}
+                  onClick={() => { setMode(a.id); fireEvent("ZONE_ENTERED", { zone: a.atmosphere, atelier: a.id }); }}
                   className={`w-full rounded-2xl bg-gradient-to-r ${a.color} border ${a.border} p-4 sm:p-5 text-left transition-all group relative overflow-hidden room-3d`}
                 >
                   {/* Volumetric inner light */}

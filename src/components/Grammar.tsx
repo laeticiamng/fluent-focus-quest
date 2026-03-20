@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { Artifact } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
+import { useExperience } from "@/experience";
 
 const BRANCH_COLORS = [
   { border: "border-emerald-500/20", text: "text-emerald-400", bg: "bg-emerald-500", glow: "hsl(152 70% 50%)" },
@@ -45,6 +46,7 @@ export function Grammar({ grammarDone, toggleGrammarExercise, addArtifact, artif
   const [showTr, setShowTr] = useState<Record<string, boolean>>({});
   const { showFr: globalTr, toggleFr: toggleGlobalTr } = useTranslationPreference();
   const { celebrate } = useCelebration();
+  const { fireEvent } = useExperience();
   const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
 
   const [atelierOpen, setAtelierOpen] = useState<number | null>(null);
@@ -62,6 +64,7 @@ export function Grammar({ grammarDone, toggleGrammarExercise, addArtifact, artif
     if (selected === correct && !grammarDone[key]) {
       toggleGrammarExercise(key);
       celebrate("grammar");
+      fireEvent("TASK_COMPLETED", { type: "grammar_exercise", key });
     }
   };
 
@@ -96,6 +99,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qui est bien construit. U
     }
 
     celebrate("creation");
+    fireEvent("ARTIFACT_FORGED", { type: "grammar_phrase", category: gramItem.title });
     toast("🌿 Branche grammaticale enracinee ! +20 XP", { description: "L'Arbre grandit..." });
   };
 

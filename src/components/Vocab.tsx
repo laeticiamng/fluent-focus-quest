@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import type { Artifact, ArtifactType } from "@/hooks/useProgress";
 import { XP_VALUES } from "@/hooks/useProgress";
 import { AtmosphericSceneWrapper } from "./immersive/AtmosphericSceneWrapper";
+import { useExperience } from "@/experience";
 
 interface VocabProps {
   addXp: (n: number) => void;
@@ -44,6 +45,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 export function Vocab({ addXp, addQuizScore, toggleHardCard, hardCards, addArtifact, artifacts = [] }: VocabProps) {
   const { celebrate } = useCelebration();
+  const { fireEvent } = useExperience();
   const { response: aiResponse, isLoading: aiLoading, error: aiError, ask: aiAsk, reset: aiReset } = useAICoach();
   const [di, setDi] = useState<number | null>(null);
   const [mode, setMode] = useState<Mode>("list");
@@ -169,6 +171,7 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien forge. Ne di
     }
 
     celebrate("creation");
+    fireEvent("ARTIFACT_FORGED", { type: "phrase_forged", word: card.de });
     toast("🔨 Phrase forgee ! +20 XP", { description: "Une nouvelle brique dans ton mur de maitrise" });
 
     setForgeBrickAnim(true);
@@ -196,7 +199,8 @@ Sois concis (max 80 mots). Commence par reconnaitre ce qu'il a bien forge. Ne di
     const ok = a === correct;
     setQA({ sel: a, correct, ok });
     setQS(s => ({ c: s.c + (ok ? 1 : 0), t: s.t + 1 }));
-    if (ok) { addXp(XP_VALUES.QCM_CORRECT); celebrate("quiz"); }
+    if (ok) { addXp(XP_VALUES.QCM_CORRECT); celebrate("quiz"); fireEvent("QUIZ_CORRECT"); }
+    else { fireEvent("QUIZ_INCORRECT"); }
     setTimeout(() => {
       const total = globalQuiz ? globalCards.length : DECKS[di!].cards.length;
       if (ci < total - 1) {

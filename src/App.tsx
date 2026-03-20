@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CelebrationProvider } from "@/components/CelebrationProvider";
+import { ExperienceProvider, FeedbackLayer, SoundBridge, QualityBridge } from "@/experience";
 import { Component, type ReactNode } from "react";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -97,11 +98,16 @@ const App = () => (
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <CelebrationProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </CelebrationProvider>
+          <ExperienceProvider>
+            <CelebrationProvider>
+              <FeedbackLayer />
+              <SoundBridge />
+              <QualityBridge />
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </CelebrationProvider>
+          </ExperienceProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

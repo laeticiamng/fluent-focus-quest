@@ -65,7 +65,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-5 room-3d"
+        className="relative overflow-hidden rounded-2xl p-5 surface-premium"
         style={{
           background: "linear-gradient(145deg, hsl(210 100% 52% / 0.08), hsl(var(--card)), hsl(38 92% 50% / 0.04))",
           border: "1px solid hsl(210 100% 52% / 0.12)",
@@ -93,7 +93,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="room-3d rounded-2xl p-6"
+        className="surface-premium rounded-2xl p-6"
         style={{ boxShadow: "var(--shadow-3d-md)" }}
       >
         <div className="flex justify-between items-center mb-5">
@@ -125,7 +125,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       </motion.div>
 
       {/* Notes */}
-      <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+      <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <h3 className="text-sm font-bold mb-3">📝 Mon carnet de bord</h3>
         <textarea
           value={notes}
@@ -136,7 +136,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       </div>
 
       {/* Voice Recorder */}
-      <div className="room-3d rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+      <div className="surface-premium rounded-2xl p-5" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
         <h3 className="text-sm font-bold mb-3">🎙️ Studio vocal</h3>
         <p className="text-[11px] text-muted-foreground mb-3">Enregistre, reecoute, perfectionne. Chaque prise est un artefact de progression.</p>
         <VoiceRecorder label="Enregistrement atelier" />
@@ -145,7 +145,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Templates */}
       <h3 className="text-sm font-bold">📄 Templates & Modèles</h3>
       {TEMPLATES.map((tpl, ti) => (
-        <div key={ti} className="room-3d rounded-2xl overflow-hidden" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div key={ti} className="surface-premium rounded-2xl overflow-hidden" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <button
             onClick={() => setOpenTemplate(openTemplate === ti ? null : ti)}
             className="w-full p-4 text-left flex items-center gap-3 hover:bg-secondary/30 transition-colors"
@@ -182,7 +182,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Survival */}
       <h3 className="text-sm font-bold">🆘 Phrases de survie</h3>
       {SURVIVAL.map((cat, ci) => (
-        <div key={ci} className={`room-3d rounded-2xl p-4 border-l-[3px] ${SURV_COLORS[ci].split(" ")[0]}`} style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div key={ci} className={`surface-premium rounded-2xl p-4 border-l-[3px] ${SURV_COLORS[ci].split(" ")[0]}`} style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className={`text-xs font-bold mb-3 ${SURV_COLORS[ci].split(" ")[1]}`}>{cat.cat}</p>
           <div className="space-y-2.5">
             {cat.items.map((p, pi) => (
@@ -198,13 +198,13 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* DO / DON'T */}
       <h3 className="text-sm font-bold">🇨🇭 DO / DON'T Jour J</h3>
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="room-3d rounded-2xl p-4 border-l-[3px] border-success/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div className="surface-premium rounded-2xl p-4 border-l-[3px] border-success/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold text-success mb-2.5">✅ DO</p>
           {["15 min en avance","Serrer la main","Grüezi / Uf Widerluege","Vouvoyer (Sie)","Poser des questions","Remercier chacun","Accepter le café","Contact visuel","Sourire naturel"].map((d, i) => (
             <p key={i} className="text-[10px] leading-[1.6]">{d}</p>
           ))}
         </div>
-        <div className="room-3d rounded-2xl p-4 border-l-[3px] border-primary/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div className="surface-premium rounded-2xl p-4 border-l-[3px] border-primary/20" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold text-primary mb-2.5">❌ DON'T</p>
           {["Jamais en retard","Pas tutoyer","Pas interrompre","Pas critiquer FR vs CH","Pas de téléphone","Pas voix forte","Email merci le soir","Pas bras croisés","Pas mâcher gum"].map((d, i) => (
             <p key={i} className="text-[10px] leading-[1.6]">{d}</p>
@@ -215,7 +215,7 @@ export function Tools({ addXp, cl, toggleChecklist, notes, setNotes, addPomodoro
       {/* Checklist */}
       <h3 className="text-sm font-bold">✅ Checklist Jour J</h3>
       {CHECKLIST.map((cat, catI) => (
-        <div key={catI} className="room-3d rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
+        <div key={catI} className="surface-premium rounded-2xl p-4" style={{ boxShadow: "var(--shadow-3d-sm)" }}>
           <p className="text-xs font-bold mb-3">{cat.cat}</p>
           <div className="space-y-2">
             {cat.items.map((item, itemI) => {
