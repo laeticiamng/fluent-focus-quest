@@ -1,9 +1,9 @@
 // ── Sound Bridge ──
 // Connects the experience event bus to the SoundController.
-// Listens for domain events and triggers the appropriate procedural sounds.
-// Must be rendered inside ExperienceProvider.
+// Listens for domain events and triggers appropriate procedural sounds.
+// Also manages zone ambient drones when sound is enabled.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useExperience } from "../core/experience-store";
 import { experienceEvents } from "../core/experience-events";
 import { soundController, type SoundId } from "./sound-controller";
@@ -22,12 +22,27 @@ const EVENT_SOUND_MAP: Partial<Record<string, SoundId>> = {
   LEVEL_UP: "level_up",
   INTERVIEW_TIMER_LOW: "timer_warning",
   STREAK_CONTINUED: "forge_strike",
+  PHRASE_GATE_SOLVED: "forge_complete",
+  PROTOCOL_ACTIVATED: "unlock_sigil",
+};
+
+// Map atmosphere types to ambient zone sounds
+const ZONE_AMBIENT_MAP: Record<string, string> = {
+  forge: "forge",
+  grammar: "grammar",
+  studio: "studio",
+  clinical: "clinical",
+  laboratory: "clinical",
+  archive: "neutral",
+  aerzterat: "studio",
+  neutral: "neutral",
 };
 
 export function SoundBridge() {
   const { state } = useExperience();
+  const prevZone = useRef<string | null>(null);
 
-  // Sync sound controller enabled state with experience store
+  // Sync sound controller enabled state
   useEffect(() => {
     if (state.soundEnabled) {
       soundController.enable();
@@ -46,6 +61,22 @@ export function SoundBridge() {
     });
     return unsub;
   }, []);
+
+  // Manage zone ambient drones
+  useEffect(() => {
+    if (!state.soundEnabled) return;
+
+    const currentZone = state.atmosphere.type;
+    if (currentZone !== prevZone.current) {
+      prevZone.current = currentZone;
+      const ambientZone = ZONE_AMBIENT_MAP[currentZone] || "neutral";
+      soundController.startAmbient(ambientZone);
+    }
+
+    return () => {
+      soundController.stopAmbient();
+    };
+  }, [state.soundEnabled, state.atmosphere.type]);
 
   return null;
 }

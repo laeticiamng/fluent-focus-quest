@@ -10,7 +10,7 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
 import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, EnergyTrails, AnimatedFogLayers, AtmosphericHeightFog } from "./premium/DecorativeElements";
-import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { PremiumPostProcessing, GodRaySource } from "./premium/PostProcessing";
 import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 import { VortexPortal } from "./premium/VortexPortalShader";
 import { useQualityTier } from "@/hooks/useQualityTier";
@@ -649,6 +649,7 @@ function CameraSetup() {
 export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneProps) {
   const quality = useQualityTier();
   const rig = useMemo(() => getSceneLightingRig("hub"), []);
+  const godRaySunRef = useRef<THREE.Mesh>(null);
   const positions = getPortalPositions(ESCAPE_ZONES.length, 4.8);
 
   const portals: ZonePortalData[] = ESCAPE_ZONES.map((zone, i) => {
@@ -769,12 +770,21 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             <ZonePortal key={portal.id} portal={portal} onNavigate={onNavigate} />
           ))}
 
+          {/* God Ray source — behind the central pillar */}
+          <GodRaySource
+            ref={godRaySunRef}
+            position={[0, 4, -6]}
+            color="#ffeedd"
+            intensity={0.6}
+            radius={1.5}
+          />
+
           {/* Contact shadows */}
           {quality.enableContactShadows && (
             <PremiumShadows y={rig.shadowY} opacity={rig.shadowOpacity} scale={rig.shadowScale} blur={rig.shadowBlur} />
           )}
 
-          {/* Post-processing */}
+          {/* Post-processing with God Rays */}
           <PremiumPostProcessing
             bloomIntensity={0.7}
             bloomThreshold={0.35}
@@ -784,6 +794,12 @@ export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneP
             qualityTier={quality.tier}
             aoRadius={0.5}
             aoIntensity={1.2}
+            godRaysSunRef={godRaySunRef}
+            godRaysEnabled={true}
+            godRaysDensity={0.96}
+            godRaysDecay={0.93}
+            godRaysWeight={0.3}
+            godRaysExposure={0.55}
           />
 
           <OrbitControls
