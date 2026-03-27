@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { type ContextBundle, buildExtendedContext } from "@/services/contextBundle";
+import { type ContextBundle } from "@/services/contextBundle";
+import { supabase } from "@/integrations/supabase/client";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,10 +11,10 @@ interface PdfGeneratorProps {
 type PdfType = "resume" | "preparation" | "conversations" | "detail" | "all";
 
 const PDF_TYPES: { id: PdfType; label: string; icon: string; desc: string }[] = [
-  { id: "resume", label: "Resume plateforme", icon: "📋", desc: "Vue synthetique" },
-  { id: "preparation", label: "Notes de preparation IA", icon: "🧠", desc: "Indices + contexte" },
-  { id: "conversations", label: "Synthese conversations", icon: "💬", desc: "Historique chat" },
-  { id: "detail", label: "Contexte detaille", icon: "📖", desc: "Tout le contenu" },
+  { id: "resume", label: "Résumé plateforme", icon: "📋", desc: "Vue synthétique" },
+  { id: "preparation", label: "Notes de préparation IA", icon: "🧠", desc: "Indices + contexte" },
+  { id: "conversations", label: "Synthèse conversations", icon: "💬", desc: "Historique chat" },
+  { id: "detail", label: "Contexte détaillé", icon: "📖", desc: "Tout le contenu" },
   { id: "all", label: "Tout en un PDF", icon: "📦", desc: "Export complet" },
 ];
 
@@ -23,44 +24,47 @@ export function PdfGenerator({ bundle }: PdfGeneratorProps) {
   const generatePdf = async (type: PdfType) => {
     setGenerating(type);
     try {
-      let content = "";
-      let filename = "";
+      const { data, error } = await supabase.functions.invoke("generate-pdf", {
+        body: {
+          type,
+          bundle: {
+            projectSummary: bundle.projectSummary,
+            preparationNotes: bundle.preparationNotes,
+            platformElements: bundle.platformElements,
+            conversationSummaries: bundle.conversationSummaries,
+            uploadedFiles: bundle.uploadedFiles,
+            aiHints: bundle.aiHints,
+            generatedAt: bundle.generatedAt,
+            language: bundle.language,
+          },
+          language: bundle.language,
+        },
+      });
 
-      switch (type) {
-        case "resume":
-          content = `RESUME PLATEFORME\n${"=".repeat(50)}\n\n${bundle.projectSummary}\n\nGenere le: ${new Date().toLocaleDateString("fr-FR")}`;
-          filename = "01_resume_plateforme.txt";
-          break;
-        case "preparation":
-          content = `NOTES DE PREPARATION IA\n${"=".repeat(50)}\n\n${bundle.preparationNotes}\n\nINDICES IA:\n${bundle.aiHints.map(h => `• ${h}`).join("\n")}`;
-          filename = "02_notes_preparation_ia.txt";
-          break;
-        case "conversations":
-          content = `SYNTHESE CONVERSATIONS\n${"=".repeat(50)}\n\n${bundle.conversationSummaries.length > 0
-            ? bundle.conversationSummaries.map(c => `## ${c.title}\n${c.summary}`).join("\n\n")
-            : "Aucune conversation enregistree."}`;
-          filename = "03_synthese_conversations.txt";
-          break;
-        case "detail":
-        case "all":
-          content = buildExtendedContext(bundle);
-          filename = type === "all" ? "export_complet_plateforme.txt" : "04_contexte_detaille.txt";
-          break;
-      }
+      if (error) throw error;
 
-      // Generate downloadable text file (PDF generation would need server-side)
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      // data is an ArrayBuffer or Blob from the edge function
+      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
+
+      const filenameMap: Record<PdfType, string> = {
+        resume: "01_resume_plateforme.pdf",
+        preparation: "02_notes_preparation_ia.pdf",
+        conversations: "03_synthese_conversations.pdf",
+        detail: "04_contexte_detaille.pdf",
+        all: "export_complet_plateforme.pdf",
+      };
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = filenameMap[type];
       a.click();
       URL.revokeObjectURL(url);
 
-      toast.success(`${filename} telecharge`);
+      toast.success(`${filenameMap[type]} téléchargé`);
     } catch (err) {
       console.error("PDF generation error:", err);
-      toast.error("Erreur lors de la generation");
+      toast.error("Erreur lors de la génération du PDF");
     } finally {
       setGenerating(null);
     }
@@ -76,7 +80,10 @@ export function PdfGenerator({ bundle }: PdfGeneratorProps) {
     >
       <div className="flex items-center gap-2">
         <Download className="w-3.5 h-3.5 text-primary" />
-        <span className="text-[10px] font-bold">Exporter en fichier</span>
+        <span className="text-[10px] font-bold">Exporter en PDF</span>
+        <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+          PDF formaté
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-1.5">
