@@ -1,12 +1,10 @@
-import "https://esm.sh/jspdf@2.5.2";
+import { jsPDF } from "npm:jspdf@2.5.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-declare const jspdf: { jsPDF: any };
 
 interface ContentBlock {
   id: string;
@@ -41,7 +39,6 @@ const COLORS = {
 };
 
 function createFullContentPdf(blocks: ContentBlock[], groupTitle: string, groupIndex: number, totalGroups: number): Uint8Array {
-  const { jsPDF } = jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const pageH = 297;
@@ -185,7 +182,6 @@ function createFullContentPdf(blocks: ContentBlock[], groupTitle: string, groupI
 
 // Legacy: summary-based PDF (kept for backward compat)
 function createSummaryPdf(req: PdfRequest): Uint8Array {
-  const { jsPDF } = jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const lang = req.language || "de";
   const bundle = req.bundle;
