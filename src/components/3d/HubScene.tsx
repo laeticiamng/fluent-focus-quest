@@ -649,6 +649,7 @@ function CameraSetup() {
 export function HubScene({ escapeZoneStatus, onNavigate, sigilCount }: HubSceneProps) {
   const quality = useQualityTier();
   const rig = useMemo(() => getSceneLightingRig("hub"), []);
+  const godRaySunRef = useRef<THREE.Mesh>(null);
   const positions = getPortalPositions(ESCAPE_ZONES.length, 4.8);
 
   const portals: ZonePortalData[] = ESCAPE_ZONES.map((zone, i) => {
