@@ -5,7 +5,7 @@
 import { PROG, DECKS, IVW, SURVIVAL, GRAM, SCENARIOS, CHECKLIST, MOTIV, SUISSE_AVANTAGES, OBJECTIF, TEMPLATES } from "@/data/content";
 import { INTERVIEW_ZONES } from "@/data/interviewZones";
 import { ESCAPE_ZONES, CENTRAL_MISSION, NARRATIVE } from "@/data/escapeGame";
-import { INTERVIEW_PUZZLES, ESCAPE_ROOM_PUZZLES } from "@/data/puzzleEngine";
+import { getAllPuzzles } from "@/data/puzzleEngine";
 import type { Artifact } from "@/hooks/useProgress";
 
 export interface FullContentBlock {
