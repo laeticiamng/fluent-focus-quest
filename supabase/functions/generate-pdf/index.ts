@@ -39,7 +39,6 @@ const COLORS = {
 };
 
 function createFullContentPdf(blocks: ContentBlock[], groupTitle: string, groupIndex: number, totalGroups: number): Uint8Array {
-  const { jsPDF } = jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const pageH = 297;
@@ -183,7 +182,6 @@ function createFullContentPdf(blocks: ContentBlock[], groupTitle: string, groupI
 
 // Legacy: summary-based PDF (kept for backward compat)
 function createSummaryPdf(req: PdfRequest): Uint8Array {
-  const { jsPDF } = jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const lang = req.language || "de";
   const bundle = req.bundle;
