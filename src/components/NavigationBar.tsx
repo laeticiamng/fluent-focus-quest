@@ -6,7 +6,7 @@ import { LogOut } from "lucide-react";
 import { TranslationToggle } from "@/components/translation";
 import { RankBadge } from "@/components/XPBar";
 
-export type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard" | "simulator";
+export type Tab = "dash" | "motiv" | "today" | "vocab" | "gram" | "iv" | "sim" | "tools" | "cal" | "stats" | "atelier" | "portfolio" | "questmap" | "hq" | "puzzles" | "lazarus" | "achievements" | "leaderboard" | "simulator" | "conversate";
 
 export const NAV_PRIMARY: { id: Tab; icon: string; label: string }[] = [
   { id: "dash", icon: "🏠", label: "Mission" },
@@ -18,6 +18,7 @@ export const NAV_PRIMARY: { id: Tab; icon: string; label: string }[] = [
 ];
 
 export const NAV_SECONDARY: { id: Tab; icon: string; label: string }[] = [
+  { id: "conversate", icon: "✨", label: "Conversate" },
   { id: "questmap", icon: "🗺️", label: "Carte" },
   { id: "atelier", icon: "⚗️", label: "Labo" },
   { id: "puzzles", icon: "🧩", label: "Enigmes" },
@@ -48,6 +49,7 @@ export const TAB_ATMOSPHERE: Record<string, "forge" | "grammar" | "studio" | "cl
   lazarus: "neutral",
   achievements: "neutral",
   leaderboard: "neutral",
+  conversate: "neutral",
   tools: "neutral",
   stats: "neutral",
   cal: "neutral",
