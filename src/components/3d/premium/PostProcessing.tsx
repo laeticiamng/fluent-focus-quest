@@ -1,20 +1,39 @@
-import { EffectComposer, Bloom, Vignette, ChromaticAberration, DepthOfField, N8AO } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { useRef, forwardRef } from "react";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration, DepthOfField, N8AO, GodRays } from "@react-three/postprocessing";
+import { BlendFunction, KernelSize } from "postprocessing";
 import { Vector2 } from "three";
+import * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
 import type { QualityTier } from "@/hooks/useQualityTier";
 
 /**
- * Premium post-processing — cinematic bloom + chromatic aberration + SSAO + depth of field + vignette.
+ * God Ray light source — an emissive sphere placed behind the scene.
+ * Must be transparent and NOT write to depth buffer for GodRays to work.
+ */
+export const GodRaySource = forwardRef<THREE.Mesh, {
+  position?: [number, number, number];
+  color?: string;
+  intensity?: number;
+  radius?: number;
+}>(({ position = [0, 5, -8], color = "#ffeedd", intensity = 1.0, radius = 1.2 }, ref) => {
+  return (
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[radius, 16, 16]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={intensity * 0.4}
+      />
+    </mesh>
+  );
+});
+GodRaySource.displayName = "GodRaySource";
+
+/**
+ * Premium post-processing — cinematic bloom + chromatic aberration + SSAO + 
+ * God Rays + depth of field + vignette.
+ * 
  * Tier-aware: automatically scales effects based on device capabilities.
- *
- * Calibrated for readability and platform-grade polish:
- * - Bloom supports emissive accents without veiling the image
- * - AO reinforces contact/depth without muddying dark regions
- * - DOF enhances composition, never obscures interactables
- * - Chromatic aberration is near-imperceptible
- * - Vignette frames the scene without crushing edges
- *
- * qualityTier overrides legacy quality prop when provided.
  */
 export function PremiumPostProcessing({
   bloomIntensity = 0.7,
@@ -27,6 +46,12 @@ export function PremiumPostProcessing({
   qualityTier,
   aoRadius = 0.45,
   aoIntensity = 1.2,
+  godRaysSunRef,
+  godRaysEnabled = true,
+  godRaysDensity = 0.96,
+  godRaysDecay = 0.93,
+  godRaysWeight = 0.3,
+  godRaysExposure = 0.55,
 }: {
   bloomIntensity?: number;
   bloomThreshold?: number;
@@ -38,35 +63,36 @@ export function PremiumPostProcessing({
   qualityTier?: QualityTier;
   aoRadius?: number;
   aoIntensity?: number;
+  godRaysSunRef?: React.RefObject<THREE.Mesh>;
+  godRaysEnabled?: boolean;
+  godRaysDensity?: number;
+  godRaysDecay?: number;
+  godRaysWeight?: number;
+  godRaysExposure?: number;
 }) {
-  // Resolve effective quality from tier or legacy prop
   const isHigh = qualityTier ? qualityTier === "high" : quality === "high";
   const isMobile = qualityTier === "mobile";
 
   const enableSSAO = isHigh;
   const enableDOF = isHigh && depthOfField;
   const enableChroma = !isMobile && chromaticAberration > 0;
+  const enableGodRays = isHigh && godRaysEnabled && godRaysSunRef?.current;
 
-  // Scale bloom for lower tiers — avoid bloom veiling on weaker devices
   const effectiveBloom = isMobile
     ? bloomIntensity * 0.5
     : qualityTier === "medium"
       ? bloomIntensity * 0.75
       : bloomIntensity;
 
-  // Scale vignette — lighter on mobile to preserve edge readability
   const effectiveVignette = isMobile
     ? vignetteOpacity * 0.6
     : qualityTier === "medium"
       ? vignetteOpacity * 0.85
       : vignetteOpacity;
 
-  // Clamp chromatic aberration to near-imperceptible levels
   const effectiveChroma = Math.min(chromaticAberration, 0.0006);
 
-  // AO calibration — lower intensity to avoid dirtying dark regions
   const effectiveAOIntensity = aoIntensity * 0.85;
-  const effectiveAORadius = aoRadius;
 
   return (
     <EffectComposer>
@@ -78,11 +104,25 @@ export function PremiumPostProcessing({
       />
       {enableSSAO && (
         <N8AO
-          aoRadius={effectiveAORadius}
+          aoRadius={aoRadius}
           intensity={effectiveAOIntensity}
           distanceFalloff={0.9}
           quality="medium"
           halfRes
+        />
+      )}
+      {enableGodRays && godRaysSunRef.current && (
+        <GodRays
+          sun={godRaysSunRef.current}
+          blendFunction={BlendFunction.SCREEN}
+          samples={isMobile ? 30 : 50}
+          density={godRaysDensity}
+          decay={godRaysDecay}
+          weight={godRaysWeight}
+          exposure={godRaysExposure}
+          clampMax={1}
+          kernelSize={KernelSize.SMALL}
+          blur
         />
       )}
       {enableChroma && (
