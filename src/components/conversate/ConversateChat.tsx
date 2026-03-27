@@ -2,10 +2,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
-import { buildContextBundle, buildCompactContext, type ContextBundle, type UploadedFile } from "@/services/contextBundle";
+import { buildContextBundle, buildCompactContext, type ContextBundle, type UploadedFile, type ContextLanguage } from "@/services/contextBundle";
 import { ContextPanel } from "./ContextPanel";
 import { PdfUploader } from "./PdfUploader";
-import { Send, Sparkles, FileText, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { PdfGenerator } from "./PdfGenerator";
+import { Send, Sparkles, FileText, ChevronDown, ChevronUp, Loader2, Download, Globe } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,6 +15,11 @@ interface ChatMessage {
   content: string;
   timestamp: string;
 }
+
+const LANG_OPTIONS: { id: ContextLanguage; label: string; flag: string }[] = [
+  { id: "de", label: "Deutsch", flag: "🇩🇪" },
+  { id: "fr", label: "Français", flag: "🇫🇷" },
+];
 
 export function ConversateChat() {
   const { user } = useAuth();
@@ -24,8 +30,10 @@ export function ConversateChat() {
   const [contextBundle, setContextBundle] = useState<ContextBundle | null>(null);
   const [showContext, setShowContext] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [contextInjected, setContextInjected] = useState(false);
+  const [language, setLanguage] = useState<ContextLanguage>("de");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,11 +61,20 @@ export function ConversateChat() {
       user?.email,
       [],
       uploadedFiles,
+      language,
     );
     setContextBundle(bundle);
     setContextInjected(true);
     setShowContext(true);
-  }, [progress, user, uploadedFiles]);
+  }, [progress, user, uploadedFiles, language]);
+
+  // Rebuild context when language changes if already injected
+  useEffect(() => {
+    if (contextInjected) {
+      handleBuildContext();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -79,6 +96,7 @@ export function ConversateChat() {
         body: {
           messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
           contextBundle: compactCtx,
+          language,
         },
       });
 
@@ -86,7 +104,7 @@ export function ConversateChat() {
 
       const assistantMessage: ChatMessage = {
         role: "assistant",
-        content: data.message || "Erreur de reponse.",
+        content: data.message || "Fehler bei der Antwort.",
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, assistantMessage]);
@@ -94,7 +112,9 @@ export function ConversateChat() {
       console.error("Chat error:", err);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Desole, une erreur est survenue. Reessaie.",
+        content: language === "de"
+          ? "Entschuldigung, ein Fehler ist aufgetreten. Bitte versuche es erneut."
+          : "Desole, une erreur est survenue. Reessaie.",
         timestamp: new Date().toISOString(),
       }]);
     } finally {
@@ -109,6 +129,8 @@ export function ConversateChat() {
     }
   };
 
+  const langInfo = LANG_OPTIONS.find(l => l.id === language)!;
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -118,22 +140,63 @@ export function ConversateChat() {
           <h2 className="text-sm font-black tracking-tight">Conversate</h2>
           <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">IA</span>
         </div>
-        <div className="flex gap-1.5">
+
+        {/* Language selector */}
+        <div className="flex items-center gap-1.5">
+          {LANG_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setLanguage(opt.id)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                language === opt.id
+                  ? "bg-primary/15 text-primary border border-primary/20"
+                  : "bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted/80"
+              }`}
+            >
+              <span>{opt.flag}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Language indicator */}
+      <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+        <Globe className="w-3 h-3" />
+        <span>
+          {language === "de"
+            ? "Kontextsprache: Deutsch · KI antwortet auf Deutsch"
+            : "Langue du contexte: Français · L'IA répond en français"}
+        </span>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-1.5 flex-wrap">
+        <button
+          onClick={handleBuildContext}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+        >
+          <Sparkles className="w-3 h-3" />
+          {contextInjected
+            ? (language === "de" ? "Aktualisieren" : "Actualiser")
+            : (language === "de" ? "Kontext abrufen" : "Recuperer le contexte")}
+        </button>
+        <button
+          onClick={() => setShowUploader(!showUploader)}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-muted hover:bg-muted/80 transition-colors"
+        >
+          <FileText className="w-3 h-3" />
+          PDF ({uploadedFiles.length}/5)
+        </button>
+        {contextBundle && (
           <button
-            onClick={handleBuildContext}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
-          >
-            <Sparkles className="w-3 h-3" />
-            {contextInjected ? "Actualiser" : "Recuperer le contexte"}
-          </button>
-          <button
-            onClick={() => setShowUploader(!showUploader)}
+            onClick={() => setShowExport(!showExport)}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-muted hover:bg-muted/80 transition-colors"
           >
-            <FileText className="w-3 h-3" />
-            PDF ({uploadedFiles.length}/5)
+            <Download className="w-3 h-3" />
+            Export
           </button>
-        </div>
+        )}
       </div>
 
       {/* Context injection indicator */}
@@ -150,14 +213,16 @@ export function ConversateChat() {
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-[10px] text-muted-foreground">
-              Contexte injecte: {contextBundle?.platformElements.length} elements | {contextBundle?.aiHints.length} indices
+              {langInfo.flag} {language === "de" ? "Kontext injiziert" : "Contexte injecte"}: {contextBundle?.platformElements.length}{" "}
+              {language === "de" ? "Elemente" : "elements"} | {contextBundle?.aiHints.length}{" "}
+              {language === "de" ? "Hinweise" : "indices"}
             </span>
           </div>
           <button
             onClick={() => setShowContext(!showContext)}
             className="text-[10px] text-primary font-bold flex items-center gap-0.5"
           >
-            {showContext ? "Masquer" : "Voir"}
+            {showContext ? (language === "de" ? "Ausblenden" : "Masquer") : (language === "de" ? "Anzeigen" : "Voir")}
             {showContext ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         </motion.div>
@@ -194,6 +259,19 @@ export function ConversateChat() {
         )}
       </AnimatePresence>
 
+      {/* PDF export */}
+      <AnimatePresence>
+        {showExport && contextBundle && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <PdfGenerator bundle={contextBundle} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Messages */}
       <div
         className="rounded-2xl overflow-hidden"
@@ -208,9 +286,13 @@ export function ConversateChat() {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <Sparkles className="w-8 h-8 text-primary/30 mb-3" />
-            <p className="text-sm font-bold text-foreground/70">Bienvenue dans Conversate</p>
+            <p className="text-sm font-bold text-foreground/70">
+              {language === "de" ? "Willkommen bei Conversate" : "Bienvenue dans Conversate"}
+            </p>
             <p className="text-[10px] text-muted-foreground mt-1 max-w-xs">
-              Clique sur "Recuperer le contexte" pour enrichir l'IA avec tes donnees de preparation, puis pose tes questions.
+              {language === "de"
+                ? 'Klicke auf "Kontext abrufen", um die KI mit deinen Vorbereitungsdaten anzureichern, dann stelle deine Fragen.'
+                : 'Clique sur "Recuperer le contexte" pour enrichir l\'IA avec tes donnees de preparation, puis pose tes questions.'}
             </p>
           </div>
         ) : (
@@ -259,7 +341,7 @@ export function ConversateChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Pose ta question..."
+          placeholder={language === "de" ? "Stelle deine Frage..." : "Pose ta question..."}
           rows={1}
           className="flex-1 bg-transparent text-[11px] resize-none outline-none min-h-[32px] max-h-[100px] py-1.5 px-2 text-foreground placeholder:text-muted-foreground"
           style={{ lineHeight: "1.5" }}
