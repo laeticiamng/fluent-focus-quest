@@ -47,7 +47,7 @@ interface DashboardViewProps {
     totalCreations: number;
     pomodoroCount: number;
     addXp: (n: number) => void;
-    toggleTask: (id: string) => void;
+    toggleTask: (date: string, idx: number) => void;
     solveGate: (id: string, xp: number) => void;
   };
   onNavigate: (tab: Tab) => void;
