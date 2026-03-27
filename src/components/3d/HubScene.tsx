@@ -10,7 +10,7 @@ import { ESCAPE_ZONES, ZONE_TAB_MAP } from "@/data/escapeGame";
 import { PremiumLighting, PremiumShadows } from "./premium/PremiumLighting";
 import { PremiumFloor } from "./premium/PremiumFloor";
 import { DecorativePillars, FloatingRings, AmbientParticles, BackgroundStructures, SuspendedArcs, FloatingArch, EnergyBeams, CinematicIntro, PulsingFloorVeins, HolographicDistortion, Fireflies, EnergyTrails, AnimatedFogLayers, AtmosphericHeightFog } from "./premium/DecorativeElements";
-import { PremiumPostProcessing } from "./premium/PostProcessing";
+import { PremiumPostProcessing, GodRaySource } from "./premium/PostProcessing";
 import { CinematicCameraBreathing } from "./premium/CinematicCamera";
 import { VortexPortal } from "./premium/VortexPortalShader";
 import { useQualityTier } from "@/hooks/useQualityTier";
