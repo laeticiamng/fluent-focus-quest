@@ -36,6 +36,7 @@ const CalendarView = lazy(() => import("@/components/CalendarView").then(m => ({
 const VisionBoard = lazy(() => import("@/components/VisionBoard").then(m => ({ default: m.VisionBoard })));
 const DayView = lazy(() => import("@/components/DayView").then(m => ({ default: m.DayView })));
 const TodayPlan = lazy(() => import("@/components/TodayPlan").then(m => ({ default: m.TodayPlan })));
+const ConversateChat = lazy(() => import("@/components/conversate/ConversateChat").then(m => ({ default: m.ConversateChat })));
 
 // Lazy 3D scenes
 const MapScene = lazy(() => import("@/components/3d/MapScene").then(m => ({ default: m.MapScene })));
@@ -562,6 +563,8 @@ const Index = () => {
             )}
 
             {tab === "cal" && <TabSuspense><CalendarView done={progress.done} toggleTask={progress.toggleTask} /></TabSuspense>}
+
+            {tab === "conversate" && <TabSuspense><ConversateChat /></TabSuspense>}
 
           </TabErrorBoundary>
         </TransitionDirector>
