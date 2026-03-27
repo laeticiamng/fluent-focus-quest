@@ -1,7 +1,7 @@
 // ── Context Bundle Aggregation Service ──
 // Collects, normalizes, and structures platform data for AI context injection
 
-import { PROG, DECKS, GERMAN_TEXTS } from "@/data/content";
+import { PROG, DECKS } from "@/data/content";
 import { INTERVIEW_ZONES, type InterviewZone } from "@/data/interviewZones";
 import { ESCAPE_ZONES, CENTRAL_MISSION, NARRATIVE } from "@/data/escapeGame";
 import { ZONES, DAILY_CHAIN_STEPS, CREATION_BADGES, type Artifact, type ZoneId } from "@/hooks/useProgress";
