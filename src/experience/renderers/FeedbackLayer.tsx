@@ -10,27 +10,27 @@ const MOTION_VARIANTS = {
   pulse: {
     initial: { scale: 1 },
     animate: { scale: [1, 1.015, 0.99, 1.005, 1] },
-    transition: { duration: 0.6, ease: "easeInOut" },
+    transition: { duration: 0.6, ease: "easeInOut" as const },
   },
   shake: {
     initial: { x: 0 },
     animate: { x: [0, -4, 4, -3, 3, -1, 1, 0] },
-    transition: { duration: 0.5, ease: "easeInOut" },
+    transition: { duration: 0.5, ease: "easeInOut" as const },
   },
   float: {
     initial: { y: 0 },
     animate: { y: [0, -6, 0] },
-    transition: { duration: 1.2, ease: "easeInOut" },
+    transition: { duration: 1.2, ease: "easeInOut" as const },
   },
   expand: {
     initial: { scale: 1, opacity: 1 },
     animate: { scale: [1, 1.03, 1], opacity: [1, 0.95, 1] },
-    transition: { duration: 0.8, ease: "easeOut" },
+    transition: { duration: 0.8, ease: "easeOut" as const },
   },
   contract: {
     initial: { scale: 1, opacity: 1 },
     animate: { scale: [1, 0.97, 1], opacity: [1, 0.9, 1] },
-    transition: { duration: 0.6, ease: "easeInOut" },
+    transition: { duration: 0.6, ease: "easeInOut" as const },
   },
 };
 
