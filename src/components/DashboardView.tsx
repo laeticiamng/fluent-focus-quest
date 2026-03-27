@@ -19,7 +19,7 @@ import { TodayPlan } from "@/components/TodayPlan";
 import { MissionTimer } from "@/components/MissionTimer";
 import { motion } from "framer-motion";
 import type { Tab } from "@/components/NavigationBar";
-import type { Artifact } from "@/hooks/useProgress";
+import type { Artifact, InventoryItem } from "@/hooks/useProgress";
 
 const HubScene = lazy(() => import("@/components/3d/HubScene").then(m => ({ default: m.HubScene })));
 const Inventory3DScene = lazy(() => import("@/components/3d/Inventory3DScene").then(m => ({ default: m.Inventory3DScene })));
@@ -31,7 +31,7 @@ interface DashboardViewProps {
     artifacts: Artifact[];
     escapeState: {
       solvedRooms: string[];
-      inventory: string[];
+      inventory: InventoryItem[];
       discoveredRooms: string[];
       sigilsCollected: string[];
       newEscapeEvents: string[];
