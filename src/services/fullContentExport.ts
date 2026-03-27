@@ -166,7 +166,7 @@ export function extractFullPlatformContent(
   }
 
   // ═══ 10. PUZZLES COMPLETS ═══
-  const allPuzzles = [...(INTERVIEW_PUZZLES || []), ...(ESCAPE_ROOM_PUZZLES || [])];
+  const allPuzzles = getAllPuzzles();
   if (allPuzzles.length > 0) {
     blocks.push({
       id: nextId(),
