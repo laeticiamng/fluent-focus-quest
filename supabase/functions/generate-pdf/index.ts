@@ -1,12 +1,10 @@
-import "https://esm.sh/jspdf@2.5.2";
+import { jsPDF } from "npm:jspdf@2.5.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-declare const jspdf: { jsPDF: any };
 
 interface ContentBlock {
   id: string;
